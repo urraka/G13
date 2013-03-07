@@ -1,0 +1,12 @@
+# general
+
+*.sublime-workspace
+*.suo
+*.vcxproj.user
+
+# directories
+
+bin/
+dep/packages/
+proj/vc10/Debug/
+proj/vc10/Release/
