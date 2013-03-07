@@ -10,3 +10,14 @@ bin/
 dep/packages/
 proj/vc10/Debug/
 proj/vc10/Release/
+
+# OS generated files
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
