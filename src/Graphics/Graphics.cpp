@@ -20,11 +20,13 @@ Graphics::~Graphics()
 
 bool Graphics::init()
 {
-	if (glewInit() != GLEW_OK)
-	{
-		error_log("Error initializing glew.");
-		return false;
-	}
+	#if !defined(IOS)
+		if (glewInit() != GLEW_OK)
+		{
+			error_log("Error initializing glew.");
+			return false;
+		}
+	#endif
 
 	GLint status;
 
