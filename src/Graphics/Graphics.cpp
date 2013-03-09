@@ -39,21 +39,19 @@ bool Graphics::init()
 	const char *vertSource =
 		#if defined(IOS)
 			"#version 100\n"
-			"attribute vec2 position;"
-			"varying vec2 pos;"
-			"void main() {"
-			"	pos = mat2(0, -1, 1, 0) * position;"
-			"	gl_Position = vec4(pos, 0.0, 1.0);"
-			"}";
 		#else
 			"#version 110\n"
+		#endif
 			"attribute vec2 position;"
 			"varying vec2 pos;"
 			"void main() {"
+		#if defined(IOS)
+			"	pos = mat2(0, -1, 1, 0) * position;" // rotate 90° for landscape mode
+		#else
 			"	pos = position;"
-			"	gl_Position = vec4(position, 0.0, 1.0);"
-			"}";
 		#endif
+			"	gl_Position = vec4(pos, 0.0, 1.0);"
+			"}";
 
 	glShaderSource(vertShader, 1, &vertSource, 0);
 	glCompileShader(vertShader);
@@ -75,23 +73,17 @@ bool Graphics::init()
 			"precision mediump float;"
 			"uniform float time;"
 			"varying lowp vec2 pos;"
-			"void main() {"
-			"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
-			"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
-			"	float g = mix(r, b, r * b);"
-			"	gl_FragColor = vec4(vec3(r, g, b), 1.0);"
-			"}";
 		#else
 			"#version 110\n"
 			"uniform float time;"
 			"varying vec2 pos;"
+		#endif
 			"void main() {"
 			"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
 			"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
 			"	float g = mix(r, b, r * b);"
 			"	gl_FragColor = vec4(vec3(r, g, b), 1.0);"
 			"}";
-		#endif
 
 	glShaderSource(fragShader, 1, &fragSource, 0);
 	glCompileShader(fragShader);

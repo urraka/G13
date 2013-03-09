@@ -52,9 +52,16 @@ bool Window::init(bool fullscreen)
 	return true;
 }
 
-void Window::setTitle(const char *title)
+void Window::title(const char *title)
 {
 	glfwSetWindowTitle(title);
+}
+
+ivec2 Window::size()
+{
+	int w, h;
+	glfwGetWindowSize(&w, &h);
+	return ivec2(w, h);
 }
 
 void Window::display()

@@ -27,14 +27,21 @@ bool Game::init()
 	events = new Events();
 	graphics = new Graphics();
 
-	if (!window->init(false))
-		return false;
+	// iOS already has the view and OpenGL context created by now
+	#if !defined(IOS)
+		if (!window->init(false))
+			return false;
+
+		window->title("G13");
+		viewSize = window->size();
+	#endif
+
+	events->init();
 
 	if (!graphics->init())
 		return false;
 
-	events->init();
-	window->setTitle("G13");
+	graphics->viewport(viewSize.x, viewSize.y);
 
 	return true;
 }
@@ -70,7 +77,8 @@ void Game::input()
 				break;
 
 			case Event::Resize:
-				graphics->viewport(event.size.width, event.size.height);
+				viewSize = ivec2(event.size.width, event.size.height);
+				graphics->viewport(viewSize.x, viewSize.y);
 				break;
 
 			default:
@@ -118,13 +126,16 @@ void Game::quit()
 	quit_ = true;
 }
 
-void Game::loop()
-{
-	while (!quit_)
+#if !defined(IOS)
+	// no loop in iOS, instead draw, input, update will be called by a callback hooked up in ios.mm
+	void Game::loop()
 	{
-		this->draw();
-		this->input();
-		this->update();
-		window->display();
+		while (!quit_)
+		{
+			this->draw();
+			this->input();
+			this->update();
+			window->display();
+		}
 	}
-}
+#endif

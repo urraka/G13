@@ -6,7 +6,7 @@ public:
 	~Window();
 
 	bool init(bool fullscreen = true);
-	void setTitle(const char *title);
-
+	void title(const char *title);
+	ivec2 size();
 	void display();
 };

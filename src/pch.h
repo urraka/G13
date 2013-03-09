@@ -12,5 +12,9 @@
 
 #include <stdint.h>
 #include <iostream>
+#include <glm/glm.hpp>
 
 #define error_log(s) (std::cerr << s << std::endl)
+
+using glm::vec2;
+using glm::ivec2;

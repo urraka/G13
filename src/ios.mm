@@ -66,13 +66,15 @@
 	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
 	game.init();
-	game.graphics->viewport(self.frame.size.width, self.frame.size.height);
+	game.viewSize = ivec2(self.frame.size.width, self.frame.size.height);
 
 	return self;
 }
 
 - (void)dealloc
 {
+	game.terminate();
+
 	[context_ release];
 	context_ = nil;
 	[super dealloc];
