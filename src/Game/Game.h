@@ -17,12 +17,13 @@ public:
 	void loop();
 
 	Events *events;
-	Window *window;
 	Graphics *graphics;
 
 	ivec2 viewSize;
 
 private:
+	Window *window_;
+
 	// all timing stuff in microseconds
 	uint64_t currentTime_;
 	uint64_t timeAccumulator_;

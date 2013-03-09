@@ -1,5 +1,6 @@
 #pragma once
 
+#if !defined(IOS)
 class Window
 {
 public:
@@ -10,3 +11,4 @@ public:
 	ivec2 size();
 	void display();
 };
+#endif

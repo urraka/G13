@@ -69,13 +69,4 @@ void Window::display()
 	glfwSwapBuffers();
 }
 
-#else
-
-#include <System/Window.h>
-
-Window::~Window() {}
-bool Window::init(bool) { return true; }
-void Window::setTitle(const char *) {}
-void Window::display() {}
-
 #endif

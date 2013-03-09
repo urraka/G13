@@ -7,7 +7,7 @@
 #include <Game/Game.h>
 
 Game::Game()
-	:	window(0),
+	:	window_(0),
 		graphics(0),
 		events(0)
 {
@@ -23,17 +23,18 @@ bool Game::init()
 	fpsTimer_ = 0;
 	fps_ = 0;
 
-	window = new Window();
 	events = new Events();
 	graphics = new Graphics();
 
 	// iOS already has the view and OpenGL context created by now
 	#if !defined(IOS)
-		if (!window->init(false))
+		window_ = new Window();
+
+		if (!window_->init(false))
 			return false;
 
-		window->title("G13");
-		viewSize = window->size();
+		window_->title("G13");
+		viewSize = window_->size();
 	#endif
 
 	events->init();
@@ -50,11 +51,14 @@ void Game::terminate()
 {
 	delete graphics;
 	delete events;
-	delete window;
+
+	#if !defined(IOS)
+		delete window_;
+	#endif
 
 	graphics = 0;
 	events = 0;
-	window = 0;
+	window_ = 0;
 }
 
 void Game::draw()
@@ -135,7 +139,7 @@ void Game::quit()
 			this->draw();
 			this->input();
 			this->update();
-			window->display();
+			window_->display();
 		}
 	}
 #endif
