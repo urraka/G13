@@ -302,7 +302,10 @@
 				GCC_PREFIX_HEADER = ../../src/pch.h;
 				GCC_PREPROCESSOR_DEFINITIONS = IPHONE;
 				GCC_VERSION = "";
-				HEADER_SEARCH_PATHS = ../../src;
+				HEADER_SEARCH_PATHS = (
+					../../src,
+					../../dep/include,
+				);
 				INFOPLIST_FILE = "G13/G13-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -317,7 +320,10 @@
 				GCC_PREFIX_HEADER = ../../src/pch.h;
 				GCC_PREPROCESSOR_DEFINITIONS = IPHONE;
 				GCC_VERSION = "";
-				HEADER_SEARCH_PATHS = ../../src;
+				HEADER_SEARCH_PATHS = (
+					../../src,
+					../../dep/include,
+				);
 				INFOPLIST_FILE = "G13/G13-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
