@@ -66,7 +66,7 @@
 	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
 	game.init();
-	game.graphics->viewport(0, 0, self.frame.size.width, self.frame.size.height);
+	game.graphics->viewport(self.frame.size.width, self.frame.size.height);
 
 	return self;
 }
