@@ -54,6 +54,7 @@ void Game::draw()
 {
 	graphics->clear();
 	graphics->test(Clock::toSeconds<float>(time_ + timeAccumulator_));
+	fps_++;
 }
 
 void Game::input()
@@ -124,9 +125,6 @@ void Game::loop()
 		this->draw();
 		this->input();
 		this->update();
-
 		window->display();
-
-		fps_++;
 	}
 }

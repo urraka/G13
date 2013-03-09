@@ -1,7 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
-
 #include <Graphics/OpenGL.h>
+#include <Graphics/Graphics.h>
 #include <Game/Game.h>
 
 // GLView interface
@@ -9,7 +9,6 @@
 @interface GLView : UIView {
 	CAEAGLLayer* layer_;
 	EAGLContext* context_;
-	GLuint renderBuffer_;
 }
 @end
 
@@ -53,17 +52,21 @@
 		exit(1);
 	}
 
-	glGenRenderbuffers(1, &renderBuffer_);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer_);
+	GLuint renderBuffer;
+	glGenRenderbuffers(1, &renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 	[context_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:layer_];
 
 	GLuint framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer_);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
 
 	CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(loop:)];
 	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+
+	game.init();
+	game.graphics->viewport(0, 0, self.frame.size.width, self.frame.size.height);
 
 	return self;
 }
@@ -90,7 +93,7 @@
 
 @implementation AppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions(NSDictionary *)launchOptions
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 	CGRect screen = [[UIScreen mainScreen] bounds];
 	window_ = [[UIWindow alloc] initWithFrame: screen];

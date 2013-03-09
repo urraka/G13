@@ -67,8 +67,8 @@ void Window::display()
 #include <System/Window.h>
 
 Window::~Window() {}
-bool Window::init() { return true; }
-void Window::setTitle(const char *title) {}
+bool Window::init(bool) { return true; }
+void Window::setTitle(const char *) {}
 void Window::display() {}
 
 #endif

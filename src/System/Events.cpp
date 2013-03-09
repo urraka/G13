@@ -1,25 +1,29 @@
 #include <pch.h>
-#include <GL/glfw.h>
+#if !defined(IOS)
+	#include <GL/glfw.h>
+#endif
 #include <System/Events.h>
 
-namespace
-{
-namespace callbacks
-{
-	Events *events = 0;
-
-	int GLFWCALL close()
+#if !defined(IOS)
+	namespace
 	{
-		events->push(Event(Event::Close));
-		return GL_TRUE;
-	}
+		namespace callbacks
+		{
+			Events *events = 0;
 
-	void GLFWCALL resize(int width, int height) { events->push(Event(Event::Resize, width, height)); }
-	void GLFWCALL keyboard(int key, int action) { events->push(Event(action == GLFW_PRESS ? Event::KeyPress : Event::KeyRelease, key)); }
-	void GLFWCALL character(int ch, int action) { events->push(Event(action == GLFW_PRESS ? Event::CharPress : Event::CharRelease, ch)); }
-	void GLFWCALL mouse(int button, int action) { events->push(Event(action == GLFW_PRESS ? Event::MouseButtonPress : Event::MouseButtonRelease, button)); }
-}
-}
+			int GLFWCALL close()
+			{
+				events->push(Event(Event::Close));
+				return GL_TRUE;
+			}
+
+			void GLFWCALL resize(int width, int height) { events->push(Event(Event::Resize, width, height)); }
+			void GLFWCALL keyboard(int key, int action) { events->push(Event(action == GLFW_PRESS ? Event::KeyPress : Event::KeyRelease, key)); }
+			void GLFWCALL character(int ch, int action) { events->push(Event(action == GLFW_PRESS ? Event::CharPress : Event::CharRelease, ch)); }
+			void GLFWCALL mouse(int button, int action) { events->push(Event(action == GLFW_PRESS ? Event::MouseButtonPress : Event::MouseButtonRelease, button)); }
+		}
+	}
+#endif
 
 Events::Events()
 	:	pollIndex_(0)
@@ -28,26 +32,28 @@ Events::Events()
 
 Events::~Events()
 {
-	glfwSetWindowCloseCallback(0);
-	glfwSetWindowSizeCallback(0);
-	glfwSetKeyCallback(0);
-	glfwSetCharCallback(0);
-	glfwSetMouseButtonCallback(0);
+	#if !defined(IOS)
+		glfwSetWindowCloseCallback(0);
+		glfwSetWindowSizeCallback(0);
+		glfwSetKeyCallback(0);
+		glfwSetCharCallback(0);
+		glfwSetMouseButtonCallback(0);
+	#endif
 }
 
 void Events::init()
 {
-	callbacks::events = this;
-
 	events_.reserve(20); // TODO: choose a good number
 
-	glfwDisable(GLFW_AUTO_POLL_EVENTS);
-
-	glfwSetWindowCloseCallback(callbacks::close);
-	glfwSetWindowSizeCallback(callbacks::resize);
-	glfwSetKeyCallback(callbacks::keyboard);
-	glfwSetCharCallback(callbacks::character);
-	glfwSetMouseButtonCallback(callbacks::mouse);
+	#if !defined(IOS)
+		callbacks::events = this;
+		glfwDisable(GLFW_AUTO_POLL_EVENTS);
+		glfwSetWindowCloseCallback(callbacks::close);
+		glfwSetWindowSizeCallback(callbacks::resize);
+		glfwSetKeyCallback(callbacks::keyboard);
+		glfwSetCharCallback(callbacks::character);
+		glfwSetMouseButtonCallback(callbacks::mouse);
+	#endif
 }
 
 void Events::push(const Event &event)
@@ -57,8 +63,10 @@ void Events::push(const Event &event)
 
 bool Events::poll(Event *event)
 {
-	if (pollIndex_ == 0)
-		glfwPollEvents();
+	#if !defined(IOS)
+		if (pollIndex_ == 0)
+			glfwPollEvents();
+	#endif
 
 	if (pollIndex_ == events_.size())
 	{

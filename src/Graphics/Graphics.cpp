@@ -37,13 +37,23 @@ bool Graphics::init()
 	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
 
 	const char *vertSource =
-		"#version 110\n"
-		"attribute vec2 position;"
-		"varying vec2 pos;"
-		"void main() {"
-		"	pos = position;"
-		"	gl_Position = vec4(position, 0.0, 1.0);"
-		"}";
+		#if defined(IOS)
+			"#version 100\n"
+			"attribute vec2 position;"
+			"varying vec2 pos;"
+			"void main() {"
+			"	pos = mat2(0, -1, 1, 0) * position;"
+			"	gl_Position = vec4(pos, 0.0, 1.0);"
+			"}";
+		#else
+			"#version 110\n"
+			"attribute vec2 position;"
+			"varying vec2 pos;"
+			"void main() {"
+			"	pos = position;"
+			"	gl_Position = vec4(position, 0.0, 1.0);"
+			"}";
+		#endif
 
 	glShaderSource(vertShader, 1, &vertSource, 0);
 	glCompileShader(vertShader);
@@ -60,15 +70,28 @@ bool Graphics::init()
 	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 
 	const char *fragSource =
-		"#version 110\n"
-		"uniform float time;"
-		"varying vec2 pos;"
-		"void main() {"
-		"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
-		"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
-		"	float g = mix(r, b, r * b);"
-		"	gl_FragColor = vec4(vec3(r, g, b), 1.0);"
-		"}";
+		#if defined(IOS)
+			"#version 100\n"
+			"precision mediump float;"
+			"uniform float time;"
+			"varying lowp vec2 pos;"
+			"void main() {"
+			"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
+			"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
+			"	float g = mix(r, b, r * b);"
+			"	gl_FragColor = vec4(vec3(r, g, b), 1.0);"
+			"}";
+		#else
+			"#version 110\n"
+			"uniform float time;"
+			"varying vec2 pos;"
+			"void main() {"
+			"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
+			"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
+			"	float g = mix(r, b, r * b);"
+			"	gl_FragColor = vec4(vec3(r, g, b), 1.0);"
+			"}";
+		#endif
 
 	glShaderSource(fragShader, 1, &fragSource, 0);
 	glCompileShader(fragShader);
@@ -136,7 +159,7 @@ void Graphics::test(float t)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	glDisableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -13,7 +13,4 @@
 #include <stdint.h>
 #include <iostream>
 
-inline void error_log(const char *str)
-{
-	std::cerr << str << std::endl;
-}
+#define error_log(s) (std::cerr << s << std::endl)
