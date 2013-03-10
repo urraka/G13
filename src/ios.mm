@@ -97,6 +97,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
+
 	CGRect screen = [[UIScreen mainScreen] bounds];
 	window_ = [[UIWindow alloc] initWithFrame: screen];
 	view_ = [[GLView alloc] initWithFrame: screen];

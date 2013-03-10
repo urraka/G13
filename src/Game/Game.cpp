@@ -6,6 +6,10 @@
 #include <System/Clock.h>
 #include <Game/Game.h>
 
+#include <string>
+#include <iostream>
+#include <fstream>
+
 Game::Game()
 	:	window_(0),
 		graphics(0),
@@ -15,6 +19,13 @@ Game::Game()
 
 bool Game::init()
 {
+	// test file loading
+
+	std::ifstream file("data/data.txt");
+	std::string str;
+	std::getline(file, str);
+	std::cout << str << std::endl;
+
 	quit_ = false;
 	timeAccumulator_ = 0;
 	currentTime_ = Clock::time();

@@ -12,7 +12,8 @@
 				{
 					"name": "Run",
 					"cmd": ["bin\\win32\\G13.exe"],
-					"shell": true
+					"shell": true,
+					"working_dir": "${project_path}"
 				}
 			]
 		}
