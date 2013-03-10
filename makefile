@@ -1,16 +1,13 @@
-out = -o bin/G13.bin
 src = `find src -name "*.cpp" | tr '\n' ' '`
-lib = -lGLEW -lGLU -lGL -lglfw -lXrandr
-inc = -Isrc
-def = -DUNIX
 
-rel = -O2
-dbg = -DDEBUG -g
+unix:
+	g++ -o bin/unix/G13 $(src) -lGLEW -lGLU -lGL -lglfw -lXrandr -Isrc -DUNIX -O2
 
-cmd = g++ $(out) $(src) $(lib) $(inc) $(def)
+unix-d:
+	g++ -o bin/unix/G13 $(src) -lGLEW -lGLU -lGL -lglfw -lXrandr -Isrc -DUNIX -DDEBUG -g
 
-release:
-	$(cmd) $(rel)
+osx:
+	g++ -o bin/osx/G13 $(src) -lGLEW -lglfw -framework OpenGL -Isrc -DOSX -O2
 
-debug:
-	$(cmd) $(dbg)
+osx-d:
+	g++ -o bin/osx/G13 $(src) -lGLEW -lglfw -framework OpenGL -Isrc -DOSX -DDEBUG -g
