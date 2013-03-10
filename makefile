@@ -11,3 +11,7 @@ osx:
 
 osx-d:
 	g++ -o bin/osx/G13 $(src) -lGLEW -lglfw -framework OpenGL -Isrc -DOSX -DDEBUG -g
+
+ios:
+	xcodebuild -project proj/xcode/G13.xcodeproj -configuration Debug -arch i386 -sdk iphonesimulator
+
