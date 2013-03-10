@@ -1,8 +1,20 @@
 {
-	"folders":
-	[
+	"folders": [
 		{
 			"path": "/C/urraka/projects/G13"
+		}
+	],
+	"build_systems": [
+		{
+			"name": "MinGW-win",
+			"cmd": ["C:/mingw/msys/1.0/bin/sh.exe", "--login", "-i", "-c", "cd ${project_path/\\\\/\\//g}; make win32-d"],
+			"variants": [
+				{
+					"name": "Run",
+					"cmd": ["bin\\win32\\G13.exe"],
+					"shell": true
+				}
+			]
 		}
 	]
 }
