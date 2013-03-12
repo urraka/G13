@@ -5,12 +5,17 @@
 Graphics::Graphics()
 	:	program_(0),
 		buffer_(0),
-		timeLoc_(0)
+		timeSlot_(0),
+		textureSlot_(0)
 {
 }
 
 Graphics::~Graphics()
 {
+	texture_.release();
+
+	glUseProgram(0);
+
 	if (buffer_ != 0)
 		glDeleteBuffers(1, &buffer_);
 
@@ -30,7 +35,12 @@ bool Graphics::init()
 
 	GLint status;
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (!texture_.load("data/tree.png"))
+		error_log("Graphics->init() - Failed to load texture.");
 
 	// vertex shader
 
@@ -72,17 +82,21 @@ bool Graphics::init()
 			"#version 100\n"
 			"precision mediump float;"
 			"uniform float time;"
+			"uniform sampler2D tex;"
 			"varying lowp vec2 pos;"
 		#else
 			"#version 110\n"
 			"uniform float time;"
+			"uniform sampler2D tex;"
 			"varying vec2 pos;"
 		#endif
 			"void main() {"
 			"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
 			"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
 			"	float g = mix(r, b, r * b);"
-			"	gl_FragColor = vec4(vec3(r, g, b), 1.0);"
+			"	vec2 coords = vec2((pos.x + 1.0) / 2.0, (pos.y + 1.0) / 2.0);"
+			"	vec4 color = texture2D(tex, coords);"
+			"	gl_FragColor = color;"
 			"}";
 
 	glShaderSource(fragShader, 1, &fragSource, 0);
@@ -108,7 +122,8 @@ bool Graphics::init()
 	if (status == GL_FALSE)
 		error_log("Error linking program.");
 
-	timeLoc_ = glGetUniformLocation(program_, "time");
+	timeSlot_ = glGetUniformLocation(program_, "time");
+	textureSlot_ = glGetUniformLocation(program_, "tex");
 
 	// shaders cleanup
 
@@ -137,15 +152,16 @@ void Graphics::clear()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Graphics::viewport(int width, int height)
+void Graphics::viewport(int x, int y, int width, int height)
 {
-	glViewport(0, 0, width, height);
+	glViewport(x, y, width, height);
 }
 
 void Graphics::test(float t)
 {
 	glUseProgram(program_);
-	glUniform1f(timeLoc_, t);
+	glUniform1f(timeSlot_, t);
+	glUniform1i(textureSlot_, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, buffer_);
 	glEnableVertexAttribArray(0);

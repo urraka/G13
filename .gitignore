@@ -4,6 +4,10 @@
 *.suo
 *.vcxproj.user
 
+# files
+
+G13-win32.lnk
+
 # directories
 
 bin/

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Graphics/Texture.h>
+
 class Graphics
 {
 public:
@@ -8,7 +10,7 @@ public:
 
 	bool init();
 	void clear();
-	void viewport(int width, int height);
+	void viewport(int x, int y, int width, int height);
 
 	void test(float t);
 
@@ -16,5 +18,8 @@ private:
 	GLuint program_;
 	GLuint buffer_;
 	GLfloat vertices_[8];
-	GLint timeLoc_;
+	Texture texture_;
+
+	GLint timeSlot_;
+	GLint textureSlot_;
 };

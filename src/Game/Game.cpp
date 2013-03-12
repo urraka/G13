@@ -53,7 +53,7 @@ bool Game::init()
 	if (!graphics->init())
 		return false;
 
-	graphics->viewport(viewSize.x, viewSize.y);
+	graphics->viewport(0, 0, viewSize.x, viewSize.y);
 
 	return true;
 }
@@ -75,6 +75,9 @@ void Game::terminate()
 void Game::draw()
 {
 	graphics->clear();
+	graphics->viewport(0, 0, viewSize.x / 2, viewSize.y);
+	graphics->test(Clock::toSeconds<float>(time_ + timeAccumulator_));
+	graphics->viewport(viewSize.x / 2, 0, viewSize.x / 2, viewSize.y);
 	graphics->test(Clock::toSeconds<float>(time_ + timeAccumulator_));
 	fps_++;
 }
@@ -93,7 +96,7 @@ void Game::input()
 
 			case Event::Resize:
 				viewSize = ivec2(event.size.width, event.size.height);
-				graphics->viewport(viewSize.x, viewSize.y);
+				graphics->viewport(0, 0, viewSize.x, viewSize.y);
 				break;
 
 			default:
@@ -113,7 +116,7 @@ void Game::update()
 
 	if (fpsTimer_ >= Clock::seconds(1))
 	{
-		std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
+		// std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
 
 		fpsTimer_ -= Clock::seconds(1);
 		fps_ = 0;
