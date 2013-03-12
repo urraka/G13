@@ -92,7 +92,7 @@ bool Texture::load(const char *path)
 	glGenTextures(1, &textureId_);
 	glBindTexture(GL_TEXTURE_2D, textureId_);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, alpha ? GL_RGBA8 : GL_RGB8, width_, height_, 0, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, alpha ? GL_RGBA : GL_RGB, width_, height_, 0, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 	png_bytep *rows = png_get_rows(png, info);
 
