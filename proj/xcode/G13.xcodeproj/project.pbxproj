@@ -21,6 +21,7 @@
 		D231FB5316EAA218003FCBAF /* Events.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D231FB4916EAA218003FCBAF /* Events.cpp */; };
 		D231FB5416EAA218003FCBAF /* Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D231FB4B16EAA218003FCBAF /* Window.cpp */; };
 		D231FB5616EAA704003FCBAF /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D231FB5516EAA704003FCBAF /* QuartzCore.framework */; };
+		D2DD176716ED3E48000A7482 /* data in Resources */ = {isa = PBXBuildFile; fileRef = D2DD176616ED3E48000A7482 /* data */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +49,7 @@
 		D231FB4B16EAA218003FCBAF /* Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Window.cpp; sourceTree = "<group>"; };
 		D231FB4C16EAA218003FCBAF /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Window.h; sourceTree = "<group>"; };
 		D231FB5516EAA704003FCBAF /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		D2DD176616ED3E48000A7482 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ../../../data; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 		D231FB0C16EAA049003FCBAF /* G13 */ = {
 			isa = PBXGroup;
 			children = (
+				D2DD176616ED3E48000A7482 /* data */,
 				D231FB3916EAA218003FCBAF /* src */,
 				D231FB0D16EAA049003FCBAF /* Supporting Files */,
 			);
@@ -213,6 +216,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D231FB1116EAA049003FCBAF /* InfoPlist.strings in Resources */,
+				D2DD176716ED3E48000A7482 /* data in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
