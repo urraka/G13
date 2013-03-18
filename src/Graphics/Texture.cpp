@@ -13,6 +13,12 @@ Texture::Texture()
 {
 }
 
+Texture::~Texture()
+{
+	if (textureId_)
+		glDeleteTextures(1, &textureId_);
+}
+
 bool Texture::load(const char *path)
 {
 	FILE *file = fopen(path, "rb");
@@ -89,20 +95,24 @@ bool Texture::load(const char *path)
 
 	bool alpha = (color == PNG_COLOR_TYPE_RGB_ALPHA);
 
+	GLint prevTexture;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+
 	glGenTextures(1, &textureId_);
 	glBindTexture(GL_TEXTURE_2D, textureId_);
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, alpha ? GL_RGBA : GL_RGB, width_, height_, 0, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 	png_bytep *rows = png_get_rows(png, info);
 
 	for (int y = 0; y < height_; y++)
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height_ - y - 1, width_, 1, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, rows[y]);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y, width_, 1, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, rows[y]);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, prevTexture);
 
 	png_destroy_read_struct(&png, &info, &info_end);
 	fclose(file);
@@ -110,10 +120,4 @@ bool Texture::load(const char *path)
 	std::cout << "Texture loaded - ID: " << textureId_ << " - Size: " << width_ << "x" << height_ << " - Alpha: " << (alpha ? "true" : "false") << std::endl;
 
 	return true;
-}
-
-void Texture::release()
-{
-	if (textureId_)
-		glDeleteTextures(1, &textureId_);
 }

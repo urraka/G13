@@ -11,10 +11,22 @@
 #endif
 
 #include <stdint.h>
+#include <assert.h>
+
 #include <iostream>
+#include <string>
+#include <vector>
+#include <stack>
+
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 #define error_log(s) (std::cerr << s << std::endl)
 
+using glm::mat4;
 using glm::vec2;
+using glm::vec3;
+using glm::vec4;
 using glm::ivec2;

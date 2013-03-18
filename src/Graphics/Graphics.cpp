@@ -1,26 +1,26 @@
 #include <pch.h>
 #include <Graphics/OpenGL.h>
 #include <Graphics/Graphics.h>
+#include <Graphics/shaders.h>
 
 Graphics::Graphics()
-	:	program_(0),
-		buffer_(0),
-		timeSlot_(0),
-		textureSlot_(0)
+	:	texture_(0),
+		matrixChanged_(false),
+		matrix_(1.0f),
+		projection_(1.0f),
+		uniforms_(),
+
+		// testing
+		buffer_(0)
 {
 }
 
 Graphics::~Graphics()
 {
-	texture_.release();
-
-	glUseProgram(0);
+	shader_.bind(false);
 
 	if (buffer_ != 0)
 		glDeleteBuffers(1, &buffer_);
-
-	if (program_ != 0)
-		glDeleteProgram(program_);
 }
 
 bool Graphics::init()
@@ -33,111 +33,43 @@ bool Graphics::init()
 		}
 	#endif
 
-	GLint status;
-
-	glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (!texture_.load("data/tree.png"))
-		error_log("Graphics->init() - Failed to load texture.");
+	// shader
 
-	// vertex shader
+	std::vector<std::string> attributes;
+	attributes.push_back("position");
+	attributes.push_back("texCoords");
 
-	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+	for (size_t i = 0; i < attributes.size(); i++)
+		glEnableVertexAttribArray(i);
 
-	const char *vertSource =
-		#if defined(IOS)
-			"#version 100\n"
-		#else
-			"#version 110\n"
-		#endif
-			"attribute vec2 position;"
-			"varying vec2 pos;"
-			"void main() {"
-		#if defined(IOS)
-			"	pos = mat2(0, -1, 1, 0) * position;" // rotate 90° for landscape mode
-		#else
-			"	pos = position;"
-		#endif
-			"	gl_Position = vec4(pos, 0.0, 1.0);"
-			"}";
+	shader_.load(shaders::vertex, shaders::fragment, attributes);
+	shader_.bind();
 
-	glShaderSource(vertShader, 1, &vertSource, 0);
-	glCompileShader(vertShader);
-	glGetShaderiv(vertShader, GL_COMPILE_STATUS, &status);
+	uniforms_[Uniform::Matrix] = glGetUniformLocation(shader_.id(), "matrix");
+	uniforms_[Uniform::Projection] = glGetUniformLocation(shader_.id(), "projection");
+	uniforms_[Uniform::Sampler] = glGetUniformLocation(shader_.id(), "sampler");
 
-	if (status == GL_FALSE)
-	{
-		error_log("Error compiling vertex shader.");
-		return false;
-	}
-
-	// fragment shader
-
-	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	const char *fragSource =
-		#if defined(IOS)
-			"#version 100\n"
-			"precision mediump float;"
-			"uniform float time;"
-			"uniform sampler2D tex;"
-			"varying lowp vec2 pos;"
-		#else
-			"#version 110\n"
-			"uniform float time;"
-			"uniform sampler2D tex;"
-			"varying vec2 pos;"
-		#endif
-			"void main() {"
-			"	float r = (pos.x + 1.0) / 4.0 + ((cos(time) + 1.0) / 4.0);"
-			"	float b = (pos.y + 1.0) / 4.0 + ((sin(time) + 1.0) / 4.0);"
-			"	float g = mix(r, b, r * b);"
-			"	vec2 coords = vec2((pos.x + 1.0) / 2.0, (pos.y + 1.0) / 2.0);"
-			"	vec4 color = texture2D(tex, coords);"
-			"	gl_FragColor = color;"
-			"}";
-
-	glShaderSource(fragShader, 1, &fragSource, 0);
-	glCompileShader(fragShader);
-	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &status);
-
-	if (status == GL_FALSE)
-	{
-		error_log("Error compiling fragment shader.");
-		return false;
-	}
-
-	// program
-
-	program_ = glCreateProgram();
-
-	glBindAttribLocation(program_, 0, "position");
-	glAttachShader(program_, vertShader);
-	glAttachShader(program_, fragShader);
-	glLinkProgram(program_);
-	glGetProgramiv(program_, GL_LINK_STATUS, &status);
-
-	if (status == GL_FALSE)
-		error_log("Error linking program.");
-
-	timeSlot_ = glGetUniformLocation(program_, "time");
-	textureSlot_ = glGetUniformLocation(program_, "tex");
-
-	// shaders cleanup
-
-	glDetachShader(program_, vertShader);
-	glDetachShader(program_, fragShader);
-	glDeleteShader(vertShader);
-	glDeleteShader(fragShader);
+	glUniform1i(uniforms_[Uniform::Sampler], 0);
+	glUniformMatrix4fv(uniforms_[Uniform::Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
+	glUniformMatrix4fv(uniforms_[Uniform::Projection], 1, GL_FALSE, glm::value_ptr(projection_));
 
 	// vertex buffer
 
-	vertices_[0] = -1.0f;	vertices_[1] = 1.0f;
-	vertices_[2] = -1.0f;	vertices_[3] = -1.0f;
-	vertices_[4] = 1.0f;	vertices_[5] = -1.0f;
-	vertices_[6] = 1.0f;	vertices_[7] = 1.0f;
+	vertices_[0].position = vec2(0.0f, 0.0f);
+	vertices_[0].texcoords = vec2(0.0f, 0.0f);
+
+	vertices_[1].position = vec2(256.0f, 0.0f);
+	vertices_[1].texcoords = vec2(1.0f, 0.0f);
+
+	vertices_[2].position = vec2(256.0f, 256.0f);
+	vertices_[2].texcoords = vec2(1.0f, 1.0f);
+
+	vertices_[3].position = vec2(0.0f, 256.0f);
+	vertices_[3].texcoords = vec2(0.0f, 1.0f);
 
 	glGenBuffers(1, &buffer_);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer_);
@@ -147,28 +79,96 @@ bool Graphics::init()
 	return true;
 }
 
+void Graphics::draw()
+{
+	if (matrixChanged_)
+		glUniformMatrix4fv(uniforms_[Uniform::Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
+
+	matrixChanged_ = false;
+
+	glBindBuffer(GL_ARRAY_BUFFER, buffer_);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void Graphics::clear()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Graphics::viewport(int x, int y, int width, int height)
+void Graphics::background(float r, float g, float b, float a)
 {
-	glViewport(x, y, width, height);
+	glClearColor(r, g, b, a);
 }
 
-void Graphics::test(float t)
+void Graphics::viewport(int width, int height)
 {
-	glUseProgram(program_);
-	glUniform1f(timeSlot_, t);
-	glUniform1i(textureSlot_, 0);
+	projection_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
 
-	glBindBuffer(GL_ARRAY_BUFFER, buffer_);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	#if defined(IOS)
+		glViewport(0, 0, height, width);
+		projection_ = glm::rotate(-90.0f, 0.0f, 0.0f, 1.0f) * projection_;
+	#else
+		glViewport(0, 0, width, height);
+	#endif
 
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUniformMatrix4fv(uniforms_[Uniform::Projection], 1, GL_FALSE, glm::value_ptr(projection_));
+}
 
-	glDisableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+void Graphics::texture(const Texture *tex)
+{
+	GLuint id = (tex != 0 ? tex->id() : 0);
+
+	if (id != texture_)
+	{
+		glBindTexture(GL_TEXTURE_2D, id);
+		texture_ = id;
+	}
+}
+
+void Graphics::save()
+{
+	Graphics::State state;
+	state.matrix = matrix_;
+	stack_.push(state);
+}
+
+void Graphics::restore()
+{
+	Graphics::State &state = stack_.top();
+	matrix(state.matrix);
+	stack_.pop();
+}
+
+const mat4 &Graphics::matrix()
+{
+	return matrix_;
+}
+
+void Graphics::matrix(const mat4 &m)
+{
+	matrix_ = m;
+	matrixChanged_ = true;
+}
+
+void Graphics::translate(float x, float y)
+{
+	matrix(glm::translate(x, y, 0.0f) * matrix_);
+}
+
+void Graphics::rotate(float angle)
+{
+	matrix(glm::rotate(angle, 0.0f, 0.0f, 1.0f) * matrix_);
+}
+
+void Graphics::scale(float width, float height)
+{
+	matrix(glm::scale(width, height, 1.0f) * matrix_);
+}
+
+void Graphics::transform(const mat4 &m)
+{
+	matrix(m * matrix_);
 }

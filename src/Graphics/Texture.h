@@ -4,15 +4,12 @@ class Texture
 {
 public:
 	Texture();
+	~Texture();
 
 	bool load(const char *path);
-	void release();
-
-	GLint id() const { return (GLint)textureId_; }
-	operator GLint() const { return (GLint)textureId_; }
-
 	int width() const { return width_; }
 	int height() const { return height_; }
+	GLuint id() const { return textureId_; }
 
 private:
 	GLuint textureId_;

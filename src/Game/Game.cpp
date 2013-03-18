@@ -11,21 +11,15 @@
 #include <fstream>
 
 Game::Game()
-	:	window_(0),
-		graphics(0),
-		events(0)
+	:	graphics(0),
+		events(0),
+		window_(0),
+		texture_(0)
 {
 }
 
 bool Game::init()
 {
-	// test file loading
-
-	std::ifstream file("data/data.txt");
-	std::string str;
-	std::getline(file, str);
-	std::cout << str << std::endl;
-
 	quit_ = false;
 	timeAccumulator_ = 0;
 	currentTime_ = Clock::time();
@@ -45,7 +39,7 @@ bool Game::init()
 			return false;
 
 		window_->title("G13");
-		viewSize = window_->size();
+		resolution = window_->size();
 	#endif
 
 	events->init();
@@ -53,13 +47,19 @@ bool Game::init()
 	if (!graphics->init())
 		return false;
 
-	graphics->viewport(0, 0, viewSize.x, viewSize.y);
+	graphics->viewport(resolution.x, resolution.y);
+	graphics->background(0.5f, 0.5f, 0.5f);
+
+	texture_ = new Texture();
+	texture_->load("data/tree.png");
+	graphics->texture(texture_);
 
 	return true;
 }
 
 void Game::terminate()
 {
+	delete texture_;
 	delete graphics;
 	delete events;
 
@@ -74,11 +74,14 @@ void Game::terminate()
 
 void Game::draw()
 {
+	graphics->save();
 	graphics->clear();
-	graphics->viewport(0, 0, viewSize.x / 2, viewSize.y);
-	graphics->test(Clock::toSeconds<float>(time_ + timeAccumulator_));
-	graphics->viewport(viewSize.x / 2, 0, viewSize.x / 2, viewSize.y);
-	graphics->test(Clock::toSeconds<float>(time_ + timeAccumulator_));
+	graphics->translate(-128.0f, -128.0f);
+	graphics->rotate(45.0f);
+	graphics->translate(resolution.x / 2.0f, resolution.y / 2.0f);
+	graphics->draw();
+	graphics->restore();
+
 	fps_++;
 }
 
@@ -95,8 +98,14 @@ void Game::input()
 				break;
 
 			case Event::Resize:
-				viewSize = ivec2(event.size.width, event.size.height);
-				graphics->viewport(0, 0, viewSize.x, viewSize.y);
+				resolution = ivec2(event.size.width, event.size.height);
+				graphics->viewport(resolution.x, resolution.y);
+				break;
+
+			case Event::KeyPress:
+				if (event.key == Keyboard::Escape)
+					this->quit();
+
 				break;
 
 			default:
@@ -116,7 +125,7 @@ void Game::update()
 
 	if (fpsTimer_ >= Clock::seconds(1))
 	{
-		// std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
+		std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
 
 		fpsTimer_ -= Clock::seconds(1);
 		fps_ = 0;

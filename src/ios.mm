@@ -65,7 +65,7 @@
 	CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(loop:)];
 	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
-	game.viewSize = ivec2(self.frame.size.width, self.frame.size.height);
+	game.resolution = ivec2(self.frame.size.height, self.frame.size.width);
 	game.init();
 
 	return self;
