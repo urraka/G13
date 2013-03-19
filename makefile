@@ -25,7 +25,7 @@ ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),unix)
   out-dir := bin/unix$(dbg)
   out := $(out-dir)/G13
   lib := -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz
-  def := -DUNIX
+  def := -DUNIX -DPNG_SKIP_SETJMP_CHECK
 endif
 
 # osx
