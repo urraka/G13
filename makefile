@@ -1,5 +1,3 @@
-modules := . Game Graphics System
-
 targets := win32 win32-d unix unix-d osx osx-d
 
 help:
@@ -11,7 +9,7 @@ inc := -Isrc
 
 # if debug
 ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
-  dbg := -dbg
+  dbg := -d
 endif
 
 # windows
@@ -46,6 +44,7 @@ else
   opt += -O2
 endif
 
+modules := . $(patsubst src/%,%,$(shell find src -depth -type d))
 src-dir := $(addprefix src/,$(modules))
 bin-dir := $(addprefix $(out-dir)/,$(modules))
 src := $(foreach sdir,$(src-dir),$(wildcard $(sdir)/*.cpp))
@@ -65,21 +64,28 @@ endif
 endif
 endif
 
-# dep-rule(module)
-define dep-rule
-$(out-dir)/$1/%.d: src/$1/%.cpp
-	$(cxx) -M $(inc) $(def) $$< > $$@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $$@ : ,g' < $$@.$$$$ > $$@; \
-	rm -f $$@.$$$$
+# make-depend(dep-file,src-file,stem)
+define make-depend
+	$(cxx) -M $(inc) $(def) $2 | \
+	sed 's,\($3\)\.o[ :]*,\1.o $1 : ,g' > $1.tmp1
+	sed -e 's/#.*//' \
+	-e 's/^[^:]*: //' \
+	-e 's/^ *//' \
+	-e 's/ *\\$$/:/' \
+	-e 's/[^:]$$/&:/' \
+	-e 's/\\/\//g' $1.tmp1 > $1.tmp2
+	cat $1.tmp1 $1.tmp2 > $1
+	rm $1.tmp1
+	rm $1.tmp2
 endef
 
 # obj-rule(module)
 define obj-rule
 $(out-dir)/$1/%.o: src/$1/%.cpp
+	$$(call make-depend,$$(patsubst %.o,%.d,$$@),$$<,$$*)
 	$(cxx) -o $$@ -c $$< $(lib) $(inc) $(def) $(opt)
 endef
 
-$(foreach module,$(modules),$(eval $(call dep-rule,$(module))))
 $(foreach module,$(modules),$(eval $(call obj-rule,$(module))))
 
 $(bin-dir):
@@ -89,3 +95,15 @@ clean:
 	rm -r bin
 
 .PHONY: clean help $(targets)
+
+
+
+# dep-rule(module)
+# define dep-rule
+# $(out-dir)/$1/%.d: src/$1/%.cpp
+# 	$(cxx) -M $(inc) $(def) $$< > $$@.$$$$; \
+# 	sed 's,\($*\)\.o[ :]*,\1.o $$@ : ,g' < $$@.$$$$ > $$@; \
+# 	rm -f $$@.$$$$
+# endef
+
+# $(foreach module,$(modules),$(eval $(call dep-rule,$(module))))
