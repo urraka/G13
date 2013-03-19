@@ -1,31 +1,91 @@
-src = `find src -name "*.cpp" | tr '\n' ' '`
+modules := . Game Graphics System
 
-default:
-	@echo "Usage: make (win32|win32-d|unix|unix-d|osx|osx-d|ios)"
+targets := win32 win32-d unix unix-d osx osx-d
 
-win32:
-	@mkdir -p bin/win32
-	g++ -o bin/win32/G13.exe $(src) -lglew32 -lglfw -lopengl32 -lpng -lz -Isrc -DGLEW_STATIC -DWIN32 -O2
+help:
+	@echo "Build targets: $(targets)"
 
-win32-d:
-	@mkdir -p bin/win32
-	g++ -o bin/win32/G13.exe $(src) -lglew32 -lglfw -lopengl32 -lpng -lz -Isrc -DGLEW_STATIC -DWIN32 -DDEBUG -g
+# common for all systems
+cxx := g++
+inc := -Isrc
 
-unix:
-	@mkdir -p bin/unix
-	g++ -o bin/unix/G13 $(src) -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -Isrc -DUNIX -O2
+# if debug
+ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
+  dbg := -dbg
+endif
 
-unix-d:
-	@mkdir -p bin/unix
-	g++ -o bin/unix/G13 $(src) -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -Isrc -DUNIX -DDEBUG -g
+# windows
+ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),win32)
+  out-dir := bin/win32$(dbg)
+  out := $(out-dir)/G13.exe
+  lib := -lglew32 -lglfw -lopengl32 -lpng -lz
+  def := -DWIN32 -DGLEW_STATIC
+endif
 
-osx:
-	@mkdir -p bin/osx
-	g++ -o bin/osx/G13 $(src) -lGLEW -lglfw -framework OpenGL -lpng -lz -Isrc -DOSX -O2
+# unix
+ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),unix)
+  out-dir := bin/unix$(dbg)
+  out := $(out-dir)/G13
+  lib := -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz
+  def := -DUNIX
+endif
 
-osx-d:
-	@mkdir -p bin/osx
-	g++ -o bin/osx/G13 $(src) -lGLEW -lglfw -framework OpenGL -lpng -lz -Isrc -DOSX -DDEBUG -g
+# osx
+ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),osx)
+  out-dir := bin/osx$(dbg)
+  out := $(out-dir)/G13
+  lib := -lGLEW -lglfw -framework OpenGL -lpng -lz
+  def := -DOSX
+endif
 
-ios:
-	xcodebuild -project proj/xcode/G13.xcodeproj -configuration Debug -arch i386 -sdk iphonesimulator
+# if debug
+ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
+  opt += -g
+  def += -DDEBUG
+else
+  opt += -O2
+endif
+
+src-dir := $(addprefix src/,$(modules))
+bin-dir := $(addprefix $(out-dir)/,$(modules))
+src := $(foreach sdir,$(src-dir),$(wildcard $(sdir)/*.cpp))
+obj := $(patsubst src/%.cpp,$(out-dir)/%.o,$(src))
+dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
+
+$(targets): $(bin-dir) $(out)
+
+$(out): $(obj)
+	$(cxx) -o $(out) $(obj) $(lib)
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),help)
+ifneq ($(MAKECMDGOALS),)
+-include $(dep)
+endif
+endif
+endif
+
+# dep-rule(module)
+define dep-rule
+$(out-dir)/$1/%.d: src/$1/%.cpp
+	$(cxx) -M $(inc) $(def) $$< > $$@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $$@ : ,g' < $$@.$$$$ > $$@; \
+	rm -f $$@.$$$$
+endef
+
+# obj-rule(module)
+define obj-rule
+$(out-dir)/$1/%.o: src/$1/%.cpp
+	$(cxx) -o $$@ -c $$< $(lib) $(inc) $(def) $(opt)
+endef
+
+$(foreach module,$(modules),$(eval $(call dep-rule,$(module))))
+$(foreach module,$(modules),$(eval $(call obj-rule,$(module))))
+
+$(bin-dir):
+	@mkdir -p $@
+
+clean:
+	rm -r bin
+
+.PHONY: clean help $(targets)
