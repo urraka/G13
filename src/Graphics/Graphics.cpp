@@ -69,11 +69,8 @@ bool Graphics::init()
 
 void Graphics::add(Geometry geometry)
 {
-	if ((vboIndex_[VBO::ArrayBuffer] + geometry.vcount) * sizeof(Vertex) > VBO::Size)
-		return;
-
-	if ((vboIndex_[VBO::ElementArrayBuffer] + geometry.icount) * sizeof(uint16_t) > VBO::Size)
-		return;
+	assert((vboIndex_[VBO::ArrayBuffer] + geometry.vcount) * sizeof(Vertex) <= VBO::Size);
+	assert((vboIndex_[VBO::ElementArrayBuffer] + geometry.icount) * sizeof(uint16_t) <= VBO::Size);
 
 	for (size_t i = 0; i < geometry.icount; i++)
 		geometry.indices[i] += vboIndex_[VBO::ArrayBuffer];

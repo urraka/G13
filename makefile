@@ -56,14 +56,13 @@ $(targets): $(bin-dir) $(out)
 $(out): $(obj)
 	$(cxx) -o $(out) $(obj) $(lib)
 
-# ifneq ($(MAKECMDGOALS),clean)
-# ifneq ($(MAKECMDGOALS),help)
-# ifneq ($(MAKECMDGOALS),)
-# -include $(dep)
-# endif
-# endif
-# endif
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),help)
+ifneq ($(MAKECMDGOALS),)
 -include $(dep)
+endif
+endif
+endif
 
 # make-depend(dep-file,src-file,stem)
 define make-depend
@@ -97,15 +96,3 @@ clean:
 	rm -r bin
 
 .PHONY: clean help $(targets)
-
-
-
-# dep-rule(module)
-# define dep-rule
-# $(out-dir)/$1/%.d: src/$1/%.cpp
-# 	$(cxx) -M $(inc) $(def) $$< > $$@.$$$$; \
-# 	sed 's,\($*\)\.o[ :]*,\1.o $$@ : ,g' < $$@.$$$$ > $$@; \
-# 	rm -f $$@.$$$$
-# endef
-
-# $(foreach module,$(modules),$(eval $(call dep-rule,$(module))))
