@@ -1,8 +1,10 @@
 #pragma once
-
-#include <Graphics/Vertex.h>
-#include <Graphics/Texture.h>
+#include <Graphics/OpenGL.h>
 #include <Graphics/Shader.h>
+#include <Graphics/Vertex.h>
+#include <Graphics/Geometry.h>
+#include <Graphics/Texture.h>
+#include <Graphics/Sprite.h>
 
 class Graphics
 {
@@ -11,11 +13,12 @@ public:
 	~Graphics();
 
 	bool init();
-	void draw();
-	void clear();
-	void background(float r, float g, float b, float a = 1.0f);
+	void bgcolor(float r, float g, float b, float a = 1.0f);
 	void viewport(int width, int height);
 	void texture(const Texture *tex);
+	void clear();
+	void add(Geometry geometry);
+	void draw();
 	void save();
 	void restore();
 	const mat4 &matrix();
@@ -24,6 +27,8 @@ public:
 	void rotate(float angle);
 	void scale(float width, float height);
 	void transform(const mat4 &m);
+
+	enum { MaxVertices = 0xFFFF };
 
 private:
 	struct Uniform
@@ -37,6 +42,16 @@ private:
 		};
 	};
 
+	struct VBO
+	{
+		enum Enum
+		{
+			ArrayBuffer = 0,
+			ElementArrayBuffer = 1,
+			Size = sizeof(Vertex) * MaxVertices
+		};
+	};
+
 	struct State
 	{
 		mat4 matrix;
@@ -45,12 +60,10 @@ private:
 	bool matrixChanged_;
 	mat4 matrix_;
 	mat4 projection_;
+	std::stack<State> stack_;
+	GLuint vbo_[2];
+	size_t vboIndex_[2];
 	GLuint texture_;
 	Shader shader_;
 	GLint uniforms_[Uniform::Count];
-	std::stack<State> stack_;
-
-	// testing
-	GLuint buffer_;
-	Vertex vertices_[4];
 };

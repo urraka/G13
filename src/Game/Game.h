@@ -5,6 +5,8 @@ class Graphics;
 class Events;
 class Texture;
 
+#include <Graphics/Graphics.h>
+
 class Game {
 public:
 	Game();
@@ -33,6 +35,8 @@ private:
 
 	// testing
 	Texture *texture_;
+	std::vector<Sprite> sprites_;
+	std::vector<float> spriteAngles_;
 };
 
 extern Game game;

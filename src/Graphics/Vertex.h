@@ -4,5 +4,5 @@ class Vertex
 {
 public:
 	vec2 position;
-	vec2 texcoords;
+	vec2 uv;
 };

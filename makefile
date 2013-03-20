@@ -56,18 +56,20 @@ $(targets): $(bin-dir) $(out)
 $(out): $(obj)
 	$(cxx) -o $(out) $(obj) $(lib)
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),help)
-ifneq ($(MAKECMDGOALS),)
+# ifneq ($(MAKECMDGOALS),clean)
+# ifneq ($(MAKECMDGOALS),help)
+# ifneq ($(MAKECMDGOALS),)
+# -include $(dep)
+# endif
+# endif
+# endif
 -include $(dep)
-endif
-endif
-endif
 
 # make-depend(dep-file,src-file,stem)
 define make-depend
-	$(cxx) -M $(inc) $(def) $2 | \
-	sed 's,\($3\)\.o[ :]*,\1.o $1 : ,g' > $1.tmp1
+	$(cxx) -MM $(inc) $(def) $2 | \
+	sed 's,\($3\)\.o[ :]*,$(patsubst %.d,%.o,$1) $1 : ,g' | \
+	sed -re 's/\\([^$$])/\/\1/g' > $1.tmp1
 	sed -e 's/#.*//' \
 	-e 's/^[^:]*: //' \
 	-e 's/^ *//' \

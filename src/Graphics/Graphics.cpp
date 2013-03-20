@@ -1,5 +1,4 @@
 #include <pch.h>
-#include <Graphics/OpenGL.h>
 #include <Graphics/Graphics.h>
 #include <Graphics/shaders.h>
 
@@ -9,18 +8,15 @@ Graphics::Graphics()
 		matrix_(1.0f),
 		projection_(1.0f),
 		uniforms_(),
-
-		// testing
-		buffer_(0)
+		vbo_(),
+		vboIndex_()
 {
 }
 
 Graphics::~Graphics()
 {
 	shader_.bind(false);
-
-	if (buffer_ != 0)
-		glDeleteBuffers(1, &buffer_);
+	glDeleteBuffers(2, vbo_);
 }
 
 bool Graphics::init()
@@ -43,8 +39,8 @@ bool Graphics::init()
 	attributes.push_back("position");
 	attributes.push_back("texCoords");
 
-	for (size_t i = 0; i < attributes.size(); i++)
-		glEnableVertexAttribArray(i);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	shader_.load(shaders::vertex, shaders::fragment, attributes);
 	shader_.bind();
@@ -59,38 +55,48 @@ bool Graphics::init()
 
 	// vertex buffer
 
-	vertices_[0].position = vec2(0.0f, 0.0f);
-	vertices_[0].texcoords = vec2(0.0f, 0.0f);
+	glGenBuffers(2, vbo_);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_[VBO::ArrayBuffer]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_[VBO::ElementArrayBuffer]);
+	glBufferData(GL_ARRAY_BUFFER, VBO::Size, 0, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, VBO::Size, 0, GL_DYNAMIC_DRAW);
 
-	vertices_[1].position = vec2(256.0f, 0.0f);
-	vertices_[1].texcoords = vec2(1.0f, 0.0f);
-
-	vertices_[2].position = vec2(256.0f, 256.0f);
-	vertices_[2].texcoords = vec2(1.0f, 1.0f);
-
-	vertices_[3].position = vec2(0.0f, 256.0f);
-	vertices_[3].texcoords = vec2(0.0f, 1.0f);
-
-	glGenBuffers(1, &buffer_);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer_);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_), vertices_, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
 
 	return true;
+}
+
+void Graphics::add(Geometry geometry)
+{
+	if ((vboIndex_[VBO::ArrayBuffer] + geometry.vcount) * sizeof(Vertex) > VBO::Size)
+		return;
+
+	if ((vboIndex_[VBO::ElementArrayBuffer] + geometry.icount) * sizeof(uint16_t) > VBO::Size)
+		return;
+
+	for (size_t i = 0; i < geometry.icount; i++)
+		geometry.indices[i] += vboIndex_[VBO::ArrayBuffer];
+
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(Vertex) * vboIndex_[VBO::ArrayBuffer], sizeof(Vertex) * geometry.vcount, geometry.vertices);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * vboIndex_[VBO::ElementArrayBuffer], sizeof(uint16_t) * geometry.icount, geometry.indices);
+
+	vboIndex_[VBO::ArrayBuffer] += geometry.vcount;
+	vboIndex_[VBO::ElementArrayBuffer] += geometry.icount;
 }
 
 void Graphics::draw()
 {
 	if (matrixChanged_)
+	{
 		glUniformMatrix4fv(uniforms_[Uniform::Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
+		matrixChanged_ = false;
+	}
 
-	matrixChanged_ = false;
+	glDrawElements(GL_TRIANGLES, vboIndex_[VBO::ElementArrayBuffer], GL_UNSIGNED_SHORT, (GLvoid*)0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, buffer_);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	vboIndex_[VBO::ArrayBuffer] = 0;
+	vboIndex_[VBO::ElementArrayBuffer] = 0;
 }
 
 void Graphics::clear()
@@ -98,7 +104,7 @@ void Graphics::clear()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Graphics::background(float r, float g, float b, float a)
+void Graphics::bgcolor(float r, float g, float b, float a)
 {
 	glClearColor(r, g, b, a);
 }

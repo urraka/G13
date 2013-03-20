@@ -48,11 +48,28 @@ bool Game::init()
 		return false;
 
 	graphics->viewport(resolution.x, resolution.y);
-	graphics->background(0.5f, 0.5f, 0.5f);
+	graphics->bgcolor(0.5f, 0.5f, 0.5f);
 
 	texture_ = new Texture();
 	texture_->load("data/tree.png");
-	graphics->texture(texture_);
+
+	const size_t nSprites = 500;
+	sprites_.resize(nSprites);
+	spriteAngles_.resize(nSprites);
+
+	for (size_t i = 0; i < sprites_.size(); i++)
+	{
+		Sprite &sprite = sprites_[i];
+
+		sprite.texture = texture_;
+		sprite.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
+		sprite.position = glm::diskRand((float)std::min(resolution.x, resolution.y) / 2.0f);
+		sprite.center = vec2(168.0f, 252.0f) / 5.0f;
+		sprite.size = vec2(256.0f) / 5.0f;
+		spriteAngles_[i] = glm::linearRand(-180.0f, 180.0f);
+
+		std::cout << "Sprite[" << i << "].position: " << glm::to_string(sprite.position) << std::endl;
+	}
 
 	return true;
 }
@@ -76,9 +93,15 @@ void Game::draw()
 {
 	graphics->save();
 	graphics->clear();
-	graphics->translate(-128.0f, -128.0f);
-	graphics->rotate(45.0f);
+	graphics->texture(texture_);
 	graphics->translate(resolution.x / 2.0f, resolution.y / 2.0f);
+
+	for (size_t i = 0; i < sprites_.size(); i++)
+	{
+		sprites_[i].angle = spriteAngles_[i] + Clock::toSeconds<float>(time_ + timeAccumulator_) * 90.0f;
+		graphics->add(sprites_[i].geometry());
+	}
+
 	graphics->draw();
 	graphics->restore();
 

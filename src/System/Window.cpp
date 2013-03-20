@@ -32,8 +32,8 @@ bool Window::init(bool fullscreen)
 	}
 	else
 	{
-		result = glfwOpenWindow(mode.Width / 2, mode.Height / 2, 0, 0, 0, 0, 0, 0, GLFW_WINDOW);
-		glfwSetWindowPos(mode.Width / 4, mode.Height / 4);
+		result = glfwOpenWindow(mode.Width * 0.8f, mode.Height * 0.8f, 0, 0, 0, 0, 0, 0, GLFW_WINDOW);
+		glfwSetWindowPos(mode.Width * 0.1f, mode.Height * 0.1f);
 	}
 
 	if (result == GL_FALSE)
