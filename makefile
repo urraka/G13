@@ -83,7 +83,7 @@ endef
 # obj-rule(module)
 define obj-rule
 $(out-dir)/$1/%.o: src/$1/%.cpp
-	$$(call make-depend,$$(patsubst %.o,%.d,$$@),$$<,$$*)
+	@$$(call make-depend,$$(patsubst %.o,%.d,$$@),$$<,$$*)
 	$(cxx) -o $$@ -c $$< $(inc) $(def) $(opt)
 endef
 

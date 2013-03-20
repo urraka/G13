@@ -58,8 +58,18 @@ bool Graphics::init()
 	glGenBuffers(2, vbo_);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_[VBO::ArrayBuffer]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_[VBO::ElementArrayBuffer]);
-	glBufferData(GL_ARRAY_BUFFER, VBO::Size, 0, GL_DYNAMIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, VBO::Size, 0, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * VBO::kVertices, 0, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * VBO::kIndices, 0, GL_DYNAMIC_DRAW);
+
+	uint16_t indices[] = { 0, 1, 2, 2, 3, 0};
+
+	for (size_t i = 0; i < VBO::kIndices; i += 6)
+	{
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, i * sizeof(uint16_t), sizeof(indices), indices);
+
+		for (size_t j = 0; j < Sprite::kIndices; j++)
+			indices[j] += Sprite::kVertices;
+	}
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
@@ -67,19 +77,14 @@ bool Graphics::init()
 	return true;
 }
 
-void Graphics::add(Geometry geometry)
+void Graphics::add(Sprite sprite)
 {
-	assert((vboIndex_[VBO::ArrayBuffer] + geometry.vcount) * sizeof(Vertex) <= VBO::Size);
-	assert((vboIndex_[VBO::ElementArrayBuffer] + geometry.icount) * sizeof(uint16_t) <= VBO::Size);
+	assert((vboIndex_[VBO::ArrayBuffer] + Sprite::kVertices) <= VBO::kVertices);
 
-	for (size_t i = 0; i < geometry.icount; i++)
-		geometry.indices[i] += vboIndex_[VBO::ArrayBuffer];
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(Vertex) * vboIndex_[VBO::ArrayBuffer], sizeof(Vertex) * Sprite::kVertices, sprite.vertices());
 
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(Vertex) * vboIndex_[VBO::ArrayBuffer], sizeof(Vertex) * geometry.vcount, geometry.vertices);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * vboIndex_[VBO::ElementArrayBuffer], sizeof(uint16_t) * geometry.icount, geometry.indices);
-
-	vboIndex_[VBO::ArrayBuffer] += geometry.vcount;
-	vboIndex_[VBO::ElementArrayBuffer] += geometry.icount;
+	vboIndex_[VBO::ArrayBuffer] += Sprite::kVertices;
+	vboIndex_[VBO::ElementArrayBuffer] += Sprite::kIndices;
 }
 
 void Graphics::draw()
@@ -158,20 +163,20 @@ void Graphics::matrix(const mat4 &m)
 
 void Graphics::translate(float x, float y)
 {
-	matrix(glm::translate(x, y, 0.0f) * matrix_);
+	matrix(matrix_ * glm::translate(x, y, 0.0f));
 }
 
 void Graphics::rotate(float angle)
 {
-	matrix(glm::rotate(angle, 0.0f, 0.0f, 1.0f) * matrix_);
+	matrix(matrix_ * glm::rotate(angle, 0.0f, 0.0f, 1.0f));
 }
 
 void Graphics::scale(float width, float height)
 {
-	matrix(glm::scale(width, height, 1.0f) * matrix_);
+	matrix(matrix_ * glm::scale(width, height, 1.0f));
 }
 
 void Graphics::transform(const mat4 &m)
 {
-	matrix(m * matrix_);
+	matrix(matrix_ * m);
 }

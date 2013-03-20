@@ -8,6 +8,7 @@ public:
 
 	bool init(bool fullscreen = true);
 	void title(const char *title);
+	void vsync(bool enable);
 	ivec2 size();
 	void display();
 };

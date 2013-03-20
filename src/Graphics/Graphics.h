@@ -17,7 +17,7 @@ public:
 	void viewport(int width, int height);
 	void texture(const Texture *tex);
 	void clear();
-	void add(Geometry geometry);
+	void add(Sprite sprite);
 	void draw();
 	void save();
 	void restore();
@@ -27,8 +27,6 @@ public:
 	void rotate(float angle);
 	void scale(float width, float height);
 	void transform(const mat4 &m);
-
-	enum { MaxVertices = 0xFFFF };
 
 private:
 	struct Uniform
@@ -48,7 +46,8 @@ private:
 		{
 			ArrayBuffer = 0,
 			ElementArrayBuffer = 1,
-			Size = sizeof(Vertex) * MaxVertices
+			kVertices = 5000 * Sprite::kVertices,
+			kIndices = 5000 * Sprite::kIndices
 		};
 	};
 

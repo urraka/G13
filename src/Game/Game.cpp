@@ -1,5 +1,4 @@
 #include <pch.h>
-#include <Graphics/OpenGL.h>
 #include <Graphics/Graphics.h>
 #include <System/Window.h>
 #include <System/Events.h>
@@ -39,6 +38,8 @@ bool Game::init()
 			return false;
 
 		window_->title("G13");
+		window_->vsync(false);
+
 		resolution = window_->size();
 	#endif
 
@@ -53,7 +54,7 @@ bool Game::init()
 	texture_ = new Texture();
 	texture_->load("data/tree.png");
 
-	const size_t nSprites = 500;
+	const size_t nSprites = 2500;
 	sprites_.resize(nSprites);
 	spriteAngles_.resize(nSprites);
 
@@ -63,9 +64,9 @@ bool Game::init()
 
 		sprite.texture = texture_;
 		sprite.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-		sprite.position = glm::diskRand((float)std::min(resolution.x, resolution.y) / 2.0f);
-		sprite.center = vec2(168.0f, 252.0f) / 5.0f;
-		sprite.size = vec2(256.0f) / 5.0f;
+		sprite.position = glm::diskRand(glm::min((float)resolution.x, (float)resolution.y) / 2.0f);
+		sprite.center = vec2(168.0f, 252.0f) / 4.0f;
+		sprite.size = vec2(256.0f) / 4.0f;
 		spriteAngles_[i] = glm::linearRand(-180.0f, 180.0f);
 
 		std::cout << "Sprite[" << i << "].position: " << glm::to_string(sprite.position) << std::endl;
@@ -91,15 +92,19 @@ void Game::terminate()
 
 void Game::draw()
 {
+	const float t = Clock::toSeconds<float>(time_ + timeAccumulator_);
+	const float scale = 0.5f * glm::exp(1.5f * glm::sin(t));
+
 	graphics->save();
 	graphics->clear();
 	graphics->texture(texture_);
 	graphics->translate(resolution.x / 2.0f, resolution.y / 2.0f);
+	graphics->scale(scale, scale);
 
 	for (size_t i = 0; i < sprites_.size(); i++)
 	{
-		sprites_[i].angle = spriteAngles_[i] + Clock::toSeconds<float>(time_ + timeAccumulator_) * 90.0f;
-		graphics->add(sprites_[i].geometry());
+		sprites_[i].angle = spriteAngles_[i] + t * 90.0f;
+		graphics->add(sprites_[i]);
 	}
 
 	graphics->draw();

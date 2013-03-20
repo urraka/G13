@@ -4,7 +4,7 @@ class Sprite
 {
 public:
 	Sprite();
-	Geometry geometry();
+	Vertex *vertices();
 
 	Texture *texture;
 	vec4 texcoords;
@@ -13,7 +13,12 @@ public:
 	vec2 size;
 	float angle;
 
+	enum
+	{
+		kVertices = 4,
+		kIndices = 6
+	};
+
 private:
 	Vertex vertices_[4];
-	uint16_t indices_[6];
 };

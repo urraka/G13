@@ -47,14 +47,17 @@ bool Window::init(bool fullscreen)
 	glfwGetGLVersion(&mayor, &minor, &rev);
 	std::cout << "OpenGL context initialized. Version: " << mayor << "." << minor << "." << rev << std::endl;
 
-	glfwSwapInterval(0);
-
 	return true;
 }
 
 void Window::title(const char *title)
 {
 	glfwSetWindowTitle(title);
+}
+
+void Window::vsync(bool enable)
+{
+	glfwSwapInterval(enable ? 1 : 0);
 }
 
 ivec2 Window::size()
