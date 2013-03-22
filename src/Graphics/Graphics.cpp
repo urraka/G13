@@ -3,20 +3,19 @@
 #include <Graphics/shaders.h>
 
 Graphics::Graphics()
-	:	texture_(0),
-		matrixChanged_(false),
-		matrix_(1.0f),
+	:	matrix_(1.0f),
 		projection_(1.0f),
 		uniforms_(),
-		vbo_(),
-		vboIndex_()
+		currentTexture_(0),
+		currentBuffer_(0),
+		matrixFlagged_(false),
+		bufferFlagged_(false)
 {
 }
 
 Graphics::~Graphics()
 {
-	shader_.bind(false);
-	glDeleteBuffers(2, vbo_);
+	shader_.unbind();
 }
 
 bool Graphics::init()
@@ -45,60 +44,57 @@ bool Graphics::init()
 	shader_.load(shaders::vertex, shaders::fragment, attributes);
 	shader_.bind();
 
-	uniforms_[Uniform::Matrix] = glGetUniformLocation(shader_.id(), "matrix");
-	uniforms_[Uniform::Projection] = glGetUniformLocation(shader_.id(), "projection");
-	uniforms_[Uniform::Sampler] = glGetUniformLocation(shader_.id(), "sampler");
+	uniforms_[kMatrix] = glGetUniformLocation(shader_.id(), "matrix");
+	uniforms_[kProjection] = glGetUniformLocation(shader_.id(), "projection");
+	uniforms_[kSampler] = glGetUniformLocation(shader_.id(), "sampler");
 
-	glUniform1i(uniforms_[Uniform::Sampler], 0);
-	glUniformMatrix4fv(uniforms_[Uniform::Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
-	glUniformMatrix4fv(uniforms_[Uniform::Projection], 1, GL_FALSE, glm::value_ptr(projection_));
-
-	// vertex buffer
-
-	glGenBuffers(2, vbo_);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_[VBO::ArrayBuffer]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_[VBO::ElementArrayBuffer]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * VBO::kVertices, 0, GL_DYNAMIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * VBO::kIndices, 0, GL_DYNAMIC_DRAW);
-
-	uint16_t indices[] = { 0, 1, 2, 2, 3, 0};
-
-	for (size_t i = 0; i < VBO::kIndices; i += 6)
-	{
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, i * sizeof(uint16_t), sizeof(indices), indices);
-
-		for (size_t j = 0; j < Sprite::kIndices; j++)
-			indices[j] += Sprite::kVertices;
-	}
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
+	glUniform1i(uniforms_[kSampler], 0);
+	glUniformMatrix4fv(uniforms_[kMatrix], 1, GL_FALSE, glm::value_ptr(matrix_));
+	glUniformMatrix4fv(uniforms_[kProjection], 1, GL_FALSE, glm::value_ptr(projection_));
 
 	return true;
 }
 
-void Graphics::add(Sprite sprite)
+void Graphics::draw(VertexBuffer *bf)
 {
-	assert((vboIndex_[VBO::ArrayBuffer] + Sprite::kVertices) <= VBO::kVertices);
-
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(Vertex) * vboIndex_[VBO::ArrayBuffer], sizeof(Vertex) * Sprite::kVertices, sprite.vertices());
-
-	vboIndex_[VBO::ArrayBuffer] += Sprite::kVertices;
-	vboIndex_[VBO::ElementArrayBuffer] += Sprite::kIndices;
+	assert(bf != 0);
+	draw(bf, 0, bf->size());
 }
 
-void Graphics::draw()
+void Graphics::draw(VertexBuffer *bf, size_t count)
 {
-	if (matrixChanged_)
+	assert(bf != 0);
+	draw(bf, 0, count);
+}
+
+void Graphics::draw(VertexBuffer *bf, size_t offset, size_t count)
+{
+	assert(bf != 0);
+	buffer(bf);
+
+	if (matrixFlagged_)
 	{
-		glUniformMatrix4fv(uniforms_[Uniform::Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
-		matrixChanged_ = false;
+		matrixFlagged_ = false;
+		glUniformMatrix4fv(uniforms_[kMatrix], 1, GL_FALSE, glm::value_ptr(matrix_));
 	}
 
-	glDrawElements(GL_TRIANGLES, vboIndex_[VBO::ElementArrayBuffer], GL_UNSIGNED_SHORT, (GLvoid*)0);
+	if (bufferFlagged_)
+	{
+		bufferFlagged_ = false;
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
+	}
 
-	vboIndex_[VBO::ArrayBuffer] = 0;
-	vboIndex_[VBO::ElementArrayBuffer] = 0;
+	if (currentBuffer_->id(VertexBuffer::IBO) != 0)
+		glDrawElements(currentBuffer_->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)offset);
+	else
+		glDrawArrays(currentBuffer_->mode(), offset, count);
+}
+
+void Graphics::draw(SpriteBatch *spriteBatch)
+{
+	assert(spriteBatch != 0);
+	spriteBatch->draw();
 }
 
 void Graphics::clear()
@@ -122,19 +118,84 @@ void Graphics::viewport(int width, int height)
 		glViewport(0, 0, width, height);
 	#endif
 
-	glUniformMatrix4fv(uniforms_[Uniform::Projection], 1, GL_FALSE, glm::value_ptr(projection_));
+	glUniformMatrix4fv(uniforms_[kProjection], 1, GL_FALSE, glm::value_ptr(projection_));
 }
 
-void Graphics::texture(const Texture *tex)
-{
-	GLuint id = (tex != 0 ? tex->id() : 0);
+// ---- Create ----
 
-	if (id != texture_)
+Texture *Graphics::texture(const char *path, Texture::Mode mode)
+{
+	Texture *tx = new Texture(this);
+	currentTexture_ = tx;
+	tx->load(path, mode);
+
+	return tx;
+}
+
+VertexBuffer *Graphics::buffer(VertexBuffer::Mode mode, VertexBuffer::Usage usage, size_t size)
+{
+	return buffer(mode, usage, usage, size, 0);
+}
+
+VertexBuffer *Graphics::buffer(VertexBuffer::Mode mode, VertexBuffer::Usage vboUsage, VertexBuffer::Usage iboUsage, size_t vboSize, size_t iboSize)
+{
+	VertexBuffer *bf = new VertexBuffer(this);
+	currentBuffer_ = bf;
+	bufferFlagged_ = true;
+	bf->create(mode, vboUsage, iboUsage, vboSize, iboSize);
+
+	return bf;
+}
+
+SpriteBatch *Graphics::batch(size_t maxSize)
+{
+	SpriteBatch *spriteBatch = new SpriteBatch(this);
+	spriteBatch->create(maxSize);
+	return spriteBatch;
+}
+
+// ---- Bind ----
+
+void Graphics::texture(Texture *texture)
+{
+	if (texture != currentTexture_)
 	{
-		glBindTexture(GL_TEXTURE_2D, id);
-		texture_ = id;
+		glBindTexture(GL_TEXTURE_2D, texture ? texture->id() : 0);
+		currentTexture_ = texture;
 	}
 }
+
+Texture *Graphics::texture()
+{
+	return currentTexture_;
+}
+
+void Graphics::buffer(VertexBuffer *buffer)
+{
+	if (buffer != currentBuffer_)
+	{
+		if (buffer)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, buffer->id(VertexBuffer::VBO));
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->id(VertexBuffer::IBO));
+		}
+		else
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		}
+
+		currentBuffer_ = buffer;
+		bufferFlagged_ = true;
+	}
+}
+
+VertexBuffer *Graphics::buffer()
+{
+	return currentBuffer_;
+}
+
+// ---- Matrix ----
 
 void Graphics::save()
 {
@@ -158,22 +219,22 @@ const mat4 &Graphics::matrix()
 void Graphics::matrix(const mat4 &m)
 {
 	matrix_ = m;
-	matrixChanged_ = true;
+	matrixFlagged_ = true;
 }
 
 void Graphics::translate(float x, float y)
 {
-	matrix(matrix_ * glm::translate(x, y, 0.0f));
+	matrix(glm::translate(matrix_, vec3(x, y, 0.0f)));
 }
 
 void Graphics::rotate(float angle)
 {
-	matrix(matrix_ * glm::rotate(angle, 0.0f, 0.0f, 1.0f));
+	matrix(glm::rotate(matrix_, angle, vec3(0.0f, 0.0f, 1.0f)));
 }
 
 void Graphics::scale(float width, float height)
 {
-	matrix(matrix_ * glm::scale(width, height, 1.0f));
+	matrix(glm::scale(matrix_, vec3(width, height, 1.0f)));
 }
 
 void Graphics::transform(const mat4 &m)

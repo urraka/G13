@@ -13,7 +13,9 @@ Game::Game()
 	:	graphics(0),
 		events(0),
 		window_(0),
-		texture_(0)
+		texture_(0),
+		buffer_(0),
+		batch_(0)
 {
 }
 
@@ -51,10 +53,27 @@ bool Game::init()
 	graphics->viewport(resolution.x, resolution.y);
 	graphics->bgcolor(0.5f, 0.5f, 0.5f);
 
-	texture_ = new Texture();
-	texture_->load("data/tree.png");
+	texture_ = graphics->texture("data/tree.png");
+	// buffer_ = graphics->buffer(VertexBuffer::kTriangleFan, VertexBuffer::kStaticDraw, VertexBuffer::kStaticDraw, 4, 0);
 
-	const size_t nSprites = 2500;
+	// Vertex vert[4];
+
+	// vert[0].position = vec2(100.0f, 100.0f);
+	// vert[1].position = vec2(356.0f, 100.0f);
+	// vert[2].position = vec2(356.0f, 356.0f);
+	// vert[3].position = vec2(100.0f, 356.0f);
+	// vert[0].uv = vec2(0.0f, 0.0f);
+	// vert[1].uv = vec2(1.0f, 0.0f);
+	// vert[2].uv = vec2(1.0f, 1.0f);
+	// vert[3].uv = vec2(0.0f, 1.0f);
+
+	// uint16_t indices[6] = { 0, 1, 2, 2, 3, 0 };
+
+	// buffer_->set(vert, 0, 4);
+	//buffer_->set(indices, 0, 6);
+
+	const size_t nSprites = 100;
+	batch_ = graphics->batch(nSprites);
 	sprites_.resize(nSprites);
 	spriteAngles_.resize(nSprites);
 
@@ -65,11 +84,10 @@ bool Game::init()
 		sprite.texture = texture_;
 		sprite.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 		sprite.position = glm::diskRand(glm::min((float)resolution.x, (float)resolution.y) / 2.0f);
-		sprite.center = vec2(168.0f, 252.0f) / 4.0f;
-		sprite.size = vec2(256.0f) / 4.0f;
+		sprite.center = vec2(168.0f, 252.0f);
+		sprite.size = vec2(256.0f);
+		sprite.scale = vec2(0.5f, 0.5f);
 		spriteAngles_[i] = glm::linearRand(-180.0f, 180.0f);
-
-		std::cout << "Sprite[" << i << "].position: " << glm::to_string(sprite.position) << std::endl;
 	}
 
 	return true;
@@ -77,6 +95,7 @@ bool Game::init()
 
 void Game::terminate()
 {
+	delete buffer_;
 	delete texture_;
 	delete graphics;
 	delete events;
@@ -97,17 +116,18 @@ void Game::draw()
 
 	graphics->save();
 	graphics->clear();
-	graphics->texture(texture_);
 	graphics->translate(resolution.x / 2.0f, resolution.y / 2.0f);
 	graphics->scale(scale, scale);
+
+	batch_->clear();
 
 	for (size_t i = 0; i < sprites_.size(); i++)
 	{
 		sprites_[i].angle = spriteAngles_[i] + t * 90.0f;
-		graphics->add(sprites_[i]);
+		batch_->add(sprites_[i]);
 	}
 
-	graphics->draw();
+	graphics->draw(batch_);
 	graphics->restore();
 
 	fps_++;

@@ -1,13 +1,13 @@
 #include <pch.h>
-#include <Graphics/OpenGL.h>
-#include <Graphics/Texture.h>
+#include <Graphics/Graphics.h>
 
 #include <stdio.h>
 #include <setjmp.h>
 #include <png.h>
 
-Texture::Texture()
-	:	textureId_(0),
+Texture::Texture(Graphics *graphics)
+	:	graphics_(graphics),
+		textureId_(0),
 		width_(0),
 		height_(0)
 {
@@ -19,8 +19,10 @@ Texture::~Texture()
 		glDeleteTextures(1, &textureId_);
 }
 
-bool Texture::load(const char *path)
+bool Texture::load(const char *path, Mode mode)
 {
+	assert(graphics_ != 0);
+
 	FILE *file = fopen(path, "rb");
 
 	if (!file)
@@ -95,9 +97,6 @@ bool Texture::load(const char *path)
 
 	bool alpha = (color == PNG_COLOR_TYPE_RGB_ALPHA);
 
-	GLint prevTexture;
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
-
 	glGenTextures(1, &textureId_);
 	glBindTexture(GL_TEXTURE_2D, textureId_);
 	glTexImage2D(GL_TEXTURE_2D, 0, alpha ? GL_RGBA : GL_RGB, width_, height_, 0, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, 0);
@@ -107,12 +106,7 @@ bool Texture::load(const char *path)
 	for (int y = 0; y < height_; y++)
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y, width_, 1, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, rows[y]);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindTexture(GL_TEXTURE_2D, prevTexture);
+	this->mode(mode);
 
 	png_destroy_read_struct(&png, &info, &info_end);
 	fclose(file);
@@ -120,4 +114,44 @@ bool Texture::load(const char *path)
 	std::cout << "Texture loaded - ID: " << textureId_ << " - Size: " << width_ << "x" << height_ << " - Alpha: " << (alpha ? "true" : "false") << std::endl;
 
 	return true;
+}
+
+void Texture::mode(Texture::Mode mode)
+{
+	assert(textureId_ != 0);
+	assert(graphics_ != 0);
+
+	Texture *prevTexture = graphics_->texture();
+
+	GLint xWrap = (mode & kRepeatX ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+	GLint yWrap = (mode & kRepeatY ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+	GLint minFilter = (mode & kLinearFilterMin ? GL_LINEAR : GL_NEAREST);
+	GLint magFilter = (mode & kLinearFilterMag ? GL_LINEAR : GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, xWrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, yWrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+	graphics_->texture(prevTexture);
+}
+
+int Texture::width() const
+{
+	return width_;
+}
+
+int Texture::height() const
+{
+	return height_;
+}
+
+void Texture::bind()
+{
+	graphics_->texture(this);
+}
+
+GLuint Texture::id() const
+{
+	return textureId_;
 }

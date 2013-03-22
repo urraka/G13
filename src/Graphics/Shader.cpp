@@ -24,12 +24,14 @@ bool Shader::load(const std::string &vertexSource, const std::string &fragmentSo
 	glDeleteShader(fragmentShader);
 }
 
-void Shader::bind(bool shouldBind)
+void Shader::bind()
 {
-	if (shouldBind)
-		glUseProgram(program_);
-	else
-		glUseProgram(0);
+	glUseProgram(program_);
+}
+
+void Shader::unbind()
+{
+	glUseProgram(0);
 }
 
 GLuint Shader::createShader(GLenum type, const char *source)

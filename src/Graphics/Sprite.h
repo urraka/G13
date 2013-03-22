@@ -4,21 +4,13 @@ class Sprite
 {
 public:
 	Sprite();
-	Vertex *vertices();
+	void vertices(Vertex (&vertices)[4]) const;
 
 	Texture *texture;
 	vec4 texcoords;
 	vec2 position;
 	vec2 center;
 	vec2 size;
+	vec2 scale;
 	float angle;
-
-	enum
-	{
-		kVertices = 4,
-		kIndices = 6
-	};
-
-private:
-	Vertex vertices_[4];
 };

@@ -7,7 +7,8 @@ public:
 	~Shader();
 
 	bool load(const std::string &srcVertex, const std::string &srcFragment, const std::vector<std::string> &attributes);
-	void bind(bool shouldBind = true);
+	void bind();
+	void unbind();
 	GLuint id() const { return program_; }
 
 protected:

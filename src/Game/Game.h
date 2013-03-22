@@ -1,9 +1,7 @@
 #pragma once
 
 class Window;
-class Graphics;
 class Events;
-class Texture;
 
 #include <Graphics/Graphics.h>
 
@@ -34,6 +32,8 @@ private:
 	bool quit_;
 
 	// testing
+	SpriteBatch *batch_;
+	VertexBuffer *buffer_;
 	Texture *texture_;
 	std::vector<Sprite> sprites_;
 	std::vector<float> spriteAngles_;
