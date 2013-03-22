@@ -66,7 +66,7 @@ endif
 
 # make-depend(dep-file,src-file,stem)
 define make-depend
-	$(cxx) -M $(inc) $(def) $2 | \
+	$(cxx) -MM $(inc) $(def) $2 | \
 	sed -e 's,\($3\)\.o[ :]*,$(patsubst %.d,%.o,$1) $1 : ,g' \
 	-e 's/\\$$/^^/' \
 	-e 's/\\/\//g' \
