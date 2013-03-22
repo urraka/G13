@@ -66,9 +66,11 @@ endif
 
 # make-depend(dep-file,src-file,stem)
 define make-depend
-	$(cxx) -MM $(inc) $(def) $2 | \
-	sed 's,\($3\)\.o[ :]*,$(patsubst %.d,%.o,$1) $1 : ,g' | \
-	sed -re 's/\\([^$$])/\/\1/g' > $1.tmp1
+	$(cxx) -M $(inc) $(def) $2 | \
+	sed -e 's,\($3\)\.o[ :]*,$(patsubst %.d,%.o,$1) $1 : ,g' \
+	-e 's/\\$$/^^/' \
+	-e 's/\\/\//g' \
+	-e 's/\^\^$$/\\/' > $1.tmp1
 	sed -e 's/#.*//' \
 	-e 's/^[^:]*: //' \
 	-e 's/^ *//' \

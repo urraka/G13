@@ -13,7 +13,7 @@ Shader::~Shader()
 		glDeleteProgram(program_);
 }
 
-bool Shader::load(const std::string &vertexSource, const std::string &fragmentSource, const std::vector<std::string> &attributes)
+void Shader::load(const std::string &vertexSource, const std::string &fragmentSource, const std::vector<std::string> &attributes)
 {
 	GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexSource.c_str());
 	GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentSource.c_str());
@@ -22,7 +22,6 @@ bool Shader::load(const std::string &vertexSource, const std::string &fragmentSo
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-	return true;
 }
 
 void Shader::bind()
