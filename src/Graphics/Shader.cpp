@@ -22,6 +22,7 @@ bool Shader::load(const std::string &vertexSource, const std::string &fragmentSo
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	return true;
 }
 
 void Shader::bind()

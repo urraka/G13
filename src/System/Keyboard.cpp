@@ -8,7 +8,7 @@ namespace Keyboard
 {
 	bool pressed(Key key)
 	{
-		#if defined(IOS)
+		#if !defined(IOS)
 			return (glfwGetKey(key) == GLFW_PRESS);
 		#else
 			return false;

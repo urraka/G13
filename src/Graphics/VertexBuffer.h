@@ -24,14 +24,8 @@ public:
 	{
 		kNone = 0,
 		kStreamDraw = GL_STREAM_DRAW,
-		kStreamRead = GL_STREAM_READ,
-		kStreamCopy = GL_STREAM_COPY,
 		kStaticDraw = GL_STATIC_DRAW,
-		kStaticRead = GL_STATIC_READ,
-		kStaticCopy = GL_STATIC_COPY,
-		kDynamicDraw = GL_DYNAMIC_DRAW,
-		kDynamicRead = GL_DYNAMIC_READ,
-		kDynamicCopy = GL_DYNAMIC_COPY
+		kDynamicDraw = GL_DYNAMIC_DRAW
 	};
 
 	~VertexBuffer();
