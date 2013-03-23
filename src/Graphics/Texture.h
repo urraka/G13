@@ -16,7 +16,6 @@ public:
 		kDefault = kLinearFilter
 	};
 
-	void bind();
 	void mode(Mode mode);
 	int width() const;
 	int height() const;

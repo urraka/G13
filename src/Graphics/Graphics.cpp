@@ -55,22 +55,23 @@ bool Graphics::init()
 	return true;
 }
 
-void Graphics::draw(VertexBuffer *bf)
+void Graphics::draw(VertexBuffer *vertexBuffer)
 {
-	assert(bf != 0);
-	draw(bf, 0, bf->size());
+	assert(vertexBuffer != 0);
+	draw(vertexBuffer, 0, vertexBuffer->size());
 }
 
-void Graphics::draw(VertexBuffer *bf, size_t count)
+void Graphics::draw(VertexBuffer *vertexBuffer, size_t count)
 {
-	assert(bf != 0);
-	draw(bf, 0, count);
+	assert(vertexBuffer != 0);
+	draw(vertexBuffer, 0, count);
 }
 
-void Graphics::draw(VertexBuffer *bf, size_t offset, size_t count)
+void Graphics::draw(VertexBuffer *vertexBuffer, size_t offset, size_t count)
 {
-	assert(bf != 0);
-	buffer(bf);
+	assert(vertexBuffer != 0);
+
+	bind(vertexBuffer);
 
 	if (matrixFlagged_)
 	{
@@ -139,12 +140,12 @@ VertexBuffer *Graphics::buffer(VertexBuffer::Mode mode, VertexBuffer::Usage usag
 
 VertexBuffer *Graphics::buffer(VertexBuffer::Mode mode, VertexBuffer::Usage vboUsage, VertexBuffer::Usage iboUsage, size_t vboSize, size_t iboSize)
 {
-	VertexBuffer *bf = new VertexBuffer(this);
-	currentBuffer_ = bf;
+	VertexBuffer *vertexBuffer = new VertexBuffer(this);
+	currentBuffer_ = vertexBuffer;
 	bufferFlagged_ = true;
-	bf->create(mode, vboUsage, iboUsage, vboSize, iboSize);
+	vertexBuffer->create(mode, vboUsage, iboUsage, vboSize, iboSize);
 
-	return bf;
+	return vertexBuffer;
 }
 
 SpriteBatch *Graphics::batch(size_t maxSize)
@@ -156,28 +157,23 @@ SpriteBatch *Graphics::batch(size_t maxSize)
 
 // ---- Bind ----
 
-void Graphics::texture(Texture *texture)
+void Graphics::bind(Texture *tx)
 {
-	if (texture != currentTexture_)
+	if (tx != currentTexture_)
 	{
-		glBindTexture(GL_TEXTURE_2D, texture ? texture->id() : 0);
-		currentTexture_ = texture;
+		glBindTexture(GL_TEXTURE_2D, tx ? tx->id() : 0);
+		currentTexture_ = tx;
 	}
 }
 
-Texture *Graphics::texture()
+void Graphics::bind(VertexBuffer *vertexBuffer)
 {
-	return currentTexture_;
-}
-
-void Graphics::buffer(VertexBuffer *buffer)
-{
-	if (buffer != currentBuffer_)
+	if (vertexBuffer != currentBuffer_)
 	{
-		if (buffer)
+		if (vertexBuffer)
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, buffer->id(VertexBuffer::VBO));
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->id(VertexBuffer::IBO));
+			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->id(VertexBuffer::VBO));
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexBuffer->id(VertexBuffer::IBO));
 		}
 		else
 		{
@@ -185,14 +181,14 @@ void Graphics::buffer(VertexBuffer *buffer)
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
-		currentBuffer_ = buffer;
+		currentBuffer_ = vertexBuffer;
 		bufferFlagged_ = true;
 	}
 }
 
-VertexBuffer *Graphics::buffer()
+void Graphics::bind(SpriteBatch *spriteBatch)
 {
-	return currentBuffer_;
+	bind(spriteBatch->buffer_);
 }
 
 // ---- Matrix ----

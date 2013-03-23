@@ -121,7 +121,7 @@ void Texture::mode(Texture::Mode mode)
 	assert(textureId_ != 0);
 	assert(graphics_ != 0);
 
-	Texture *prevTexture = graphics_->texture();
+	graphics_->bind(this);
 
 	GLint xWrap = (mode & kRepeatX ? GL_REPEAT : GL_CLAMP_TO_EDGE);
 	GLint yWrap = (mode & kRepeatY ? GL_REPEAT : GL_CLAMP_TO_EDGE);
@@ -132,8 +132,6 @@ void Texture::mode(Texture::Mode mode)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, yWrap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-
-	graphics_->texture(prevTexture);
 }
 
 int Texture::width() const
@@ -144,11 +142,6 @@ int Texture::width() const
 int Texture::height() const
 {
 	return height_;
-}
-
-void Texture::bind()
-{
-	graphics_->texture(this);
 }
 
 GLuint Texture::id() const

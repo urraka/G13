@@ -22,6 +22,8 @@ void SpriteBatch::clear()
 
 void SpriteBatch::add(const Sprite &sprite)
 {
+	assert(size_ < maxSize_);
+
 	sprite.vertices(vertices_);
 	buffer_->set(vertices_, 4 * size_, 4);
 	size_++;

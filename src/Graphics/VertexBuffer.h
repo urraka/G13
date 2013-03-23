@@ -5,8 +5,8 @@ class VertexBuffer
 public:
 	enum Type
 	{
-		VBO,
-		IBO
+		VBO = 0,
+		IBO = 1
 	};
 
 	enum Mode
@@ -30,7 +30,6 @@ public:
 
 	~VertexBuffer();
 
-	void bind();
 	Mode mode() const;
 	void mode(Mode mode);
 	void set(Vertex *vertices, size_t offset, size_t count);
@@ -44,10 +43,8 @@ private:
 
 	Graphics *graphics_;
 	Mode mode_;
-	GLuint vboId_;
-	GLuint iboId_;
-	size_t vboSize_;
-	size_t iboSize_;
+	GLuint id_[2];
+	size_t size_[2];
 
 	friend class Graphics;
 };

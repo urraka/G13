@@ -3,38 +3,36 @@
 
 VertexBuffer::VertexBuffer(Graphics *graphics)
 	:	graphics_(graphics),
-		vboId_(0),
-		iboId_(0),
-		vboSize_(0),
-		iboSize_(0)
+		id_(),
+		size_()
 {
 }
 
 VertexBuffer::~VertexBuffer()
 {
-	if (vboId_ != 0)
-		glDeleteBuffers(1, &vboId_);
+	if (id_[VBO] != 0)
+		glDeleteBuffers(1, &id_[VBO]);
 
-	if (iboId_ != 0)
-		glDeleteBuffers(1, &iboId_);
+	if (id_[IBO] != 0)
+		glDeleteBuffers(1, &id_[IBO]);
 }
 
 void VertexBuffer::create(Mode mode, Usage vboUsage, Usage iboUsage, size_t vboSize, size_t iboSize)
 {
-	assert(iboSize == 0 || vboSize <= 0x10000);
+	assert(iboSize == 0 || vboSize <= 0x10000); // this is because i'm using GL_UNSIGNED_SHORT when calling glDrawElements
 
 	mode_ = mode;
-	vboSize_ = vboSize;
-	iboSize_ = iboSize;
+	size_[VBO] = vboSize;
+	size_[IBO] = iboSize;
 
-	glGenBuffers(1, &vboId_);
-	glBindBuffer(GL_ARRAY_BUFFER, vboId_);
+	glGenBuffers(1, &id_[VBO]);
+	glBindBuffer(GL_ARRAY_BUFFER, id_[VBO]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vboSize, 0, vboUsage);
 
 	if (iboSize > 0)
 	{
-		glGenBuffers(1, &iboId_);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId_);
+		glGenBuffers(1, &id_[IBO]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_[IBO]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * iboSize, 0, iboUsage);
 	}
 }
@@ -49,33 +47,28 @@ VertexBuffer::Mode VertexBuffer::mode() const
 	return mode_;
 }
 
-void VertexBuffer::bind()
-{
-	graphics_->buffer(this);
-}
-
 void VertexBuffer::set(Vertex *vertices, size_t offset, size_t count)
 {
-	assert(graphics_->buffer() == this);
-	assert(offset + count <= vboSize_);
+	assert(offset + count <= size_[VBO]);
 
+	graphics_->bind(this);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(Vertex) * offset, sizeof(Vertex) * count, vertices);
 }
 
 void VertexBuffer::set(uint16_t *indices, size_t offset, size_t count)
 {
-	assert(graphics_->buffer() == this);
-	assert(offset + count <= iboSize_);
+	assert(offset + count <= size_[IBO]);
 
+	graphics_->bind(this);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * offset, sizeof(uint16_t) * count, indices);
 }
 
 GLuint VertexBuffer::id(Type type) const
 {
-	return type == VBO ? vboId_ : iboId_;
+	return id_[type];
 }
 
 size_t VertexBuffer::size() const
 {
-	return iboId_ != 0 ? iboSize_ : vboSize_;
+	return id_[IBO] != 0 ? size_[IBO] : size_[VBO];
 }

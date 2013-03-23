@@ -6,7 +6,6 @@ public:
 	Sprite();
 	void vertices(Vertex (&vertices)[4]) const;
 
-	Texture *texture;
 	vec4 texcoords;
 	vec2 position;
 	vec2 center;

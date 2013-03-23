@@ -17,5 +17,11 @@
 				}
 			]
 		}
-	]
+	],
+
+	"settings":
+	{
+    	"sublimegdb_workingdir": "c:/urraka/projects/G13/",
+    	"sublimegdb_commandline": "gdb --interpreter=mi c:/urraka/projects/G13/bin/win32-d/G13.exe"
+	}
 }

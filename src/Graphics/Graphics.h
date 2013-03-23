@@ -19,25 +19,24 @@ public:
 	bool init();
 	void viewport(int width, int height);
 
-	// drawing
+	// draw
+	void clear();
+	void bgcolor(float r, float g, float b, float a = 1.0f);
 	void draw(VertexBuffer *buffer);
 	void draw(VertexBuffer *buffer, size_t count);
 	void draw(VertexBuffer *buffer, size_t offset, size_t count);
 	void draw(SpriteBatch *spriteBatch);
-	void clear();
-	void bgcolor(float r, float g, float b, float a = 1.0f);
 
-	// create
+	// create: the created object gets implicitly bound
 	Texture *texture(const char *path, Texture::Mode mode = Texture::kDefault);
 	VertexBuffer *buffer(VertexBuffer::Mode mode, VertexBuffer::Usage usage, size_t size);
 	VertexBuffer *buffer(VertexBuffer::Mode mode, VertexBuffer::Usage vboUsage, VertexBuffer::Usage iboUsage, size_t vboSize, size_t iboSize);
 	SpriteBatch *batch(size_t maxSize);
 
 	// bind
-	void texture(Texture *tx);
-	void buffer(VertexBuffer *buffer);
-	Texture *texture();
-	VertexBuffer *buffer();
+	void bind(Texture *tx);
+	void bind(VertexBuffer *bf);
+	void bind(SpriteBatch *spriteBatch);
 
 	// matrix
 	void save();
