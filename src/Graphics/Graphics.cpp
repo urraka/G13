@@ -70,6 +70,7 @@ void Graphics::draw(VertexBuffer *vertexBuffer, size_t count)
 void Graphics::draw(VertexBuffer *vertexBuffer, size_t offset, size_t count)
 {
 	assert(vertexBuffer != 0);
+	assert(offset + count <= vertexBuffer->size());
 
 	bind(vertexBuffer);
 
@@ -83,19 +84,25 @@ void Graphics::draw(VertexBuffer *vertexBuffer, size_t offset, size_t count)
 	{
 		bufferFlagged_ = false;
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(vec2));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
 	}
 
-	if (currentBuffer_->id(VertexBuffer::IBO) != 0)
-		glDrawElements(currentBuffer_->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)offset);
+	if (vertexBuffer->id(VertexBuffer::IBO) != 0)
+		glDrawElements(vertexBuffer->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)(sizeof(uint16_t) * offset));
 	else
-		glDrawArrays(currentBuffer_->mode(), offset, count);
+		glDrawArrays(vertexBuffer->mode(), offset, count);
 }
 
 void Graphics::draw(SpriteBatch *spriteBatch)
 {
 	assert(spriteBatch != 0);
-	spriteBatch->draw();
+	spriteBatch->draw(0, spriteBatch->size());
+}
+
+void Graphics::draw(SpriteBatch *spriteBatch, size_t offset, size_t count)
+{
+	assert(spriteBatch != 0);
+	spriteBatch->draw(offset, count);
 }
 
 void Graphics::clear()

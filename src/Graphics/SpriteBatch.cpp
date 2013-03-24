@@ -45,7 +45,13 @@ void SpriteBatch::create(size_t maxSize)
 	}
 }
 
-void SpriteBatch::draw()
+void SpriteBatch::draw(size_t offset, size_t count)
 {
-	graphics_->draw(buffer_, 0, 6 * size_);
+	assert(offset + count <= maxSize_);
+	graphics_->draw(buffer_, 6 * offset, 6 * count);
+}
+
+size_t SpriteBatch::size() const
+{
+	return size_;
 }

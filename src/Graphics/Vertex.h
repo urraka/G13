@@ -1,8 +1,7 @@
 #pragma once
 
-class Vertex
+struct Vertex
 {
-public:
 	vec2 position;
 	vec2 uv;
 };

@@ -67,7 +67,7 @@ bool Game::init()
 		sprite.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 		sprite.position = glm::diskRand(glm::min((float)resolution.x, (float)resolution.y) / 2.0f);
 		sprite.center = vec2(168.0f, 252.0f);
-		sprite.size = vec2(256.0f);
+		sprite.size = vec2((float)texture_->width(), (float)texture_->height());
 		sprite.scale = vec2(0.5f, 0.5f);
 		spriteAngles_[i] = glm::linearRand(-180.0f, 180.0f);
 	}
@@ -100,6 +100,7 @@ void Game::draw()
 	graphics->clear();
 	graphics->translate(resolution.x / 2.0f, resolution.y / 2.0f);
 	graphics->scale(scale, scale);
+	graphics->rotate(t * 45.0f);
 
 	batch_->clear();
 

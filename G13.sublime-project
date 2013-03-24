@@ -1,7 +1,7 @@
 {
 	"folders": [
 		{
-			"path": "/C/urraka/projects/G13"
+			"path": "."
 		}
 	],
 	"build_systems": [
@@ -21,7 +21,7 @@
 
 	"settings":
 	{
-    	"sublimegdb_workingdir": "c:/urraka/projects/G13/",
-    	"sublimegdb_commandline": "gdb --interpreter=mi c:/urraka/projects/G13/bin/win32-d/G13.exe"
+    	"sublimegdb_workingdir": "${folder:${project_path:G13.sublime-project}}",
+    	"sublimegdb_commandline": "gdb --interpreter=mi ./bin/win32-d/G13.exe"
 	}
 }

@@ -26,6 +26,7 @@ public:
 	void draw(VertexBuffer *buffer, size_t count);
 	void draw(VertexBuffer *buffer, size_t offset, size_t count);
 	void draw(SpriteBatch *spriteBatch);
+	void draw(SpriteBatch *spriteBatch, size_t offset, size_t count);
 
 	// create: the created object gets implicitly bound
 	Texture *texture(const char *path, Texture::Mode mode = Texture::kDefault);

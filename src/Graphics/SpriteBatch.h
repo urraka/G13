@@ -3,15 +3,16 @@
 class SpriteBatch
 {
 public:
+	~SpriteBatch();
+
 	void clear();
 	void add(const Sprite &sprite);
-
-	~SpriteBatch();
+	size_t size() const;
 
 private:
 	SpriteBatch(Graphics *graphics);
 	void create(size_t maxSize);
-	void draw();
+	void draw(size_t offset, size_t count);
 
 	Graphics *graphics_;
 	VertexBuffer *buffer_;

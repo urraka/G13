@@ -1,6 +1,5 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
-#include <Graphics/OpenGL.h>
 #include <Graphics/Graphics.h>
 #include <Game/Game.h>
 
