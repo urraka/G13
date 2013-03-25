@@ -33,7 +33,7 @@ private:
 
 	// testing
 	SpriteBatch *batch_;
-	VertexBuffer *buffer_;
+	VBO<Vertex> *buffer_;
 	Texture *texture_;
 	std::vector<Sprite> sprites_;
 	std::vector<float> spriteAngles_;

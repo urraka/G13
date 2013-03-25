@@ -15,7 +15,7 @@ private:
 	void draw(size_t offset, size_t count);
 
 	Graphics *graphics_;
-	VertexBuffer *buffer_;
+	VBO<Vertex> *buffer_;
 	size_t size_;
 	size_t maxSize_;
 	Vertex vertices_[4];

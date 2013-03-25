@@ -7,13 +7,13 @@ public:
 
 	enum Mode
 	{
-		kRepeatX = 0x01,
-		kRepeatY = 0x02,
-		kLinearFilterMin = 0x04,
-		kLinearFilterMag = 0x08,
-		kLinearFilter = kLinearFilterMin | kLinearFilterMag,
-		kRepeat = kRepeatX | kRepeatY,
-		kDefault = kLinearFilter
+		RepeatX = 0x01,
+		RepeatY = 0x02,
+		LinearFilterMin = 0x04,
+		LinearFilterMag = 0x08,
+		LinearFilter = LinearFilterMin | LinearFilterMag,
+		Repeat = RepeatX | RepeatY,
+		Default = LinearFilter
 	};
 
 	void mode(Mode mode);

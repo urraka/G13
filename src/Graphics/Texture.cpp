@@ -123,10 +123,10 @@ void Texture::mode(Texture::Mode mode)
 
 	graphics_->bind(this);
 
-	GLint xWrap = (mode & kRepeatX ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-	GLint yWrap = (mode & kRepeatY ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-	GLint minFilter = (mode & kLinearFilterMin ? GL_LINEAR : GL_NEAREST);
-	GLint magFilter = (mode & kLinearFilterMag ? GL_LINEAR : GL_NEAREST);
+	GLint xWrap = (mode & RepeatX ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+	GLint yWrap = (mode & RepeatY ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+	GLint minFilter = (mode & LinearFilterMin ? GL_LINEAR : GL_NEAREST);
+	GLint magFilter = (mode & LinearFilterMag ? GL_LINEAR : GL_NEAREST);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, xWrap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, yWrap);

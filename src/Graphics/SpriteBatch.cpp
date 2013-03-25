@@ -32,7 +32,7 @@ void SpriteBatch::add(const Sprite &sprite)
 void SpriteBatch::create(size_t maxSize)
 {
 	maxSize_ = maxSize;
-	buffer_ = graphics_->buffer(VertexBuffer::kTriangles, VertexBuffer::kDynamicDraw, VertexBuffer::kStaticDraw, 4 * maxSize, 6 * maxSize);
+	buffer_ = graphics_->buffer<Vertex>(VBO<Vertex>::Triangles, VBO<Vertex>::DynamicDraw, VBO<Vertex>::StaticDraw, 4 * maxSize, 6 * maxSize);
 
 	uint16_t indices[] = { 0, 1, 2, 2, 3, 0};
 

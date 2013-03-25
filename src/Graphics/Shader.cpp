@@ -1,5 +1,6 @@
 #include <pch.h>
 #include <Graphics/OpenGL.h>
+#include <Graphics/Vertex.h>
 #include <Graphics/Shader.h>
 
 Shader::Shader()
@@ -13,12 +14,12 @@ Shader::~Shader()
 		glDeleteProgram(program_);
 }
 
-void Shader::load(const std::string &vertexSource, const std::string &fragmentSource, const std::vector<std::string> &attributes)
+void Shader::load(const std::string &vertexSource, const std::string &fragmentSource, int nAttributes, AttribCallback attrib)
 {
 	GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexSource.c_str());
 	GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentSource.c_str());
 
-	program_ = createProgram(vertexShader, fragmentShader, attributes);
+	program_ = createProgram(vertexShader, fragmentShader, nAttributes, attrib);
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
@@ -59,12 +60,12 @@ GLuint Shader::createShader(GLenum type, const char *source)
 	return shader;
 }
 
-GLuint Shader::createProgram(GLuint vertexShader, GLuint fragmentShader, const std::vector<std::string> &attributes)
+GLuint Shader::createProgram(GLuint vertexShader, GLuint fragmentShader, int nAttributes, AttribCallback attrib)
 {
 	GLuint program = glCreateProgram();
 
-	for (int i = 0; i < attributes.size(); i++)
-		glBindAttribLocation(program, i, attributes[i].c_str());
+	for (int i = 0; i < nAttributes; i++)
+		glBindAttribLocation(program, i, attrib(i).name);
 
 	glAttachShader(program, vertexShader);
 	glAttachShader(program, fragmentShader);

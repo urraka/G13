@@ -1,4 +1,12 @@
 #include <pch.h>
+
+#define VBO_TEMPLATE_INSTANCE(VertexT) \
+	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo); \
+	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t count); \
+	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t offset, size_t count); \
+	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage vboUsage, VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize); \
+	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage usage, size_t size);
+
 #include <Graphics/Graphics.h>
 #include <Graphics/shaders.h>
 
@@ -8,6 +16,7 @@ Graphics::Graphics()
 		uniforms_(),
 		currentTexture_(0),
 		currentBuffer_(0),
+		nEnabledAttributes_(0),
 		matrixFlagged_(false),
 		bufferFlagged_(false)
 {
@@ -34,63 +43,95 @@ bool Graphics::init()
 
 	// shader
 
-	std::vector<std::string> attributes;
-	attributes.push_back("position");
-	attributes.push_back("texCoords");
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	shader_.load(shaders::vertex, shaders::fragment, attributes);
+	shader_.load(shaders::vertex, shaders::fragment, Vertex::AttributesCount, Vertex::attrib);
 	shader_.bind();
 
-	uniforms_[kMatrix] = glGetUniformLocation(shader_.id(), "matrix");
-	uniforms_[kProjection] = glGetUniformLocation(shader_.id(), "projection");
-	uniforms_[kSampler] = glGetUniformLocation(shader_.id(), "sampler");
+	uniforms_[Matrix] = glGetUniformLocation(shader_.id(), "matrix");
+	uniforms_[Projection] = glGetUniformLocation(shader_.id(), "projection");
+	uniforms_[Sampler] = glGetUniformLocation(shader_.id(), "sampler");
 
-	glUniform1i(uniforms_[kSampler], 0);
-	glUniformMatrix4fv(uniforms_[kMatrix], 1, GL_FALSE, glm::value_ptr(matrix_));
-	glUniformMatrix4fv(uniforms_[kProjection], 1, GL_FALSE, glm::value_ptr(projection_));
+	glUniform1i(uniforms_[Sampler], 0);
+	glUniformMatrix4fv(uniforms_[Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
+	glUniformMatrix4fv(uniforms_[Projection], 1, GL_FALSE, glm::value_ptr(projection_));
 
 	return true;
 }
 
-void Graphics::draw(VertexBuffer *vertexBuffer)
+void Graphics::viewport(int width, int height)
 {
-	assert(vertexBuffer != 0);
-	draw(vertexBuffer, 0, vertexBuffer->size());
+	projection_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+
+	#if defined(IOS)
+		glViewport(0, 0, height, width);
+		projection_ = glm::rotate(-90.0f, 0.0f, 0.0f, 1.0f) * projection_;
+	#else
+		glViewport(0, 0, width, height);
+	#endif
+
+	glUniformMatrix4fv(uniforms_[Projection], 1, GL_FALSE, glm::value_ptr(projection_));
 }
 
-void Graphics::draw(VertexBuffer *vertexBuffer, size_t count)
+// -----------------------------------------------------------------------------
+// Draw
+
+void Graphics::clear()
 {
-	assert(vertexBuffer != 0);
-	draw(vertexBuffer, 0, count);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Graphics::draw(VertexBuffer *vertexBuffer, size_t offset, size_t count)
+void Graphics::bgcolor(float r, float g, float b, float a)
 {
-	assert(vertexBuffer != 0);
-	assert(offset + count <= vertexBuffer->size());
+	glClearColor(r, g, b, a);
+}
 
-	bind(vertexBuffer);
+template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo)
+{
+	assert(vbo != 0);
+	draw<VertexT>(vbo, 0, vbo->size());
+}
+
+template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t count)
+{
+	assert(vbo != 0);
+	draw<VertexT>(vbo, 0, count);
+}
+
+template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t offset, size_t count)
+{
+	assert(vbo != 0);
+	assert(offset + count <= vbo->size());
+
+	bind<VertexT>(vbo);
 
 	if (matrixFlagged_)
 	{
 		matrixFlagged_ = false;
-		glUniformMatrix4fv(uniforms_[kMatrix], 1, GL_FALSE, glm::value_ptr(matrix_));
+		glUniformMatrix4fv(uniforms_[Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
 	}
 
 	if (bufferFlagged_)
 	{
 		bufferFlagged_ = false;
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
+
+		for (int i = nEnabledAttributes_; i < VertexT::AttributesCount; i++)
+			glEnableVertexAttribArray(i);
+
+		for (int i = VertexT::AttributesCount; i < nEnabledAttributes_; i++)
+			glDisableVertexAttribArray(i);
+
+		for (int i = 0; i < VertexT::AttributesCount; i++)
+		{
+			const VertexAttribute &attr = VertexT::attrib(i);
+			glVertexAttribPointer(i, attr.size, attr.type, attr.normalized, attr.stride, attr.pointer);
+		}
+
+		nEnabledAttributes_ = VertexT::AttributesCount;
 	}
 
-	if (vertexBuffer->id(VertexBuffer::IBO) != 0)
-		glDrawElements(vertexBuffer->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)(sizeof(uint16_t) * offset));
+	if (vbo->id(VBO<VertexT>::Elements) != 0)
+		glDrawElements(vbo->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)(sizeof(uint16_t) * offset));
 	else
-		glDrawArrays(vertexBuffer->mode(), offset, count);
+		glDrawArrays(vbo->mode(), offset, count);
 }
 
 void Graphics::draw(SpriteBatch *spriteBatch)
@@ -105,31 +146,8 @@ void Graphics::draw(SpriteBatch *spriteBatch, size_t offset, size_t count)
 	spriteBatch->draw(offset, count);
 }
 
-void Graphics::clear()
-{
-	glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void Graphics::bgcolor(float r, float g, float b, float a)
-{
-	glClearColor(r, g, b, a);
-}
-
-void Graphics::viewport(int width, int height)
-{
-	projection_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
-
-	#if defined(IOS)
-		glViewport(0, 0, height, width);
-		projection_ = glm::rotate(-90.0f, 0.0f, 0.0f, 1.0f) * projection_;
-	#else
-		glViewport(0, 0, width, height);
-	#endif
-
-	glUniformMatrix4fv(uniforms_[kProjection], 1, GL_FALSE, glm::value_ptr(projection_));
-}
-
-// ---- Create ----
+// -----------------------------------------------------------------------------
+// Create
 
 Texture *Graphics::texture(const char *path, Texture::Mode mode)
 {
@@ -140,19 +158,19 @@ Texture *Graphics::texture(const char *path, Texture::Mode mode)
 	return tx;
 }
 
-VertexBuffer *Graphics::buffer(VertexBuffer::Mode mode, VertexBuffer::Usage usage, size_t size)
+template<class VertexT> VBO<VertexT> *Graphics::buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage usage, size_t size)
 {
-	return buffer(mode, usage, usage, size, 0);
+	return buffer<VertexT>(mode, usage, usage, size, 0);
 }
 
-VertexBuffer *Graphics::buffer(VertexBuffer::Mode mode, VertexBuffer::Usage vboUsage, VertexBuffer::Usage iboUsage, size_t vboSize, size_t iboSize)
+template<class VertexT> VBO<VertexT> *Graphics::buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage vboUsage, typename VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize)
 {
-	VertexBuffer *vertexBuffer = new VertexBuffer(this);
-	currentBuffer_ = vertexBuffer;
+	VBO<VertexT> *vbo = new VBO<VertexT>(this);
+	currentBuffer_ = vbo;
 	bufferFlagged_ = true;
-	vertexBuffer->create(mode, vboUsage, iboUsage, vboSize, iboSize);
+	vbo->create(mode, vboUsage, iboUsage, vboSize, iboSize);
 
-	return vertexBuffer;
+	return vbo;
 }
 
 SpriteBatch *Graphics::batch(size_t maxSize)
@@ -162,7 +180,8 @@ SpriteBatch *Graphics::batch(size_t maxSize)
 	return spriteBatch;
 }
 
-// ---- Bind ----
+// -----------------------------------------------------------------------------
+// Bind
 
 void Graphics::bind(Texture *tx)
 {
@@ -173,14 +192,14 @@ void Graphics::bind(Texture *tx)
 	}
 }
 
-void Graphics::bind(VertexBuffer *vertexBuffer)
+template<class VertexT> void Graphics::bind(VBO<VertexT> *vbo)
 {
-	if (vertexBuffer != currentBuffer_)
+	if (vbo->handle() != currentBuffer_)
 	{
-		if (vertexBuffer)
+		if (vbo)
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->id(VertexBuffer::VBO));
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexBuffer->id(VertexBuffer::IBO));
+			glBindBuffer(GL_ARRAY_BUFFER, vbo->id(VBO<VertexT>::Vertices));
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo->id(VBO<VertexT>::Elements));
 		}
 		else
 		{
@@ -188,7 +207,7 @@ void Graphics::bind(VertexBuffer *vertexBuffer)
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
-		currentBuffer_ = vertexBuffer;
+		currentBuffer_ = vbo ? vbo->handle() : 0;
 		bufferFlagged_ = true;
 	}
 }
@@ -198,7 +217,8 @@ void Graphics::bind(SpriteBatch *spriteBatch)
 	bind(spriteBatch->buffer_);
 }
 
-// ---- Matrix ----
+// -----------------------------------------------------------------------------
+// Matrix
 
 void Graphics::save()
 {
@@ -244,3 +264,5 @@ void Graphics::transform(const mat4 &m)
 {
 	matrix(matrix_ * m);
 }
+
+VBO_TEMPLATE_INSTANCES();

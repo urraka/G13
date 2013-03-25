@@ -6,7 +6,7 @@ public:
 	Shader();
 	~Shader();
 
-	void load(const std::string &srcVertex, const std::string &srcFragment, const std::vector<std::string> &attributes);
+	void load(const std::string &srcVertex, const std::string &srcFragment, int nAttributes, AttribCallback attrib);
 	void bind();
 	void unbind();
 	GLuint id() const { return program_; }
@@ -15,5 +15,5 @@ protected:
 	GLuint program_;
 
 	GLuint createShader(GLenum type, const char *source);
-	GLuint createProgram(GLuint vertexShader, GLuint fragmentShader, const std::vector<std::string> &attributes);
+	GLuint createProgram(GLuint vertexShader, GLuint fragmentShader, int nAttributes, AttribCallback attrib);
 };
