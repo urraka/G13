@@ -55,7 +55,7 @@ bool Game::init()
 	texture_[0] = graphics->texture("data/tree.png");
 	texture_[1] = graphics->texture("data/white-tree.png");
 
-	const size_t nSprites = 1000;
+	const size_t nSprites = 100;
 
 	batch_ = graphics->batch(nSprites);
 	sprites_.resize(nSprites);
