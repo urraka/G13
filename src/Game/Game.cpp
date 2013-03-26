@@ -36,7 +36,7 @@ bool Game::init()
 	#if !defined(IOS)
 		window_ = new Window();
 
-		if (!window_->init(true))
+		if (!window_->init(false))
 			return false;
 
 		window_->title("G13");

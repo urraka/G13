@@ -3,5 +3,4 @@
 	#include <OpenGLES/ES2/glext.h>
 #else
 	#include <GL/glew.h>
-	#include <GL/glfw.h>
 #endif
