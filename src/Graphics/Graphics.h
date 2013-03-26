@@ -4,11 +4,12 @@ class Graphics;
 
 #include <Graphics/OpenGL.h>
 #include <Graphics/Vertex.h>
-#include <Graphics/Shader.h>
 #include <Graphics/VBO.h>
 #include <Graphics/Texture.h>
 #include <Graphics/Sprite.h>
 #include <Graphics/SpriteBatch.h>
+
+class Shader;
 
 class Graphics
 {
@@ -18,6 +19,14 @@ public:
 
 	bool init();
 	void viewport(int width, int height);
+
+	enum Shader
+	{
+		InvalidShader = -1,
+		TextureShader = 0,
+		ColorShader,
+		ShaderCount
+	};
 
 	// Draw
 
@@ -40,6 +49,7 @@ public:
 
 	// Bind
 
+	void bind(Graphics::Shader shader);
 	void bind(Texture *tx);
 	void bind(SpriteBatch *spriteBatch);
 	template<class VertexT> void bind(VBO<VertexT> *vbo);
@@ -56,12 +66,22 @@ public:
 	void transform(const mat4 &m);
 
 private:
-	enum Uniform
+	void uniformModified(int iUniform);
+	void updateUniforms();
+
+	enum /* uniforms */
 	{
-		Matrix = 0,
-		Projection,
-		Sampler,
+		UniformMatrix = 0,
+		UniformProjection,
+		UniformSampler,
+		UniformTextureEnabled,
 		UniformCount
+	};
+
+	struct Uniform
+	{
+		GLint location;
+		bool modified;
 	};
 
 	struct State
@@ -73,13 +93,12 @@ private:
 	mat4 projection_;
 	std::stack<State> stack_;
 
-	Shader shader_;
-	GLint uniforms_[UniformCount];
+	::Shader *shaders_[ShaderCount];
+	Uniform uniforms_[ShaderCount][UniformCount];
 
+	Graphics::Shader currentShader_;
 	Texture *currentTexture_;
 	vbo_t currentBuffer_;
 	int nEnabledAttributes_;
-
-	bool matrixFlagged_;
 	bool bufferFlagged_;
 };

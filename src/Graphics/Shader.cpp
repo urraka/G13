@@ -4,7 +4,8 @@
 #include <Graphics/Shader.h>
 
 Shader::Shader()
-	:	program_(0)
+	:	program_(0),
+		nAttributes_(0)
 {
 }
 
@@ -16,6 +17,8 @@ Shader::~Shader()
 
 void Shader::load(const std::string &vertexSource, const std::string &fragmentSource, int nAttributes, AttribCallback attrib)
 {
+	nAttributes_ = nAttributes;
+
 	GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexSource.c_str());
 	GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentSource.c_str());
 
@@ -91,4 +94,14 @@ GLuint Shader::createProgram(GLuint vertexShader, GLuint fragmentShader, int nAt
 	glDetachShader(program, fragmentShader);
 
 	return program;
+}
+
+int Shader::attribCount() const
+{
+	return nAttributes_;
+}
+
+GLuint Shader::id() const
+{
+	return program_;
 }

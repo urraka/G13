@@ -5,7 +5,8 @@
 #endif
 
 #define VBO_TEMPLATE_INSTANCES() \
-	VBO_TEMPLATE_INSTANCE(Vertex);
+	VBO_TEMPLATE_INSTANCE(Vertex); \
+	VBO_TEMPLATE_INSTANCE(ColorVertex);
 
 struct VertexAttribute
 {
@@ -23,9 +24,23 @@ typedef const VertexAttribute& (*AttribCallback)(int);
 
 struct Vertex
 {
+	Vertex();
+
 	vec2 position;
 	vec2 uv;
 
 	enum { AttributesCount = 2 };
+	static const VertexAttribute &attrib(int index);
+};
+
+struct ColorVertex
+{
+	ColorVertex();
+
+	vec2 position;
+	vec2 uv;
+	vec4 color;
+
+	enum { AttributesCount = 3 };
 	static const VertexAttribute &attrib(int index);
 };

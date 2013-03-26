@@ -8,23 +8,26 @@
 	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage usage, size_t size);
 
 #include <Graphics/Graphics.h>
+#include <Graphics/Shader.h>
 #include <Graphics/shaders.h>
 
 Graphics::Graphics()
 	:	matrix_(1.0f),
 		projection_(1.0f),
+		shaders_(),
 		uniforms_(),
+		currentShader_(InvalidShader),
 		currentTexture_(0),
 		currentBuffer_(0),
 		nEnabledAttributes_(0),
-		matrixFlagged_(false),
 		bufferFlagged_(false)
 {
 }
 
 Graphics::~Graphics()
 {
-	shader_.unbind();
+	for (int i = 0; i < ShaderCount; i++)
+		delete shaders_[i];
 }
 
 bool Graphics::init()
@@ -41,20 +44,67 @@ bool Graphics::init()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// shader
+	shaders_[TextureShader] = new ::Shader();
+	shaders_[TextureShader]->load(shaders::texture.vert, shaders::texture.frag, Vertex::AttributesCount, Vertex::attrib);
 
-	shader_.load(shaders::vertex, shaders::fragment, Vertex::AttributesCount, Vertex::attrib);
-	shader_.bind();
+	shaders_[ColorShader] = new ::Shader();
+	shaders_[ColorShader]->load(shaders::color.vert, shaders::color.frag, ColorVertex::AttributesCount, ColorVertex::attrib);
 
-	uniforms_[Matrix] = glGetUniformLocation(shader_.id(), "matrix");
-	uniforms_[Projection] = glGetUniformLocation(shader_.id(), "projection");
-	uniforms_[Sampler] = glGetUniformLocation(shader_.id(), "sampler");
+	const char *uniformNames[UniformCount] = {0};
 
-	glUniform1i(uniforms_[Sampler], 0);
-	glUniformMatrix4fv(uniforms_[Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
-	glUniformMatrix4fv(uniforms_[Projection], 1, GL_FALSE, glm::value_ptr(projection_));
+	uniformNames[UniformMatrix] = "matrix";
+	uniformNames[UniformProjection] = "projection";
+	uniformNames[UniformSampler] = "sampler";
+	uniformNames[UniformTextureEnabled] = "textureEnabled";
+
+	for (int iShader = 0; iShader < ShaderCount; iShader++)
+	{
+		shaders_[iShader]->bind();
+
+		for (int iUniform = 0; iUniform < UniformCount; iUniform++)
+		{
+			assert(uniformNames[iUniform] != 0);
+
+			uniforms_[iShader][iUniform].location = glGetUniformLocation(shaders_[iShader]->id(), uniformNames[iUniform]);
+			uniforms_[iShader][iUniform].modified = true;
+		}
+
+		// for now there is only one sampler
+		glUniform1i(uniforms_[iShader][UniformSampler].location, 0);
+	}
+
+	bind(TextureShader);
 
 	return true;
+}
+
+void Graphics::uniformModified(int iUniform)
+{
+	for (int i = 0; i < ShaderCount; i++)
+		uniforms_[i][iUniform].modified = true;
+}
+
+void Graphics::updateUniforms()
+{
+	Uniform (&uniforms)[UniformCount] = uniforms_[currentShader_];
+
+	if (uniforms[UniformProjection].modified)
+	{
+		uniforms[UniformProjection].modified = false;
+		glUniformMatrix4fv(uniforms[UniformProjection].location, 1, GL_FALSE, glm::value_ptr(projection_));
+	}
+
+	if (uniforms[UniformMatrix].modified)
+	{
+		uniforms[UniformMatrix].modified = false;
+		glUniformMatrix4fv(uniforms[UniformMatrix].location, 1, GL_FALSE, glm::value_ptr(matrix_));
+	}
+
+	if (uniforms[UniformTextureEnabled].modified && uniforms[UniformTextureEnabled].location != -1)
+	{
+		uniforms[UniformTextureEnabled].modified = false;
+		glUniform1f(uniforms[UniformTextureEnabled].location, currentTexture_ ? 1.0f : 0.0f);
+	}
 }
 
 void Graphics::viewport(int width, int height)
@@ -68,7 +118,7 @@ void Graphics::viewport(int width, int height)
 		glViewport(0, 0, width, height);
 	#endif
 
-	glUniformMatrix4fv(uniforms_[Projection], 1, GL_FALSE, glm::value_ptr(projection_));
+	uniformModified(UniformProjection);
 }
 
 // -----------------------------------------------------------------------------
@@ -100,14 +150,11 @@ template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t offset, si
 {
 	assert(vbo != 0);
 	assert(offset + count <= vbo->size());
+	assert(shaders_[currentShader_]->attribCount() == VertexT::AttributesCount);
 
 	bind<VertexT>(vbo);
 
-	if (matrixFlagged_)
-	{
-		matrixFlagged_ = false;
-		glUniformMatrix4fv(uniforms_[Matrix], 1, GL_FALSE, glm::value_ptr(matrix_));
-	}
+	updateUniforms();
 
 	if (bufferFlagged_)
 	{
@@ -151,6 +198,9 @@ void Graphics::draw(SpriteBatch *spriteBatch, size_t offset, size_t count)
 
 Texture *Graphics::texture(const char *path, Texture::Mode mode)
 {
+	if (currentTexture_ == 0)
+		uniformModified(UniformTextureEnabled);
+
 	Texture *tx = new Texture(this);
 	currentTexture_ = tx;
 	tx->load(path, mode);
@@ -183,10 +233,19 @@ SpriteBatch *Graphics::batch(size_t maxSize)
 // -----------------------------------------------------------------------------
 // Bind
 
+void Graphics::bind(Graphics::Shader shader)
+{
+	shaders_[shader]->bind();
+	currentShader_ = shader;
+}
+
 void Graphics::bind(Texture *tx)
 {
 	if (tx != currentTexture_)
 	{
+		if (!currentTexture_ != !tx)
+			uniformModified(UniformTextureEnabled);
+
 		glBindTexture(GL_TEXTURE_2D, tx ? tx->id() : 0);
 		currentTexture_ = tx;
 	}
@@ -242,7 +301,7 @@ const mat4 &Graphics::matrix()
 void Graphics::matrix(const mat4 &m)
 {
 	matrix_ = m;
-	matrixFlagged_ = true;
+	uniformModified(UniformMatrix);
 }
 
 void Graphics::translate(float x, float y)
