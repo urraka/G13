@@ -22,12 +22,9 @@ namespace { namespace callbacks {
 
 		void ios_orientation()
 		{
-			int r = window->rotation();
-
-			if (r == 90 || r == -90)
-				window->push(Event(Event::Resize, height, width, r));
-			else
-				window->push(Event(Event::Resize, width, height, r));
+			int width, height, r = window->rotation();
+			window->size(width, height);
+			window->push(Event(Event::Resize, width, height, r));
 		}
 	#else
 		int GLFWCALL close()
@@ -86,7 +83,7 @@ void Window::create(bool fullscreen)
 {
 	#if defined(IOS)
 		iosCreateWindow();
-		iosSetOrientationCallback(ios_orientation);
+		iosSetOrientationCallback(callbacks::ios_orientation);
 	#else
 		if (glfwInit() == GL_FALSE)
 		{

@@ -37,6 +37,8 @@ namespace
 
 	AppDelegate *app = 0;
 	GLView *view = 0;
+
+	int lastOrientation = IOS_ORIENTATION_PORTRAIT;
 }
 
 // GLView implementation
@@ -115,7 +117,7 @@ namespace
 	app = self;
 
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
-
+	[[UIApplication sharedApplication] setStatusBarHidden:true];
 	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
@@ -210,23 +212,31 @@ void iosGetWindowSize(int *width, int *height)
 
 int iosGetCurrentOrientation()
 {
-	UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
+	int result = lastOrientation;
 
-	switch (orientation)
+	switch ([UIDevice currentDevice].orientation)
 	{
 		case UIDeviceOrientationPortrait:
-			return IOS_ORIENTATION_PORTRAIT;
+			result = IOS_ORIENTATION_PORTRAIT;
+			break;
 
 		case UIDeviceOrientationPortraitUpsideDown:
-			return IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN;
+			result = IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN;
+			break;
 
 		case UIDeviceOrientationLandscapeLeft:
-			return IOS_ORIENTATION_LANDSCAPE_LEFT;
+			result = IOS_ORIENTATION_LANDSCAPE_LEFT;
+			break;
 
 		case UIDeviceOrientationLandscapeRight:
-			return IOS_ORIENTATION_LANDSCAPE_RIGHT;
+			result = IOS_ORIENTATION_LANDSCAPE_RIGHT;
+			break;
 
 		default:
-			return IOS_ORIENTATION_PORTRAIT;
+			break;
 	}
+
+	lastOrientation = result;
+	
+	return result;
 }
