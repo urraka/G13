@@ -209,10 +209,10 @@ int Window::rotation()
 				return 180;
 
 			case IOS_ORIENTATION_LANDSCAPE_LEFT:
-				return 90;
+				return -90;
 
 			case IOS_ORIENTATION_LANDSCAPE_RIGHT:
-				return -90;
+				return 90;
 
 			default:
 				return 0;

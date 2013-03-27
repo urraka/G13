@@ -115,6 +115,7 @@ namespace
 	app = self;
 
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
+	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	appLaunchedCallback();
 
 	assert(displayCallback != 0);
@@ -133,7 +134,11 @@ namespace
 - (void)applicationDidEnterBackground:(UIApplication *)application {}
 - (void)applicationWillEnterForeground:(UIApplication *)application {}
 - (void)applicationDidBecomeActive:(UIApplication *)application {}
-- (void)applicationWillTerminate:(UIApplication *)application {}
+
+- (void)applicationWillTerminate:(UIApplication *)application
+{
+	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+}
 
 - (void) createWindow
 {
@@ -192,20 +197,20 @@ void iosGetWindowSize(int *width, int *height)
 
 int iosGetCurrentOrientation()
 {
-	UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+	UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
 
 	switch (orientation)
 	{
-		case UIInterfaceOrientationPortrait:
+		case UIDeviceOrientationPortrait:
 			return IOS_ORIENTATION_PORTRAIT;
 
-		case UIInterfaceOrientationPortraitUpsideDown:
+		case UIDeviceOrientationPortraitUpsideDown:
 			return IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN;
 
-		case UIInterfaceOrientationLandscapeLeft:
+		case UIDeviceOrientationLandscapeLeft:
 			return IOS_ORIENTATION_LANDSCAPE_LEFT;
 
-		case UIInterfaceOrientationLandscapeRight:
+		case UIDeviceOrientationLandscapeRight:
 			return IOS_ORIENTATION_LANDSCAPE_RIGHT;
 
 		default:
