@@ -28,7 +28,12 @@ namespace { namespace callbacks {
 
 		void GLFWCALL resize(int width, int height)
 		{
-			window->push(Event(Event::Resize, width, height));
+			int r = window->rotation();
+
+			if (r == 90 || r == -90)
+				window->push(Event(Event::Resize, height, width));
+			else
+				window->push(Event(Event::Resize, width, height));
 		}
 
 		void GLFWCALL keyboard(int key, int action)
@@ -136,6 +141,15 @@ void Window::size(int &width, int &height)
 	#else
 		glfwGetWindowSize(&width, &height);
 	#endif
+
+	int r = rotation();
+
+	if (r == 90 || r == -90)
+	{
+		int tmp = width;
+		width = height;
+		height = tmp;
+	}
 }
 
 void Window::display(DisplayCallback callback)
@@ -178,5 +192,32 @@ void Window::close()
 {
 	#if !defined(IOS)
 		glfwCloseWindow();
+	#endif
+}
+
+int Window::rotation()
+{
+	#if defined(IOS)
+		int orient = iosGetCurrentOrientation();
+
+		switch (orient)
+		{
+			case IOS_ORIENTATION_PORTRAIT:
+				return 0;
+
+			case IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN:
+				return 180;
+
+			case IOS_ORIENTATION_LANDSCAPE_LEFT:
+				return 90;
+
+			case IOS_ORIENTATION_LANDSCAPE_RIGHT:
+				return -90;
+
+			default:
+				return 0;
+		}
+	#else
+		return 0;
 	#endif
 }

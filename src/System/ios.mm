@@ -111,6 +111,7 @@ namespace
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 	app = self;
+
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
 	appLaunchedCallback();
 
@@ -187,7 +188,25 @@ void iosGetWindowSize(int *width, int *height)
 	*height = view.frame.size.height;
 }
 
-void iosGetCurrentOrientation()
+int iosGetCurrentOrientation()
 {
-	assert(0);
+	UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+
+	switch (orientation)
+	{
+		case UIInterfaceOrientationPortrait:
+			return IOS_ORIENTATION_PORTRAIT;
+
+		case UIInterfaceOrientationPortraitUpsideDown:
+			return IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN;
+
+		case UIInterfaceOrientationLandscapeLeft:
+			return IOS_ORIENTATION_LANDSCAPE_LEFT;
+
+		case UIInterfaceOrientationLandscapeRight:
+			return IOS_ORIENTATION_LANDSCAPE_RIGHT;
+
+		default:
+			return IOS_ORIENTATION_PORTRAIT;
+	}
 }

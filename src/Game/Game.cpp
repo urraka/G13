@@ -71,17 +71,17 @@ void Game::init(Application *app)
 	if (!graphics->init())
 		return;
 
+	ivec2 size;
+	window->size(size.x, size.y);
+	graphics->viewport(size.x, size.y, window->rotation());
+	graphics->bgcolor(0.5f, 0.5f, 0.5f);
+
 	// testing stuff
 
-	ivec2 resolution;
-	window->size(resolution.x, resolution.y);
-
-	graphics->viewport(resolution.x, resolution.y);
-	graphics->bgcolor(0.5f, 0.5f, 0.5f);
 	texture_[0] = graphics->texture("data/tree.png");
 	texture_[1] = graphics->texture("data/white-tree.png");
 
-	const size_t nSprites = 100;
+	const size_t nSprites = 50;
 
 	batch_ = graphics->batch(nSprites);
 	sprites_.resize(nSprites);
@@ -92,10 +92,10 @@ void Game::init(Application *app)
 		Sprite &sprite = sprites_[i];
 
 		sprite.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-		sprite.position = glm::diskRand(glm::min((float)resolution.x, (float)resolution.y) / 2.0f);
+		sprite.position = glm::diskRand(glm::min((float)size.x, (float)size.y) / 2.0f);
 		sprite.center = vec2(168.0f, 252.0f);
 		sprite.size = vec2((float)texture_[0]->width(), (float)texture_[0]->height());
-		sprite.scale = vec2(0.2f, 0.2f);
+		sprite.scale = vec2(0.5f, 0.5f);
 		spriteAngles_[i] = glm::linearRand(-180.0f, 180.0f);
 	}
 
@@ -117,9 +117,9 @@ void Game::init(Application *app)
 	vertices[3].uv = vec2(0.0f, 1.0f);
 
 	vertices[4].position = vec2(0.0f, 0.0f);
-	vertices[5].position = vec2((float)resolution.x, 0.0f);
-	vertices[6].position = vec2((float)resolution.x, (float)resolution.y);
-	vertices[7].position = vec2(0.0f, (float)resolution.y);
+	vertices[5].position = vec2((float)size.x, 0.0f);
+	vertices[6].position = vec2((float)size.x, (float)size.y);
+	vertices[7].position = vec2(0.0f, (float)size.y);
 
 	vertices[4].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 	vertices[5].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -135,8 +135,8 @@ void Game::draw()
 	const float t = Clock::toSeconds<float>(time_ + timeAccumulator_);
 	const float scale = glm::exp(1.0f * glm::sin(t));
 
-	ivec2 resolution;
-	window->size(resolution.x, resolution.y);
+	ivec2 size;
+	window->size(size.x, size.y);
 
 	graphics->clear();
 
@@ -145,7 +145,7 @@ void Game::draw()
 	graphics->draw(buffer_, 4, 4);
 
 	graphics->save();
-	graphics->translate(resolution.x / 2.0f, resolution.y / 2.0f);
+	graphics->translate(size.x / 2.0f, size.y / 2.0f);
 	graphics->scale(scale, scale);
 	graphics->rotate(t * 45.0f);
 
@@ -163,7 +163,7 @@ void Game::draw()
 	graphics->restore();
 
 	graphics->save();
-	graphics->translate(resolution.x - 128.0f, resolution.y - 128.0f);
+	graphics->translate(size.x - 128.0f, size.y - 128.0f);
 	graphics->bind(Graphics::ColorShader);
 	graphics->bind(texture_[1]);
 	graphics->draw(buffer_, 0, 4);
@@ -183,15 +183,15 @@ void Game::input()
 		{
 			case Event::Resize:
 			{
-				ivec2 resolution = ivec2(event.size.width, event.size.height);
-				graphics->viewport(resolution.x, resolution.y);
+				ivec2 size = ivec2(event.size.width, event.size.height);
+				graphics->viewport(size.x, size.y, window->rotation());
 
 				ColorVertex vertices[4];
 
 				vertices[0].position = vec2(0.0f, 0.0f);
-				vertices[1].position = vec2((float)resolution.x, 0.0f);
-				vertices[2].position = vec2((float)resolution.x, (float)resolution.y);
-				vertices[3].position = vec2(0.0f, (float)resolution.y);
+				vertices[1].position = vec2((float)size.x, 0.0f);
+				vertices[2].position = vec2((float)size.x, (float)size.y);
+				vertices[3].position = vec2(0.0f, (float)size.y);
 
 				vertices[0].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 				vertices[1].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);

@@ -29,12 +29,6 @@ class Shader;
 class Graphics
 {
 public:
-	Graphics();
-	~Graphics();
-
-	bool init();
-	void viewport(int width, int height);
-
 	enum Shader
 	{
 		InvalidShader = -1,
@@ -42,6 +36,12 @@ public:
 		ColorShader,
 		ShaderCount
 	};
+
+	Graphics();
+	~Graphics();
+
+	bool init();
+	void viewport(int width, int height, int rotation);
 
 	// Draw
 

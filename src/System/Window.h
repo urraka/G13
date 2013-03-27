@@ -24,6 +24,7 @@ public:
 	void push(const Event &event);
 	bool poll(Event *event);
 	void close();
+	int rotation();
 
 private:
 	void events();

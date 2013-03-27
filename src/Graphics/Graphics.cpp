@@ -110,16 +110,19 @@ void Graphics::updateUniforms()
 	}
 }
 
-void Graphics::viewport(int width, int height)
+void Graphics::viewport(int width, int height, int rotation)
 {
+	assert(rotation == 0 || rotation == 90 || rotation == -90 || rotation == 180);
+
 	projection_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
 
-	#if defined(IOS)
+	if (rotation == 90 || rotation == -90)
 		glViewport(0, 0, height, width);
-		projection_ = glm::rotate(-90.0f, 0.0f, 0.0f, 1.0f) * projection_;
-	#else
+	else
 		glViewport(0, 0, width, height);
-	#endif
+
+	if (rotation != 0)
+		projection_ = glm::rotate((float)rotation, 0.0f, 0.0f, 1.0f) * projection_;
 
 	uniformModified(UniformProjection);
 }
