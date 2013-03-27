@@ -18,12 +18,6 @@ VertexAttribute::VertexAttribute(const char *_name, GLint _size, GLenum _type, G
 // -----------------------------------------------------------------------------
 // Vertex
 
-Vertex::Vertex()
-	:	position(0.0f),
-		uv(0.0f)
-{
-}
-
 const VertexAttribute &Vertex::attrib(int index)
 {
 	static VertexAttribute attributes[AttributesCount] = {
@@ -36,13 +30,6 @@ const VertexAttribute &Vertex::attrib(int index)
 
 // -----------------------------------------------------------------------------
 // ColorVertex
-
-ColorVertex::ColorVertex()
-	:	position(0.0f),
-		uv(0.0f),
-		color(1.0f)
-{
-}
 
 const VertexAttribute &ColorVertex::attrib(int index)
 {

@@ -31,9 +31,9 @@ bool Texture::load(const char *path, Mode mode)
 		return false;
 	}
 
-	const size_t headerSize = 8;
-	uint8_t header[headerSize];
-	fread(header, 1, headerSize, file);
+	size_t headerSize = 8;
+	uint8_t header[8];
+	headerSize = fread(header, 1, headerSize, file);
 
 	if (png_sig_cmp(header, 0, headerSize))
 	{

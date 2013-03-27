@@ -24,8 +24,6 @@ typedef const VertexAttribute& (*AttribCallback)(int);
 
 struct Vertex
 {
-	Vertex();
-
 	vec2 position;
 	vec2 uv;
 
@@ -35,8 +33,6 @@ struct Vertex
 
 struct ColorVertex
 {
-	ColorVertex();
-
 	vec2 position;
 	vec2 uv;
 	vec4 color;
