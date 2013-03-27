@@ -1,75 +1,182 @@
-#include <pch.h>
-
-#if !defined(IOS)
-
-#include <GL/glfw.h>
+#include <System/platform.h>
+#if defined(IOS)
+	#include <System/ios.h>
+#else
+	#include <GL/glfw.h>
+#endif
+#include <System/Application.h>
 #include <System/Window.h>
+
+#include <iostream>
+
+namespace { namespace callbacks {
+
+	Window *window = 0;
+	Window::DisplayCallback displayCallback = 0;
+
+	#if defined(IOS)
+		void ios_display()
+		{
+			displayCallback();
+		}
+	#else
+		int GLFWCALL close()
+		{
+			window->push(Event(Event::Close));
+			return GL_TRUE;
+		}
+
+		void GLFWCALL resize(int width, int height)
+		{
+			window->push(Event(Event::Resize, width, height));
+		}
+
+		void GLFWCALL keyboard(int key, int action)
+		{
+			window->push(Event(action == GLFW_PRESS ? Event::KeyPress : Event::KeyRelease, key));
+		}
+
+		void GLFWCALL character(int ch, int action)
+		{
+			window->push(Event(action == GLFW_PRESS ? Event::CharPress : Event::CharRelease, ch));
+		}
+
+		void GLFWCALL mouse(int button, int action)
+		{
+			window->push(Event(action == GLFW_PRESS ? Event::MouseButtonPress : Event::MouseButtonRelease, button));
+		}
+	#endif
+
+}}
+
+Window::Window()
+	:	pollIndex_(0)
+{
+	callbacks::window = this;
+	events_.reserve(20);
+}
 
 Window::~Window()
 {
-	glfwTerminate();
+	#if !defined(IOS)
+		glfwSetWindowCloseCallback(0);
+		glfwSetWindowSizeCallback(0);
+		glfwSetKeyCallback(0);
+		glfwSetCharCallback(0);
+		glfwSetMouseButtonCallback(0);
+	#endif
 }
 
-bool Window::init(bool fullscreen)
+void Window::create(bool fullscreen)
 {
-	if (glfwInit() == GL_FALSE)
-	{
-		error_log("Error initializing GLFW.");
-		return false;
-	}
+	#if defined(IOS)
+		iosCreateWindow();
+	#else
+		if (glfwInit() == GL_FALSE)
+		{
+			std::cerr << "Error initializing GLFW." << std::endl;
+			return;
+		}
 
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
+		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
+		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
 
-	GLFWvidmode mode;
-	glfwGetDesktopMode(&mode);
+		GLFWvidmode mode;
+		glfwGetDesktopMode(&mode);
 
-	int result = 0;
+		int result = 0;
 
-	if (fullscreen)
-	{
-		result = glfwOpenWindow(mode.Width, mode.Height, 0, 0, 0, 0, 0, 0, GLFW_FULLSCREEN);
-	}
-	else
-	{
-		result = glfwOpenWindow(mode.Width * 0.8f, mode.Height * 0.8f, 0, 0, 0, 0, 0, 0, GLFW_WINDOW);
-		glfwSetWindowPos(mode.Width * 0.1f, mode.Height * 0.1f);
-	}
+		if (fullscreen)
+		{
+			result = glfwOpenWindow(mode.Width, mode.Height, 0, 0, 0, 0, 0, 0, GLFW_FULLSCREEN);
+		}
+		else
+		{
+			result = glfwOpenWindow(mode.Width * 0.8f, mode.Height * 0.8f, 0, 0, 0, 0, 0, 0, GLFW_WINDOW);
+			glfwSetWindowPos(mode.Width * 0.1f, mode.Height * 0.1f);
+		}
 
-	if (result == GL_FALSE)
-	{
-		error_log("Error creating application window or OpenGL context.");
-		return false;
-	}
+		if (result == GL_FALSE)
+		{
+			std::cerr << "Error creating application window or OpenGL context." << std::endl;
+			return;
+		}
 
-	int mayor, minor, rev;
+		int mayor, minor, rev;
 
-	glfwGetGLVersion(&mayor, &minor, &rev);
-	std::cout << "OpenGL context initialized. Version: " << mayor << "." << minor << "." << rev << std::endl;
+		glfwGetGLVersion(&mayor, &minor, &rev);
+		std::cout << "OpenGL context initialized. Version: " << mayor << "." << minor << "." << rev << std::endl;
 
-	return true;
+		glfwSetWindowCloseCallback(callbacks::close);
+		glfwSetWindowSizeCallback(callbacks::resize);
+		glfwSetKeyCallback(callbacks::keyboard);
+		glfwSetCharCallback(callbacks::character);
+		glfwSetMouseButtonCallback(callbacks::mouse);
+	#endif
 }
 
 void Window::title(const char *title)
 {
-	glfwSetWindowTitle(title);
+	#if !defined(IOS)
+		glfwSetWindowTitle(title);
+	#endif
 }
 
 void Window::vsync(bool enable)
 {
-	glfwSwapInterval(enable ? 1 : 0);
+	#if !defined(IOS)
+		glfwSwapInterval(enable ? 1 : 0);
+	#endif
 }
 
-ivec2 Window::size()
+void Window::size(int &width, int &height)
 {
-	int w, h;
-	glfwGetWindowSize(&w, &h);
-	return ivec2(w, h);
+	#if defined(IOS)
+		iosGetWindowSize(&width, &height);
+	#else
+		glfwGetWindowSize(&width, &height);
+	#endif
 }
 
-void Window::display()
+void Window::display(DisplayCallback callback)
 {
-	glfwSwapBuffers();
+	callbacks::displayCallback = callback;
+
+	#if defined(IOS)
+		iosSetDisplayCallback(callbacks::ios_display);
+	#endif
 }
 
-#endif
+void Window::events()
+{
+	callbacks::displayCallback();
+
+	#if !defined(IOS)
+		glfwSwapBuffers();
+	#endif
+}
+
+void Window::push(const Event &event)
+{
+	events_.push_back(event);
+}
+
+bool Window::poll(Event *event)
+{
+	if (pollIndex_ == events_.size())
+	{
+		events_.clear();
+		pollIndex_ = 0;
+		return false;
+	}
+
+	*event = events_[pollIndex_++];
+	return true;
+}
+
+void Window::close()
+{
+	#if !defined(IOS)
+		glfwCloseWindow();
+	#endif
+}

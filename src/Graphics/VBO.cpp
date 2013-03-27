@@ -1,4 +1,4 @@
-#include <pch.h>
+#include <System/platform.h>
 
 #define VBO_TEMPLATE_INSTANCE(VertexT) \
 	template class VBO<VertexT>;

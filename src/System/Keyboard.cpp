@@ -1,4 +1,4 @@
-#include <pch.h>
+#include <System/platform.h>
 #if !defined(IOS)
 	#include <GL/glfw.h>
 #endif

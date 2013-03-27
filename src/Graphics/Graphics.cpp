@@ -1,4 +1,4 @@
-#include <pch.h>
+#include <System/platform.h>
 
 #define VBO_TEMPLATE_INSTANCE(VertexT) \
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo); \
@@ -10,6 +10,9 @@
 #include <Graphics/Graphics.h>
 #include <Graphics/Shader.h>
 #include <Graphics/shaders.h>
+
+#include <assert.h>
+#include <iostream>
 
 Graphics::Graphics()
 	:	matrix_(1.0f),
@@ -35,7 +38,7 @@ bool Graphics::init()
 	#if !defined(IOS)
 		if (glewInit() != GLEW_OK)
 		{
-			error_log("Error initializing glew.");
+			std::cerr << "Error initializing glew." << std::endl;
 			return false;
 		}
 	#endif

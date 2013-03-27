@@ -1,54 +1,80 @@
-#include <pch.h>
-#include <Graphics/Graphics.h>
+#include <System/platform.h>
+#include <System/Application.h>
 #include <System/Window.h>
-#include <System/Events.h>
 #include <System/Clock.h>
+#include <Graphics/Graphics.h>
 #include <Game/Game.h>
 
+#include <stdint.h>
 #include <string>
 #include <iostream>
 #include <fstream>
 
+namespace
+{
+	Game *game = 0;
+}
+
 Game::Game()
 	:	graphics(0),
-		events(0),
-		window_(0),
+		window(0),
+		dt_(0),
+		time_(0),
+		currentTime_(0),
+		timeAccumulator_(0),
+		fps_(0),
+		fpsTimer_(0),
 		texture_(),
 		buffer_(0),
 		batch_(0)
 {
 }
 
-bool Game::init()
+Game::~Game()
 {
-	quit_ = false;
-	timeAccumulator_ = 0;
+	delete buffer_;
+	delete texture_[0];
+	delete texture_[1];
+	delete graphics;
+}
+
+void Game::launch(Application *app)
+{
+	game = new Game();
+	game->init(app);
+}
+
+void Game::terminate()
+{
+	delete game;
+}
+
+void Game::display()
+{
+	game->draw();
+	game->input();
+	game->update();
+}
+
+void Game::init(Application *app)
+{
 	currentTime_ = Clock::time();
 	dt_ = Clock::milliseconds(30);
-	time_ = 0;
-	fpsTimer_ = 0;
-	fps_ = 0;
 
-	events = new Events();
+	window = app->window(false);
+	window->display(Game::display);
+	window->title("G13");
+	window->vsync(false);
+
 	graphics = new Graphics();
 
-	// iOS already has the view and OpenGL context created by now
-	#if !defined(IOS)
-		window_ = new Window();
-
-		if (!window_->init(false))
-			return false;
-
-		window_->title("G13");
-		window_->vsync(false);
-
-		resolution = window_->size();
-	#endif
-
-	events->init();
-
 	if (!graphics->init())
-		return false;
+		return;
+
+	// testing stuff
+
+	ivec2 resolution;
+	window->size(resolution.x, resolution.y);
 
 	graphics->viewport(resolution.x, resolution.y);
 	graphics->bgcolor(0.5f, 0.5f, 0.5f);
@@ -102,31 +128,15 @@ bool Game::init()
 
 	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::TriangleFan, VBO<ColorVertex>::StaticDraw, 8);
 	buffer_->set(vertices, 0, 8);
-
-	return true;
-}
-
-void Game::terminate()
-{
-	delete buffer_;
-	delete texture_[0];
-	delete texture_[1];
-	delete graphics;
-	delete events;
-
-	#if !defined(IOS)
-		delete window_;
-	#endif
-
-	graphics = 0;
-	events = 0;
-	window_ = 0;
 }
 
 void Game::draw()
 {
 	const float t = Clock::toSeconds<float>(time_ + timeAccumulator_);
 	const float scale = glm::exp(1.0f * glm::sin(t));
+
+	ivec2 resolution;
+	window->size(resolution.x, resolution.y);
 
 	graphics->clear();
 
@@ -167,17 +177,13 @@ void Game::input()
 {
 	Event event;
 
-	while (events->poll(&event))
+	while (window->poll(&event))
 	{
 		switch (event.type)
 		{
-			case Event::Close:
-				this->quit();
-				break;
-
 			case Event::Resize:
 			{
-				resolution = ivec2(event.size.width, event.size.height);
+				ivec2 resolution = ivec2(event.size.width, event.size.height);
 				graphics->viewport(resolution.x, resolution.y);
 
 				ColorVertex vertices[4];
@@ -199,7 +205,7 @@ void Game::input()
 
 			case Event::KeyPress:
 				if (event.key == Keyboard::Escape)
-					this->quit();
+					window->close();
 
 				break;
 
@@ -242,22 +248,3 @@ void Game::update()
 
 	// TODO: interpolate
 }
-
-void Game::quit()
-{
-	quit_ = true;
-}
-
-#if !defined(IOS)
-	// no loop in iOS, instead draw, input, update will be called by a callback hooked up in ios.mm
-	void Game::loop()
-	{
-		while (!quit_)
-		{
-			this->draw();
-			this->input();
-			this->update();
-			window_->display();
-		}
-	}
-#endif

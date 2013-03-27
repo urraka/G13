@@ -1,15 +1,35 @@
 #pragma once
 
-#if !defined(IOS)
+#include <cstddef>
+#include <vector>
+
+#include <System/Event.h>
+#include <System/Keyboard.h>
+
+class Application;
+
 class Window
 {
 public:
+	Window();
 	~Window();
 
-	bool init(bool fullscreen = true);
+	typedef void (*DisplayCallback)();
+
+	void create(bool fullscreen = true);
 	void title(const char *title);
 	void vsync(bool enable);
-	ivec2 size();
-	void display();
+	void size(int &width, int &height);
+	void display(DisplayCallback callback);
+	void push(const Event &event);
+	bool poll(Event *event);
+	void close();
+
+private:
+	void events();
+
+	std::vector<Event> events_;
+	size_t pollIndex_;
+
+	friend class Application;
 };
-#endif

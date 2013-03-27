@@ -1,6 +1,5 @@
-#include <pch.h>
-#include <Graphics/OpenGL.h>
-#include <Graphics/Vertex.h>
+#include <System/platform.h>
+#include <Graphics/Graphics.h>
 
 // -----------------------------------------------------------------------------
 // VertexAttribute

@@ -1,5 +1,20 @@
 #pragma once
 
+#include <stack>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/random.hpp>
+#include <glm/gtx/string_cast.hpp>
+
+using glm::mat4;
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::ivec2;
+
 class Graphics;
 
 #include <Graphics/OpenGL.h>

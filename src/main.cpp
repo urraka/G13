@@ -1,30 +1,22 @@
-#include <pch.h>
+#include <System/platform.h>
+#include <System/Application.h>
 #include <Game/Game.h>
 
-Game game;
+int main(int argc, char *argv[])
+{
+	Application app(argc, argv);
 
-#if !defined(IOS)
+	app.launched(Game::launch);
+	app.terminate(Game::terminate);
 
-	int main()
+	return app.run();
+}
+
+#if defined(WIN32)
+	#include <windows.h>
+
+	int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 	{
-		if (game.init())
-			game.loop();
-
-		game.terminate();
-		std::cin.ignore();
-
-		return 0;
+		return main(0, 0);
 	}
-
-	#if defined(WIN32)
-
-		#include <windows.h>
-
-		int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-		{
-			return main();
-		}
-
-	#endif
-
 #endif

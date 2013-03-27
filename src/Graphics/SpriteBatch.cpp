@@ -1,4 +1,4 @@
-#include <pch.h>
+#include <System/platform.h>
 #include <Graphics/Graphics.h>
 
 SpriteBatch::SpriteBatch(Graphics *graphics)

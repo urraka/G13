@@ -1,4 +1,4 @@
-#include <pch.h>
+#include <System/platform.h>
 #include <System/Clock.h>
 
 #if defined(WIN32)

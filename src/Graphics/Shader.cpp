@@ -1,7 +1,8 @@
-#include <pch.h>
-#include <Graphics/OpenGL.h>
-#include <Graphics/Vertex.h>
+#include <System/platform.h>
+#include <Graphics/Graphics.h>
 #include <Graphics/Shader.h>
+
+#include <iostream>
 
 Shader::Shader()
 	:	program_(0),
@@ -55,7 +56,7 @@ GLuint Shader::createShader(GLenum type, const char *source)
 		GLchar *info = new GLchar[length + 1];
 		glGetShaderInfoLog(shader, length, 0, info);
 
-		error_log((type == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << " shader failed to compile:" << std::endl << info);
+		std::cerr << (type == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << " shader failed to compile:" << std::endl << info << std::endl;
 
 		delete[] info;
 	}
@@ -85,7 +86,7 @@ GLuint Shader::createProgram(GLuint vertexShader, GLuint fragmentShader, int nAt
 		GLchar *info = new GLchar[length + 1];
 		glGetProgramInfoLog(program, length, 0, info);
 
-		error_log("Failed to link program:" << std::endl << info);
+		std::cerr << "Failed to link program:" << std::endl << info << std::endl;
 
 		delete[] info;
 	}

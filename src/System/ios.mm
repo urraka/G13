@@ -1,7 +1,9 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
-#include <Graphics/Graphics.h>
-#include <Game/Game.h>
+#include <Graphics/OpenGL.h>
+#include <System/ios.h>
+
+#include <assert.h>
 
 // GLView interface
 
@@ -17,7 +19,23 @@
 	UIWindow *window_;
 	GLView *view_;
 }
+- (void) createWindow;
 @end
+
+namespace
+{
+	// callbacks
+
+	IOSAppLaunchedFun appLaunchedCallback = 0;
+	IOSTerminateFun terminateCallback = 0;
+	IOSDisplayFun displayCallback = 0;
+	IOSOrientationFun orientationCallback = 0;
+
+	// objects
+
+	AppDelegate *app = 0;
+	GLView *view = 0;
+}
 
 // GLView implementation
 
@@ -64,15 +82,13 @@
 	CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(loop:)];
 	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
-	game.resolution = ivec2(self.frame.size.height, self.frame.size.width);
-	game.init();
-
 	return self;
 }
 
 - (void)dealloc
 {
-	game.terminate();
+	if (terminateCallback != 0)
+		terminateCallback();
 
 	[context_ release];
 	context_ = nil;
@@ -81,9 +97,7 @@
 
 - (void)loop:(CADisplayLink*)displayLink
 {
-	game.draw();
-	game.input();
-	game.update();
+	displayCallback();
 
 	[context_ presentRenderbuffer:GL_RENDERBUFFER];
 }
@@ -96,13 +110,12 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+	app = self;
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
+	appLaunchedCallback();
 
-	CGRect screen = [[UIScreen mainScreen] bounds];
-	window_ = [[UIWindow alloc] initWithFrame: screen];
-	view_ = [[GLView alloc] initWithFrame: screen];
-	[window_ addSubview: view_];
-	[window_ makeKeyAndVisible];
+	assert(displayCallback != 0);
+
 	return YES;
 }
 
@@ -119,14 +132,62 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application {}
 - (void)applicationWillTerminate:(UIApplication *)application {}
 
+- (void) createWindow
+{
+	CGRect screen = [[UIScreen mainScreen] bounds];
+	window_ = [[UIWindow alloc] initWithFrame: screen];
+	view = view_ = [[GLView alloc] initWithFrame: screen];
+	[window_ addSubview: view_];
+	[window_ makeKeyAndVisible];
+}
+
 @end
 
-// Entry point
-
-int main(int argc, char *argv[])
+void iosSetAppLaunchedCallback(IOSAppLaunchedFun callback)
 {
+	appLaunchedCallback = callback;
+}
+
+void iosSetTerminateCallback(IOSTerminateFun callback)
+{
+	terminateCallback = callback;
+}
+
+void iosSetDisplayCallback(IOSDisplayFun callback)
+{
+	displayCallback = callback;
+}
+
+void iosSetOrientationCallback(IOSOrientationFun callback)
+{
+	orientationCallback = callback;
+}
+
+int iosRun(int argc, char *argv[])
+{
+	assert(appLaunchedCallback != 0);
+
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	int retVal = UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
 	[pool release];
+
 	return retVal;
+}
+
+void iosCreateWindow()
+{
+	assert(app != 0);
+	[app createWindow];
+}
+
+void iosGetWindowSize(int *width, int *height)
+{
+	assert(view != 0);
+	*width = view.frame.size.width;
+	*height = view.frame.size.height;
+}
+
+void iosGetCurrentOrientation()
+{
+	assert(0);
 }

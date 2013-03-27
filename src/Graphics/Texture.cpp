@@ -1,6 +1,8 @@
-#include <pch.h>
+#include <System/platform.h>
 #include <Graphics/Graphics.h>
 
+#include <iostream>
+#include <assert.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <png.h>
@@ -27,7 +29,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (!file)
 	{
-		error_log("Texture->load(" << path << ") - Failed to open file.");
+		std::cerr << "Texture->load(" << path << ") - Failed to open file." << std::endl;
 		return false;
 	}
 
@@ -37,7 +39,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (png_sig_cmp(header, 0, headerSize))
 	{
-		error_log("Texture->load(" << path << ") - File is not PNG.");
+		std::cerr << "Texture->load(" << path << ") - File is not PNG." << std::endl;
 		fclose(file);
 		return false;
 	}
@@ -46,7 +48,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (!png)
 	{
-		error_log("Texture->load(" << path << ") - png_create_read_struct() failed.");
+		std::cerr << "Texture->load(" << path << ") - png_create_read_struct() failed." << std::endl;
 		fclose(file);
 		return false;
 	}
@@ -55,7 +57,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (!info)
 	{
-		error_log("Texture->load(" << path << ") - First png_create_info_struct() failed.");
+		std::cerr << "Texture->load(" << path << ") - First png_create_info_struct() failed." << std::endl;
 		png_destroy_read_struct(&png, NULL, NULL);
 		fclose(file);
 		return false;
@@ -65,7 +67,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (!info_end)
 	{
-		error_log("Texture->load(" << path << ") - Second png_create_info_struct() failed.");
+		std::cerr << "Texture->load(" << path << ") - Second png_create_info_struct() failed." << std::endl;
 		png_destroy_read_struct(&png, &info, NULL);
 		fclose(file);
 		return false;
@@ -73,7 +75,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (setjmp(png_jmpbuf(png)))
 	{
-		error_log("Texture->load(" << path << ") - setjmp() failed.");
+		std::cerr << "Texture->load(" << path << ") - setjmp() failed." << std::endl;
 		png_destroy_read_struct(&png, &info, &info_end);
 		fclose(file);
 		return false;
@@ -89,7 +91,7 @@ bool Texture::load(const char *path, Mode mode)
 
 	if (color != PNG_COLOR_TYPE_RGB && color != PNG_COLOR_TYPE_RGB_ALPHA)
 	{
-		error_log("Texture->load(" << path << ") - Image must be RGB or RGBA.");
+		std::cerr << "Texture->load(" << path << ") - Image must be RGB or RGBA." << std::endl;
 		png_destroy_read_struct(&png, &info, &info_end);
 		fclose(file);
 		return false;

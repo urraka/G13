@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 namespace Clock
 {
 	uint64_t time();
