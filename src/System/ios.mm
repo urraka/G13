@@ -1,6 +1,7 @@
-#include <System/platform.h>
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
+
+#include <System/platform.h>
 #include <Graphics/OpenGL.h>
 #include <System/ios.h>
 
