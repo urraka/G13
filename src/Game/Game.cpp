@@ -183,15 +183,14 @@ void Game::input()
 		{
 			case Event::Resize:
 			{
-				ivec2 size = ivec2(event.size.width, event.size.height);
-				graphics->viewport(size.x, size.y, window->rotation());
+				graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
 
 				ColorVertex vertices[4];
 
 				vertices[0].position = vec2(0.0f, 0.0f);
-				vertices[1].position = vec2((float)size.x, 0.0f);
-				vertices[2].position = vec2((float)size.x, (float)size.y);
-				vertices[3].position = vec2(0.0f, (float)size.y);
+				vertices[1].position = vec2((float)event.resize.width, 0.0f);
+				vertices[2].position = vec2((float)event.resize.width, (float)event.resize.height);
+				vertices[3].position = vec2(0.0f, (float)event.resize.height);
 
 				vertices[0].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 				vertices[1].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);

@@ -20,13 +20,13 @@ public:
 
 	union
 	{
-		struct { int width, height; } size;
+		struct { int width, height, rotation; } resize;
 		int button;
 		int key;
 		int character;
 	};
 
-	Event(EventType eventType = None, int param1 = 0, int param2 = 0)
+	Event(EventType eventType = None, int param1 = 0, int param2 = 0, int param3 = 0)
 		:	type(eventType)
 	{
 		switch (type)
@@ -35,8 +35,9 @@ public:
 				break;
 
 			case Resize:
-				size.width = param1;
-				size.height = param2;
+				resize.width = param1;
+				resize.height = param2;
+				resize.rotation = param3;
 				break;
 
 			case KeyPress:

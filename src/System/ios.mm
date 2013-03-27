@@ -21,7 +21,7 @@
 	UIWindow *window_;
 	GLView *view_;
 }
-- (void) createWindow;
+- (void)createWindow;
 @end
 
 namespace
@@ -115,7 +115,14 @@ namespace
 	app = self;
 
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
+
 	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self
+		selector:@selector(orientationChanged:)
+		name:UIDeviceOrientationDidChangeNotification
+		object:nil];
+
 	appLaunchedCallback();
 
 	assert(displayCallback != 0);
@@ -140,7 +147,13 @@ namespace
 	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 }
 
-- (void) createWindow
+- (void)orientationChanged: (NSNotification*) notice
+{
+	if (orientationCallback)
+		orientationCallback();
+}
+
+- (void)createWindow
 {
 	CGRect screen = [[UIScreen mainScreen] bounds];
 	window_ = [[UIWindow alloc] initWithFrame: screen];
