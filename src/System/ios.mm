@@ -151,6 +151,32 @@ namespace
 
 - (void)orientationChanged: (NSNotification*) notice
 {
+	UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+	
+	switch ([UIDevice currentDevice].orientation)
+	{
+		case UIDeviceOrientationPortrait:
+			orientation = UIInterfaceOrientationPortrait;
+			break;
+
+		case UIDeviceOrientationPortraitUpsideDown:
+			orientation = UIInterfaceOrientationPortraitUpsideDown;
+			break;
+
+		case UIDeviceOrientationLandscapeLeft:
+			orientation = UIInterfaceOrientationLandscapeRight;
+			break;
+
+		case UIDeviceOrientationLandscapeRight:
+			orientation = UIInterfaceOrientationLandscapeLeft;
+			break;
+
+		default:
+			break;
+	}
+
+	[[UIApplication sharedApplication] setStatusBarOrientation:orientation];
+	
 	if (orientationCallback)
 		orientationCallback();
 }
