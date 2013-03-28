@@ -1,1 +1,2 @@
  ☐ iOS: callbacks for touch/movement events.
+ ✔ iOS: set statusbar orientation when orientation changed. @done (13-03-28 00:08)

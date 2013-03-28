@@ -14,6 +14,7 @@ int iosRun(int argc, char *argv[]);
 void iosCreateWindow();
 void iosGetWindowSize(int *width, int *height);
 int iosGetCurrentOrientation();
+
 void iosSetAppLaunchedCallback(IOSAppLaunchedFun callback);
 void iosSetTerminateCallback(IOSTerminateFun callback);
 void iosSetDisplayCallback(IOSDisplayFun callback);
