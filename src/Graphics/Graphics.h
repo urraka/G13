@@ -64,10 +64,9 @@ public:
 
 	// Bind
 
-	void bind(Graphics::Shader shader);
 	void bind(Texture *tx);
-	void bind(SpriteBatch *spriteBatch);
-	template<class VertexT> void bind(VBO<VertexT> *vbo);
+	void bind(Graphics::Shader shader);
+	template<class VertexT> void bind(VBO<VertexT> *vbo, typename VBO<VertexT>::Type type);
 
 	// Matrix
 
@@ -113,7 +112,8 @@ private:
 
 	Graphics::Shader currentShader_;
 	Texture *currentTexture_;
-	vbo_t currentBuffer_;
+	vbo_t currentVbo_;
+	vbo_t currentIbo_;
+	vbo_t pointedBuffer_;
 	int nEnabledAttributes_;
-	bool bufferFlagged_;
 };

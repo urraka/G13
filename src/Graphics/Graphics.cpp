@@ -21,9 +21,10 @@ Graphics::Graphics()
 		uniforms_(),
 		currentShader_(InvalidShader),
 		currentTexture_(0),
-		currentBuffer_(0),
-		nEnabledAttributes_(0),
-		bufferFlagged_(false)
+		currentVbo_(0),
+		currentIbo_(0),
+		pointedBuffer_(0),
+		nEnabledAttributes_(0)
 {
 }
 
@@ -129,6 +130,7 @@ void Graphics::viewport(int width, int height, int rotation)
 
 // -----------------------------------------------------------------------------
 // Draw
+// -----------------------------------------------------------------------------
 
 void Graphics::clear()
 {
@@ -158,13 +160,11 @@ template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t offset, si
 	assert(offset + count <= vbo->size());
 	assert(shaders_[currentShader_]->attribCount() == VertexT::AttributesCount);
 
-	bind<VertexT>(vbo);
-
 	updateUniforms();
 
-	if (bufferFlagged_)
+	if (pointedBuffer_ != vbo->handle())
 	{
-		bufferFlagged_ = false;
+		bind<VertexT>(vbo, VBO<VertexT>::Vertices);
 
 		for (int i = nEnabledAttributes_; i < VertexT::AttributesCount; i++)
 			glEnableVertexAttribArray(i);
@@ -178,13 +178,19 @@ template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t offset, si
 			glVertexAttribPointer(i, attr.size, attr.type, attr.normalized, attr.stride, attr.pointer);
 		}
 
+		pointedBuffer_ = vbo->handle();
 		nEnabledAttributes_ = VertexT::AttributesCount;
 	}
 
 	if (vbo->id(VBO<VertexT>::Elements) != 0)
+	{
+		bind<VertexT>(vbo, VBO<VertexT>::Elements);
 		glDrawElements(vbo->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)(sizeof(uint16_t) * offset));
+	}
 	else
+	{
 		glDrawArrays(vbo->mode(), offset, count);
+	}
 }
 
 void Graphics::draw(SpriteBatch *spriteBatch)
@@ -201,6 +207,7 @@ void Graphics::draw(SpriteBatch *spriteBatch, size_t offset, size_t count)
 
 // -----------------------------------------------------------------------------
 // Create
+// -----------------------------------------------------------------------------
 
 Texture *Graphics::texture(const char *path, Texture::Mode mode)
 {
@@ -222,8 +229,12 @@ template<class VertexT> VBO<VertexT> *Graphics::buffer(typename VBO<VertexT>::Mo
 template<class VertexT> VBO<VertexT> *Graphics::buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage vboUsage, typename VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize)
 {
 	VBO<VertexT> *vbo = new VBO<VertexT>(this);
-	currentBuffer_ = vbo;
-	bufferFlagged_ = true;
+
+	currentVbo_ = vbo;
+
+	if (iboSize > 0)
+		currentIbo_ = vbo;
+
 	vbo->create(mode, vboUsage, iboUsage, vboSize, iboSize);
 
 	return vbo;
@@ -238,6 +249,7 @@ SpriteBatch *Graphics::batch(size_t maxSize)
 
 // -----------------------------------------------------------------------------
 // Bind
+// -----------------------------------------------------------------------------
 
 void Graphics::bind(Graphics::Shader shader)
 {
@@ -257,33 +269,26 @@ void Graphics::bind(Texture *tx)
 	}
 }
 
-template<class VertexT> void Graphics::bind(VBO<VertexT> *vbo)
+template<class VertexT> void Graphics::bind(VBO<VertexT> *vbo, typename VBO<VertexT>::Type type)
 {
-	if (vbo->handle() != currentBuffer_)
+	vbo_t &current = (type == VBO<VertexT>::Vertices ? currentVbo_ : currentIbo_);
+
+	if (vbo->handle() != current)
 	{
+		GLenum target = (type == VBO<VertexT>::Vertices ? GL_ARRAY_BUFFER : GL_ELEMENT_ARRAY_BUFFER);
+
 		if (vbo)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, vbo->id(VBO<VertexT>::Vertices));
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo->id(VBO<VertexT>::Elements));
-		}
+			glBindBuffer(target, vbo->id(type));
 		else
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		}
+			glBindBuffer(target, 0);
 
-		currentBuffer_ = vbo ? vbo->handle() : 0;
-		bufferFlagged_ = true;
+		current = vbo ? vbo->handle() : 0;
 	}
-}
-
-void Graphics::bind(SpriteBatch *spriteBatch)
-{
-	bind(spriteBatch->buffer_);
 }
 
 // -----------------------------------------------------------------------------
 // Matrix
+// -----------------------------------------------------------------------------
 
 void Graphics::save()
 {

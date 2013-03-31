@@ -15,6 +15,17 @@ namespace
 	Game *game = 0;
 }
 
+void Game::launch(Application *app)
+{
+	game = new Game();
+	game->init(app);
+}
+
+void Game::terminate()
+{
+	delete game;
+}
+
 Game::Game()
 	:	graphics(0),
 		window(0),
@@ -36,17 +47,6 @@ Game::~Game()
 	delete texture_[0];
 	delete texture_[1];
 	delete graphics;
-}
-
-void Game::launch(Application *app)
-{
-	game = new Game();
-	game->init(app);
-}
-
-void Game::terminate()
-{
-	delete game;
 }
 
 void Game::display()

@@ -46,7 +46,7 @@ template<class VertexT> void VBO<VertexT>::set(uint16_t *indices, size_t offset,
 {
 	assert(offset + count <= size_[Elements]);
 
-	graphics_->bind(this);
+	graphics_->bind(this, Elements);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * offset, sizeof(uint16_t) * count, indices);
 }
 
@@ -54,7 +54,7 @@ template<class VertexT> void VBO<VertexT>::set(VertexT *vertices, size_t offset,
 {
 	assert(offset + count <= size_[Vertices]);
 
-	graphics_->bind(this);
+	graphics_->bind(this, Vertices);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(VertexT) * offset, sizeof(VertexT) * count, vertices);
 }
 

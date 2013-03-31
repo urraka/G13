@@ -1,9 +1,11 @@
+#include <System/platform.h>
+#include <System/ios.h>
+
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include <System/platform.h>
-#include <Graphics/OpenGL.h>
-#include <System/ios.h>
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
 
 #include <assert.h>
 
@@ -122,7 +124,7 @@ namespace
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
 
-	CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(loop:)];
+	CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(display:)];
 	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
 	return self;
@@ -138,7 +140,7 @@ namespace
 	[super dealloc];
 }
 
-- (void)loop:(CADisplayLink*)displayLink
+- (void)display:(CADisplayLink*)displayLink
 {
 	displayCallback();
 
