@@ -35,7 +35,7 @@ struct ColorVertex
 {
 	vec2 position;
 	vec2 uv;
-	vec4 color;
+	u8vec4 color;
 
 	enum { AttributesCount = 3 };
 	static const VertexAttribute &attrib(int index);

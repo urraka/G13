@@ -106,10 +106,10 @@ void Game::init(Application *app)
 	vertices[2].position = vec2(128.0f, 128.0f);
 	vertices[3].position = vec2(-128.0f, 128.0f);
 
-	vertices[0].color = vec4(0.3f, 0.3f, 1.0f, 1.0f);
-	vertices[1].color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-	vertices[2].color = vec4(0.0f, 0.0f, 0.3f, 1.0f);
-	vertices[3].color = vec4(0.0f, 0.0f, 0.3f, 1.0f);
+	vertices[0].color = u8vec4(76, 76, 255, 255);
+	vertices[1].color = u8vec4(0, 255, 0, 255);
+	vertices[2].color = u8vec4(0, 0, 76, 255);
+	vertices[3].color = u8vec4(0, 0, 76, 255);
 
 	vertices[0].uv = vec2(0.0f, 0.0f);
 	vertices[1].uv = vec2(1.0f, 0.0f);
@@ -121,10 +121,10 @@ void Game::init(Application *app)
 	vertices[6].position = vec2((float)size.x, (float)size.y);
 	vertices[7].position = vec2(0.0f, (float)size.y);
 
-	vertices[4].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-	vertices[5].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-	vertices[6].color = vec4(1.0f);
-	vertices[7].color = vec4(1.0f);
+	vertices[4].color = u8vec4(0, 0, 255, 255);
+	vertices[5].color = u8vec4(0, 0, 255, 255);
+	vertices[6].color = u8vec4(255);
+	vertices[7].color = u8vec4(255);
 
 	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::TriangleFan, VBO<ColorVertex>::StaticDraw, 8);
 	buffer_->set(vertices, 0, 8);
@@ -192,10 +192,10 @@ void Game::input()
 				vertices[2].position = vec2((float)event.resize.width, (float)event.resize.height);
 				vertices[3].position = vec2(0.0f, (float)event.resize.height);
 
-				vertices[0].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-				vertices[1].color = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-				vertices[2].color = vec4(1.0f);
-				vertices[3].color = vec4(1.0f);
+				vertices[0].color = u8vec4(0, 0, 255, 255);
+				vertices[1].color = u8vec4(0, 0, 255, 255);
+				vertices[2].color = u8vec4(255);
+				vertices[3].color = u8vec4(255);
 
 				buffer_->set(vertices, 4, 4);
 
