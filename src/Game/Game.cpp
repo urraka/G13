@@ -1,7 +1,4 @@
-#include <System/platform.h>
-#include <System/Application.h>
-#include <System/Window.h>
-#include <System/Clock.h>
+#include <System/System.h>
 #include <Graphics/Graphics.h>
 #include <Game/Game.h>
 
@@ -202,11 +199,13 @@ void Game::input()
 				break;
 			}
 
-			case Event::KeyPress:
-				if (event.key == Keyboard::Escape)
+			case Event::Keyboard:
+			{
+				if (event.keyboard.pressed && event.keyboard.key == Keyboard::Escape)
 					window->close();
 
 				break;
+			}
 
 			default:
 				break;

@@ -7,6 +7,7 @@
 #include <System/Application.h>
 #include <System/Window.h>
 
+#include <stdlib.h>
 #include <iostream>
 
 namespace { namespace callbacks {
@@ -22,9 +23,10 @@ namespace { namespace callbacks {
 
 		void ios_orientation()
 		{
-			int width, height, r = window->rotation();
-			window->size(width, height);
-			window->push(Event(Event::Resize, width, height, r));
+			ResizeEvent event;
+			event.rotation = window->rotation();
+			window->size(event.width, event.height);
+			window->push(Event(event));
 		}
 	#else
 		int GLFWCALL close()
@@ -35,27 +37,36 @@ namespace { namespace callbacks {
 
 		void GLFWCALL resize(int width, int height)
 		{
-			int r = window->rotation();
-
-			if (r == 90 || r == -90)
-				window->push(Event(Event::Resize, height, width, r));
-			else
-				window->push(Event(Event::Resize, width, height, r));
+			ResizeEvent event;
+			event.rotation = window->rotation();
+			window->size(event.width, event.height);
+			window->push(Event(event));
 		}
 
 		void GLFWCALL keyboard(int key, int action)
 		{
-			window->push(Event(action == GLFW_PRESS ? Event::KeyPress : Event::KeyRelease, key));
+			KeyboardEvent event;
+			event.key = static_cast<Keyboard::Key>(key);
+			event.pressed = (action == GLFW_PRESS);
+			window->push(Event(event));
 		}
 
 		void GLFWCALL character(int ch, int action)
 		{
-			window->push(Event(action == GLFW_PRESS ? Event::CharPress : Event::CharRelease, ch));
+			if (action == GLFW_PRESS)
+			{
+				CharEvent event;
+				event.ch = ch;
+				window->push(Event(event));
+			}
 		}
 
 		void GLFWCALL mouse(int button, int action)
 		{
-			window->push(Event(action == GLFW_PRESS ? Event::MouseButtonPress : Event::MouseButtonRelease, button));
+			MouseEvent event;
+			event.button = static_cast<Mouse::Button>(button);
+			event.pressed = (action == GLFW_PRESS);
+			window->push(Event(event));
 		}
 	#endif
 
@@ -145,19 +156,17 @@ void Window::vsync(bool enable)
 void Window::size(int &width, int &height)
 {
 	#if defined(IOS)
-		iosGetWindowSize(&width, &height);
+		#define get_size iosGetWindowSize
 	#else
-		glfwGetWindowSize(&width, &height);
+		#define get_size glfwGetWindowSize
 	#endif
 
-	int r = rotation();
+	if (abs(rotation()) == 90)
+		get_size(&height, &width);
+	else
+		get_size(&width, &height);
 
-	if (r == 90 || r == -90)
-	{
-		int tmp = width;
-		width = height;
-		height = tmp;
-	}
+	#undef get_size
 }
 
 void Window::display(DisplayCallback callback)
