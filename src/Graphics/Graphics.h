@@ -31,12 +31,13 @@ class Shader;
 class Graphics
 {
 public:
-	enum Shader
+	enum ShaderType
 	{
 		InvalidShader = -1,
-		TextureShader = 0,
 		ColorShader,
-		ShaderCount
+		TextureShader,
+		MixedShader,
+		ShaderTypeCount
 	};
 
 	Graphics();
@@ -67,7 +68,7 @@ public:
 	// Bind
 
 	void bind(Texture *tx);
-	void bind(Graphics::Shader shader);
+	void bind(ShaderType shader);
 	template<class VertexT> void bind(VBO<VertexT> *vbo, typename VBO<VertexT>::Type type);
 
 	// Matrix
@@ -109,10 +110,10 @@ private:
 	mat4 projection_;
 	std::stack<State> stack_;
 
-	::Shader *shaders_[ShaderCount];
-	Uniform uniforms_[ShaderCount][UniformCount];
+	Shader *shaders_[ShaderTypeCount];
+	Uniform uniforms_[ShaderTypeCount][UniformCount];
 
-	Graphics::Shader currentShader_;
+	ShaderType currentShader_;
 	Texture *currentTexture_;
 	vbo_t currentVbo_;
 	vbo_t currentIbo_;

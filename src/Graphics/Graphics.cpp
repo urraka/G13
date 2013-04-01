@@ -30,7 +30,7 @@ Graphics::Graphics()
 
 Graphics::~Graphics()
 {
-	for (int i = 0; i < ShaderCount; i++)
+	for (int i = 0; i < ShaderTypeCount; i++)
 		delete shaders_[i];
 }
 
@@ -48,11 +48,14 @@ bool Graphics::init()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	shaders_[TextureShader] = new ::Shader();
-	shaders_[TextureShader]->load(shaders::texture.vert, shaders::texture.frag, Vertex::AttributesCount, Vertex::attrib);
-
-	shaders_[ColorShader] = new ::Shader();
+	shaders_[ColorShader] = new Shader();
 	shaders_[ColorShader]->load(shaders::color.vert, shaders::color.frag, ColorVertex::AttributesCount, ColorVertex::attrib);
+
+	shaders_[TextureShader] = new Shader();
+	shaders_[TextureShader]->load(shaders::texture.vert, shaders::texture.frag, TextureVertex::AttributesCount, TextureVertex::attrib);
+
+	shaders_[MixedShader] = new Shader();
+	shaders_[MixedShader]->load(shaders::mixed.vert, shaders::mixed.frag, MixedVertex::AttributesCount, MixedVertex::attrib);
 
 	const char *uniformNames[UniformCount] = {0};
 
@@ -61,8 +64,10 @@ bool Graphics::init()
 	uniformNames[UniformSampler] = "sampler";
 	uniformNames[UniformTextureEnabled] = "textureEnabled";
 
-	for (int iShader = 0; iShader < ShaderCount; iShader++)
+	for (int iShader = 0; iShader < ShaderTypeCount; iShader++)
 	{
+		assert(shaders_[iShader] != 0);
+
 		shaders_[iShader]->bind();
 
 		for (int iUniform = 0; iUniform < UniformCount; iUniform++)
@@ -84,7 +89,7 @@ bool Graphics::init()
 
 void Graphics::uniformModified(int iUniform)
 {
-	for (int i = 0; i < ShaderCount; i++)
+	for (int i = 0; i < ShaderTypeCount; i++)
 		uniforms_[i][iUniform].modified = true;
 }
 
@@ -92,23 +97,19 @@ void Graphics::updateUniforms()
 {
 	Uniform (&uniforms)[UniformCount] = uniforms_[currentShader_];
 
-	if (uniforms[UniformProjection].modified)
-	{
-		uniforms[UniformProjection].modified = false;
-		glUniformMatrix4fv(uniforms[UniformProjection].location, 1, GL_FALSE, glm::value_ptr(projection_));
-	}
+	#define call(glUniform, u, ...) \
+		\
+		if (uniforms[u].modified && uniforms[u].location != -1) \
+		{ \
+			uniforms[u].modified = false; \
+			glUniform(uniforms[u].location, __VA_ARGS__); \
+		}
 
-	if (uniforms[UniformMatrix].modified)
-	{
-		uniforms[UniformMatrix].modified = false;
-		glUniformMatrix4fv(uniforms[UniformMatrix].location, 1, GL_FALSE, glm::value_ptr(matrix_));
-	}
+	call(glUniformMatrix4fv, UniformProjection, 1, GL_FALSE, glm::value_ptr(projection_));
+	call(glUniformMatrix4fv, UniformMatrix, 1, GL_FALSE, glm::value_ptr(matrix_));
+	call(glUniform1f, UniformTextureEnabled, currentTexture_ != 0 ? 1.0f : 0.0f);
 
-	if (uniforms[UniformTextureEnabled].modified && uniforms[UniformTextureEnabled].location != -1)
-	{
-		uniforms[UniformTextureEnabled].modified = false;
-		glUniform1f(uniforms[UniformTextureEnabled].location, currentTexture_ ? 1.0f : 0.0f);
-	}
+	#undef call
 }
 
 void Graphics::viewport(int width, int height, int rotation)
@@ -251,7 +252,7 @@ SpriteBatch *Graphics::batch(size_t maxSize)
 // Bind
 // -----------------------------------------------------------------------------
 
-void Graphics::bind(Graphics::Shader shader)
+void Graphics::bind(ShaderType shader)
 {
 	shaders_[shader]->bind();
 	currentShader_ = shader;

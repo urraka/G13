@@ -99,7 +99,7 @@ void Game::init(Application *app)
 		spriteAngles_[i] = glm::linearRand(-180.0f, 180.0f);
 	}
 
-	ColorVertex vertices[8];
+	MixedVertex vertices[8];
 
 	vertices[0].position = vec2(-128.0f, -128.0f);
 	vertices[1].position = vec2(128.0f, -128.0f);
@@ -126,7 +126,7 @@ void Game::init(Application *app)
 	vertices[6].color = u8vec4(255);
 	vertices[7].color = u8vec4(255);
 
-	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::TriangleFan, VBO<ColorVertex>::StaticDraw, 8);
+	buffer_ = graphics->buffer<MixedVertex>(VBO<MixedVertex>::TriangleFan, VBO<MixedVertex>::StaticDraw, 8);
 	buffer_->set(vertices, 0, 8);
 }
 
@@ -141,7 +141,7 @@ void Game::draw()
 	graphics->clear();
 
 	graphics->bind((Texture*)0);
-	graphics->bind(Graphics::ColorShader);
+	graphics->bind(Graphics::MixedShader);
 	graphics->draw(buffer_, 4, 4);
 
 	graphics->save();
@@ -164,7 +164,7 @@ void Game::draw()
 
 	graphics->save();
 	graphics->translate(size.x - 128.0f, size.y - 128.0f);
-	graphics->bind(Graphics::ColorShader);
+	graphics->bind(Graphics::MixedShader);
 	graphics->bind(texture_[1]);
 	graphics->draw(buffer_, 0, 4);
 	graphics->restore();
@@ -185,7 +185,7 @@ void Game::input()
 			{
 				graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
 
-				ColorVertex vertices[4];
+				MixedVertex vertices[4];
 
 				vertices[0].position = vec2(0.0f, 0.0f);
 				vertices[1].position = vec2((float)event.resize.width, 0.0f);

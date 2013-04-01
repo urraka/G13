@@ -7,7 +7,7 @@ Sprite::Sprite()
 {
 }
 
-void Sprite::vertices(Vertex (&vertices)[4]) const
+void Sprite::vertices(TextureVertex (&vertices)[4]) const
 {
 	vertices[0].uv = vec2(texcoords[0], texcoords[1]);
 	vertices[1].uv = vec2(texcoords[2], texcoords[1]);

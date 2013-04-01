@@ -4,7 +4,7 @@ class Sprite
 {
 public:
 	Sprite();
-	void vertices(Vertex (&vertices)[4]) const;
+	void vertices(TextureVertex (&vertices)[4]) const;
 
 	vec4 texcoords;
 	vec2 position;

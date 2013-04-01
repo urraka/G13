@@ -10,7 +10,42 @@ struct shader
 };
 
 // -----------------------------------------------------------------------------
-// Texture (default)
+// ColorVertex shader
+// -----------------------------------------------------------------------------
+
+const char *colorVert =
+	#if defined(IOS)
+		"#version 100\n"
+	#else
+		"#version 110\n"
+	#endif
+	"uniform mat4 matrix;"
+	"uniform mat4 projection;"
+	"attribute vec2 position;"
+	"attribute vec4 color;"
+	"varying vec4 fragColor;"
+	"void main() {"
+	"	fragColor = color;"
+	"	gl_Position = projection * matrix * vec4(position, 0.0, 1.0);"
+	"}";
+
+const char *colorFrag =
+	#if defined(IOS)
+		"#version 100\n"
+		"precision mediump float;"
+		"varying lowp vec4 fragColor;"
+	#else
+		"#version 110\n"
+		"varying vec4 fragColor;"
+	#endif
+	"uniform sampler2D sampler;"
+	"void main() {"
+	"	gl_FragColor = fragColor;"
+	"}";
+
+// -----------------------------------------------------------------------------
+// TextureVertex shader
+// -----------------------------------------------------------------------------
 
 const char *textureVert =
 	#if defined(IOS)
@@ -43,9 +78,10 @@ const char *textureFrag =
 	"}";
 
 // -----------------------------------------------------------------------------
-// Texture + Color
+// MixedVertex shader
+// -----------------------------------------------------------------------------
 
-const char *colorVert =
+const char *mixedVert =
 	#if defined(IOS)
 		"#version 100\n"
 	#else
@@ -64,7 +100,7 @@ const char *colorVert =
 	"	gl_Position = projection * matrix * vec4(position, 0.0, 1.0);"
 	"}";
 
-const char *colorFrag =
+const char *mixedFrag =
 	#if defined(IOS)
 		"#version 100\n"
 		"precision mediump float;"
@@ -85,6 +121,7 @@ const char *colorFrag =
 
 namespace shaders
 {
-	shader texture = { textureVert, textureFrag };
 	shader color = { colorVert, colorFrag };
+	shader texture = { textureVert, textureFrag };
+	shader mixed = { mixedVert, mixedFrag };
 }
