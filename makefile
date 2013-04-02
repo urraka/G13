@@ -18,6 +18,7 @@ ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),win32)
   out := $(out-dir)/G13.exe
   lib := -lglew32 -lglfw -lopengl32 -lpng -lz
   def := -DWIN32 -DGLEW_STATIC
+  opt += -mwindows
 endif
 
 # unix
@@ -54,7 +55,7 @@ dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
 $(targets): $(bin-dir) $(out)
 
 $(out): $(obj)
-	$(cxx) -o $(out) $(obj) $(lib)
+	$(cxx) -o $(out) $(obj) $(lib) $(opt)
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),help)

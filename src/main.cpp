@@ -10,12 +10,3 @@ int main(int argc, char *argv[])
 
 	return app.run();
 }
-
-#if defined(WIN32)
-	#include <windows.h>
-
-	int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-	{
-		return main(0, 0);
-	}
-#endif
