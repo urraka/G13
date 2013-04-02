@@ -33,6 +33,12 @@ Application::Application(int argc, char *argv[])
 	app = this;
 }
 
+Application::~Application()
+{
+	if (window_)
+		delete window_;
+}
+
 void Application::launched(LaunchedCallback callback)
 {
 	callbacks::launchedCallback = callback;
@@ -76,6 +82,7 @@ int Application::run()
 			callbacks::terminateCallback();
 
 		delete window_;
+		window_ = 0;
 		glfwTerminate();
 
 		return 0;
