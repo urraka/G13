@@ -1,7 +1,7 @@
 #include <System/platform.h>
 #include <Graphics/Graphics.h>
 
-#define offs(obj, member) (GLvoid*)((size_t)&obj.member - (size_t)&obj)
+#define offs(vertex, member) (GLvoid*)((size_t)glm::value_ptr(vertex.member) - (size_t)&vertex)
 
 // -----------------------------------------------------------------------------
 // VertexAttribute

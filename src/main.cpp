@@ -1,5 +1,4 @@
-#include <System/platform.h>
-#include <System/Application.h>
+#include <System/System.h>
 #include <Game/Game.h>
 
 int main(int argc, char *argv[])

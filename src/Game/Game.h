@@ -4,8 +4,8 @@
 
 class Application;
 class Window;
-
-#include <Graphics/Graphics.h>
+class Graphics;
+class Scene;
 
 class Game {
 public:
@@ -25,17 +25,12 @@ public:
 	Graphics *graphics;
 
 private:
+	Scene *scene_;
+
 	uint64_t currentTime_;
 	uint64_t timeAccumulator_;
 	uint64_t dt_;
 	uint64_t time_;
 	uint64_t fpsTimer_;
 	int fps_;
-
-	// testing
-	SpriteBatch *batch_;
-	VBO<MixedVertex> *buffer_;
-	Texture *texture_[2];
-	std::vector<Sprite> sprites_;
-	std::vector<float> spriteAngles_;
 };
