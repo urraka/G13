@@ -2,7 +2,6 @@
 
 #include <System/System.h>
 #include <Graphics/Graphics.h>
-#include <Game/Component.h>
 #include <Game/Entity.h>
 #include <Game/Scene.h>
 
