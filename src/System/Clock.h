@@ -1,12 +1,13 @@
 #pragma once
 
-#include <stdint.h>
+typedef uint64_t Time;
 
-namespace Clock
+class Clock
 {
-	uint64_t time();
+public:
+	static Time time();
 
-	template<typename T> inline T toSeconds(uint64_t time) { return T((double)time / 1000000.0); }
-	template<typename T> inline uint64_t seconds(T value) { return uint64_t(value * (T)1000000); }
-	template<typename T> inline uint64_t milliseconds(T value) { return uint64_t(value * (T)1000); }
-}
+	template<typename T> static T toSeconds(Time time) { return T((double)time / 1000000.0); }
+	template<typename T> static Time seconds(T value) { return Time(value * (T)1000000); }
+	template<typename T> static Time milliseconds(T value) { return Time(value * (T)1000); }
+};

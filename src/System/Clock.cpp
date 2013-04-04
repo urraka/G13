@@ -1,5 +1,4 @@
-#include <System/platform.h>
-#include <System/Clock.h>
+#include <System/System.h>
 
 #if defined(WIN32)
 	#include <windows.h>
@@ -21,10 +20,7 @@ namespace
 }
 #endif
 
-namespace Clock
-{
-
-uint64_t time()
+Time Clock::time()
 {
 	#if defined(WIN32)
 		HANDLE currentThread = GetCurrentThread();
@@ -44,14 +40,12 @@ uint64_t time()
 		if (frequency.denom == 0)
 			mach_timebase_info(&frequency);
 
-		uint64_t nanoseconds = mach_absolute_time() * frequency.numer / frequency.denom;
+		Time nanoseconds = mach_absolute_time() * frequency.numer / frequency.denom;
 
 		return nanoseconds / 1000;
 	#elif defined(UNIX)
 		timespec time;
 		clock_gettime(CLOCK_MONOTONIC, &time);
-		return static_cast<uint64_t>(time.tv_sec) * 1000000 + time.tv_nsec / 1000;
+		return static_cast<Time>(time.tv_sec) * 1000000 + time.tv_nsec / 1000;
 	#endif
-}
-
 }

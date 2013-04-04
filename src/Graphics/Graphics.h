@@ -18,6 +18,7 @@ using glm::ivec2;
 using glm::u8vec4;
 
 class Graphics;
+class Shader;
 
 #include <Graphics/OpenGL.h>
 #include <Graphics/Vertex.h>
@@ -25,8 +26,6 @@ class Graphics;
 #include <Graphics/Texture.h>
 #include <Graphics/Sprite.h>
 #include <Graphics/SpriteBatch.h>
-
-class Shader;
 
 class Graphics
 {
@@ -43,7 +42,7 @@ public:
 	Graphics();
 	~Graphics();
 
-	bool init();
+	void init();
 	void viewport(int width, int height, int rotation);
 
 	// Draw

@@ -6,6 +6,7 @@ help:
 # common for all systems
 cxx := g++
 inc := -Isrc
+opt := -Wall
 
 # if debug
 ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)

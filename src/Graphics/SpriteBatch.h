@@ -8,6 +8,8 @@ public:
 	void clear();
 	void add(const Sprite &sprite);
 	size_t size() const;
+	void texture(Texture *texture);
+	Texture *texture() const;
 
 private:
 	SpriteBatch(Graphics *graphics);
@@ -15,10 +17,10 @@ private:
 	void draw(size_t offset, size_t count);
 
 	Graphics *graphics_;
+	Texture *texture_;
 	VBO<TextureVertex> *buffer_;
 	size_t size_;
 	size_t maxSize_;
-	TextureVertex vertices_[4];
 
 	friend class Graphics;
 };

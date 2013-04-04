@@ -1,14 +1,10 @@
-#include <System/platform.h>
+#include <System/System.h>
+
 #if defined(IOS)
 	#include <System/ios.h>
 #else
 	#include <GL/glfw.h>
 #endif
-#include <System/Application.h>
-#include <System/Window.h>
-
-#include <stdlib.h>
-#include <iostream>
 
 namespace { namespace callbacks {
 

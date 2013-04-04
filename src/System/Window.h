@@ -1,12 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <vector>
-
-#include <System/Event.h>
-
-class Application;
-
 class Window
 {
 public:

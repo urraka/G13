@@ -1,5 +1,3 @@
-#include <System/System.h>
-#include <Graphics/Graphics.h>
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
 
@@ -27,14 +25,14 @@ void Game::terminate()
 }
 
 Game::Game()
-	:	graphics(0),
-		window(0),
+	:	window(0),
+		graphics(0),
 		scene_(0),
-		dt_(0),
 		currentTime_(0),
 		timeAccumulator_(0),
-		fps_(0),
-		fpsTimer_(0)
+		dt_(0),
+		fpsTimer_(0),
+		fps_(0)
 {
 }
 
@@ -55,9 +53,7 @@ void Game::init(Application *app)
 	window->vsync(false);
 
 	graphics = new Graphics();
-
-	if (!graphics->init())
-		return;
+	graphics->init();
 
 	ivec2 size;
 	window->size(size.x, size.y);
@@ -85,10 +81,10 @@ void Game::input()
 
 void Game::update()
 {
-	const uint64_t maxFrameTime = Clock::milliseconds(250);
+	const Time maxFrameTime = Clock::milliseconds(250);
 
-	uint64_t newTime = Clock::time();
-	uint64_t frameTime = newTime - currentTime_;
+	Time newTime = Clock::time();
+	Time frameTime = newTime - currentTime_;
 
 	fpsTimer_ += frameTime;
 

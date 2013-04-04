@@ -1,6 +1,10 @@
 #pragma once
 
-#include <vector>
+#include <System/System.h>
+#include <Graphics/Graphics.h>
+#include <Game/Component.h>
+#include <Game/Entity.h>
+#include <Game/Scene.h>
 
 class Application;
 class Window;
@@ -27,10 +31,9 @@ public:
 private:
 	Scene *scene_;
 
-	uint64_t currentTime_;
-	uint64_t timeAccumulator_;
-	uint64_t dt_;
-	uint64_t time_;
-	uint64_t fpsTimer_;
+	Time currentTime_;
+	Time timeAccumulator_;
+	Time dt_;
+	Time fpsTimer_;
 	int fps_;
 };

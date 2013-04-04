@@ -1,5 +1,3 @@
-#include <System/platform.h>
-
 #define VBO_TEMPLATE_INSTANCE(VertexT) \
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo); \
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t count); \
@@ -7,12 +5,10 @@
 	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage vboUsage, VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize); \
 	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage usage, size_t size);
 
+#include <System/System.h>
 #include <Graphics/Graphics.h>
 #include <Graphics/Shader.h>
 #include <Graphics/shaders.h>
-
-#include <assert.h>
-#include <iostream>
 
 Graphics::Graphics()
 	:	matrix_(1.0f),
@@ -34,14 +30,11 @@ Graphics::~Graphics()
 		delete shaders_[i];
 }
 
-bool Graphics::init()
+void Graphics::init()
 {
 	#if !defined(IOS)
 		if (glewInit() != GLEW_OK)
-		{
 			std::cerr << "Error initializing glew." << std::endl;
-			return false;
-		}
 	#endif
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -83,8 +76,6 @@ bool Graphics::init()
 	}
 
 	bind(TextureShader);
-
-	return true;
 }
 
 void Graphics::uniformModified(int iUniform)
@@ -265,7 +256,7 @@ void Graphics::bind(Texture *tx)
 		if (!currentTexture_ != !tx)
 			uniformModified(UniformTextureEnabled);
 
-		glBindTexture(GL_TEXTURE_2D, tx ? tx->id() : 0);
+		glBindTexture(GL_TEXTURE_2D, tx != 0 ? tx->id() : 0);
 		currentTexture_ = tx;
 	}
 }
@@ -277,12 +268,7 @@ template<class VertexT> void Graphics::bind(VBO<VertexT> *vbo, typename VBO<Vert
 	if (vbo->handle() != current)
 	{
 		GLenum target = (type == VBO<VertexT>::Vertices ? GL_ARRAY_BUFFER : GL_ELEMENT_ARRAY_BUFFER);
-
-		if (vbo)
-			glBindBuffer(target, vbo->id(type));
-		else
-			glBindBuffer(target, 0);
-
+		glBindBuffer(target, vbo != 0 ? vbo->id(type) : 0);
 		current = vbo ? vbo->handle() : 0;
 	}
 }

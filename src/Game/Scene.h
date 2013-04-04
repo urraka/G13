@@ -1,7 +1,6 @@
 #pragma once
 
 class Game;
-class Graphics;
 
 class Scene
 {

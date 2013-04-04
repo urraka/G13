@@ -1,8 +1,5 @@
 #pragma once
 
-#include <Game/Scene.h>
-#include <vector>
-
 class MainScene : public Scene
 {
 public:
@@ -10,12 +7,13 @@ public:
 	~MainScene();
 
 	void init();
-	void update(uint64_t dt);
+	void update(Time dt);
 	void draw(float percent);
 	void event(const Event &evt);
 
 	// testing
-	uint64_t time_, prevTime_;
+	Time time_;
+	Time prevTime_;
 	SpriteBatch *batch_;
 	VBO<MixedVertex> *buffer_;
 	Texture *texture_[2];

@@ -1,8 +1,9 @@
-#include <System/platform.h>
+#include <System/System.h>
 #include <Graphics/Graphics.h>
 
 SpriteBatch::SpriteBatch(Graphics *graphics)
 	:	graphics_(graphics),
+		texture_(0),
 		buffer_(0),
 		size_(0),
 		maxSize_(0)
@@ -24,8 +25,9 @@ void SpriteBatch::add(const Sprite &sprite)
 {
 	assert(size_ < maxSize_);
 
-	sprite.vertices(vertices_);
-	buffer_->set(vertices_, 4 * size_, 4);
+	TextureVertex vertices[4];
+	sprite.vertices(vertices);
+	buffer_->set(vertices, 4 * size_, 4);
 	size_++;
 }
 
@@ -48,10 +50,23 @@ void SpriteBatch::create(size_t maxSize)
 void SpriteBatch::draw(size_t offset, size_t count)
 {
 	assert(offset + count <= maxSize_);
+
+	graphics_->bind(Graphics::TextureShader);
+	graphics_->bind(texture_);
 	graphics_->draw(buffer_, 6 * offset, 6 * count);
 }
 
 size_t SpriteBatch::size() const
 {
 	return size_;
+}
+
+void SpriteBatch::texture(Texture *texture)
+{
+	texture_ = texture;
+}
+
+Texture *SpriteBatch::texture() const
+{
+	return texture_;
 }

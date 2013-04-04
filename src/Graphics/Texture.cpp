@@ -1,8 +1,6 @@
-#include <System/platform.h>
+#include <System/System.h>
 #include <Graphics/Graphics.h>
 
-#include <iostream>
-#include <assert.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <png.h>

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <System/Mouse.h>
-#include <System/Keyboard.h>
-
 struct ResizeEvent
 {
 	int width;

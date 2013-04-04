@@ -1,9 +1,9 @@
-#include <System/platform.h>
+#include <System/System.h>
 #include <Graphics/Graphics.h>
 
 Sprite::Sprite()
-	:	angle(0.0f),
-		scale(1.0f)
+	:	scale(1.0f),
+		angle(0.0f)
 {
 }
 

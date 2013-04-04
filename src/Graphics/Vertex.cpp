@@ -1,4 +1,4 @@
-#include <System/platform.h>
+#include <System/System.h>
 #include <Graphics/Graphics.h>
 
 #define offs(vertex, member) (GLvoid*)((size_t)glm::value_ptr(vertex.member) - (size_t)&vertex)

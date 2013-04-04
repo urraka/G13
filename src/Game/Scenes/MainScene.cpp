@@ -1,5 +1,3 @@
-#include <System/System.h>
-#include <Graphics/Graphics.h>
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
 
@@ -7,9 +5,9 @@ MainScene::MainScene(Game *game)
 	:	Scene(game),
 		time_(0),
 		prevTime_(0),
-		texture_(),
+		batch_(0),
 		buffer_(0),
-		batch_(0)
+		texture_()
 {
 }
 
@@ -35,6 +33,8 @@ void MainScene::init()
 	const size_t nSprites = 50;
 
 	batch_ = graphics->batch(nSprites);
+	batch_->texture(texture_[0]);
+
 	sprites_.resize(nSprites);
 	spriteAngles_.resize(nSprites);
 
@@ -81,7 +81,7 @@ void MainScene::init()
 	buffer_->set(vertices, 0, 8);
 }
 
-void MainScene::update(uint64_t dt)
+void MainScene::update(Time dt)
 {
 	prevTime_ = time_;
 	time_ += dt;
@@ -91,7 +91,7 @@ void MainScene::draw(float percent)
 {
 	Graphics *graphics = game_->graphics;
 
-	const float t = Clock::toSeconds<float>(time_ + uint64_t((time_ - prevTime_) * percent));
+	const float t = Clock::toSeconds<float>(time_ + Time((time_ - prevTime_) * percent));
 	const float scale = glm::exp(1.0f * glm::sin(t));
 
 	ivec2 size;
@@ -116,8 +116,6 @@ void MainScene::draw(float percent)
 		batch_->add(sprites_[i]);
 	}
 
-	graphics->bind(Graphics::TextureShader);
-	graphics->bind(texture_[0]);
 	graphics->draw(batch_);
 	graphics->restore();
 
