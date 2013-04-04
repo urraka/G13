@@ -9,6 +9,7 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/type_precision.hpp>
+#include <glm/gtc/epsilon.hpp>
 
 using glm::mat4;
 using glm::vec2;

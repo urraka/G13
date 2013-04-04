@@ -19,7 +19,6 @@ public:
 	void zoom(ZoomType zoomType);
 
 private:
-	vec2 velocity_;
 	float zoom_[2];
 	float maxZoom_;
 	float zoomRate_;

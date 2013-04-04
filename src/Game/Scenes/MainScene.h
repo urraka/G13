@@ -1,5 +1,10 @@
 #pragma once
 
+#include <Game/Entities/Camera.h>
+#include <Game/Entities/Character.h>
+
+class Map;
+
 class MainScene : public Scene
 {
 public:
@@ -8,15 +13,22 @@ public:
 
 	void init();
 	void update(Time dt);
-	void draw(float percent);
+	void draw(float framePercent);
 	void event(const Event &evt);
 
-	// testing
-	Time time_;
-	Time prevTime_;
-	SpriteBatch *batch_;
-	VBO<MixedVertex> *buffer_;
-	Texture *texture_[2];
-	std::vector<Sprite> sprites_;
-	std::vector<float> spriteAngles_;
+private:
+	enum
+	{
+		TextureGuy = 0,
+		TextureCount
+	};
+
+	Map *map_;
+	VBO<ColorVertex> *background_;
+	Camera camera_;
+	Character character_;
+	Texture *textures_[TextureCount];
+	SpriteBatch *sprites_;
+
+	void updateBackground(int width, int height);
 };

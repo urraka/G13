@@ -86,7 +86,7 @@ Window::~Window()
 	#endif
 }
 
-void Window::create(bool fullscreen)
+void Window::create(bool fullscreen, int fsaa)
 {
 	#if defined(IOS)
 		iosCreateWindow();
@@ -100,6 +100,7 @@ void Window::create(bool fullscreen)
 
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
+		glfwOpenWindowHint(GLFW_FSAA_SAMPLES, fsaa);
 
 		GLFWvidmode mode;
 		glfwGetDesktopMode(&mode);

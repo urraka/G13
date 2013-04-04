@@ -14,4 +14,5 @@ protected:
 	};
 
 	vec2 position_[2];
+	vec2 velocity_;
 };

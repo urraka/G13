@@ -41,6 +41,12 @@ void Camera::update(Time dt)
 void Camera::target(const Entity *target)
 {
 	target_ = target;
+
+	if (target)
+	{
+		position_[PreviousFrame] = target->position();
+		position_[CurrentFrame] = target->position();
+	}
 }
 
 void Camera::viewport(int width, int height)
@@ -50,8 +56,8 @@ void Camera::viewport(int width, int height)
 
 mat4 Camera::matrix(float framePercent)
 {
-	vec2 position = glm::mix(position_[CurrentFrame], position_[PreviousFrame], framePercent);
-	float scale = glm::exp(maxZoom_ * glm::mix(zoom_[CurrentFrame], zoom_[PreviousFrame], framePercent));
+	vec2 position = glm::mix(position_[PreviousFrame], position_[CurrentFrame], framePercent);
+	float scale = glm::exp(maxZoom_ * glm::mix(zoom_[PreviousFrame], zoom_[CurrentFrame], framePercent));
 
 	return
 		glm::translate(viewport_.x / 2.0f, viewport_.y / 2.0f, 0.0f) *

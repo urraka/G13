@@ -8,7 +8,7 @@ public:
 
 	typedef void (*DisplayCallback)();
 
-	void create(bool fullscreen = true);
+	void create(bool fullscreen = true, int fsaa = 0);
 	void title(const char *title);
 	void vsync(bool enable);
 	void size(int &width, int &height);

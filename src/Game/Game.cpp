@@ -50,7 +50,7 @@ void Game::init(Application *app)
 	window = app->window(false);
 	window->display(Game::display);
 	window->title("G13");
-	window->vsync(false);
+	window->vsync(true);
 
 	graphics = new Graphics();
 	graphics->init();
