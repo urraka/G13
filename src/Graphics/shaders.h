@@ -20,13 +20,12 @@ const char *colorVert =
 		"#version 110\n"
 	#endif
 	"uniform mat4 matrix;"
-	"uniform mat4 projection;"
 	"attribute vec2 position;"
 	"attribute vec4 color;"
 	"varying vec4 fragColor;"
 	"void main() {"
 	"	fragColor = color;"
-	"	gl_Position = projection * matrix * vec4(position, 0.0, 1.0);"
+	"	gl_Position = matrix * vec4(position, 0.0, 1.0);"
 	"}";
 
 const char *colorFrag =
@@ -54,13 +53,12 @@ const char *textureVert =
 		"#version 110\n"
 	#endif
 	"uniform mat4 matrix;"
-	"uniform mat4 projection;"
 	"attribute vec2 position;"
 	"attribute vec2 texCoords;"
 	"varying vec2 fragTexCoords;"
 	"void main() {"
 	"	fragTexCoords = texCoords;"
-	"	gl_Position = projection * matrix * vec4(position, 0.0, 1.0);"
+	"	gl_Position = matrix * vec4(position, 0.0, 1.0);"
 	"}";
 
 const char *textureFrag =
@@ -88,7 +86,6 @@ const char *mixedVert =
 		"#version 110\n"
 	#endif
 	"uniform mat4 matrix;"
-	"uniform mat4 projection;"
 	"attribute vec2 position;"
 	"attribute vec2 texCoords;"
 	"attribute vec4 color;"
@@ -97,7 +94,7 @@ const char *mixedVert =
 	"void main() {"
 	"	fragColor = color;"
 	"	fragTexCoords = texCoords;"
-	"	gl_Position = projection * matrix * vec4(position, 0.0, 1.0);"
+	"	gl_Position = matrix * vec4(position, 0.0, 1.0);"
 	"}";
 
 const char *mixedFrag =

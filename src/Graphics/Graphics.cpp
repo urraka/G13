@@ -53,7 +53,6 @@ void Graphics::init()
 	const char *uniformNames[UniformCount] = {0};
 
 	uniformNames[UniformMatrix] = "matrix";
-	uniformNames[UniformProjection] = "projection";
 	uniformNames[UniformSampler] = "sampler";
 	uniformNames[UniformTextureEnabled] = "textureEnabled";
 
@@ -86,21 +85,25 @@ void Graphics::uniformModified(int iUniform)
 
 void Graphics::updateUniforms()
 {
+	Uniform *u = 0;
 	Uniform (&uniforms)[UniformCount] = uniforms_[currentShader_];
 
-	#define call(glUniform, u, ...) \
-		\
-		if (uniforms[u].modified && uniforms[u].location != -1) \
-		{ \
-			uniforms[u].modified = false; \
-			glUniform(uniforms[u].location, __VA_ARGS__); \
-		}
+	u = &uniforms[UniformMatrix];
 
-	call(glUniformMatrix4fv, UniformProjection, 1, GL_FALSE, glm::value_ptr(projection_));
-	call(glUniformMatrix4fv, UniformMatrix, 1, GL_FALSE, glm::value_ptr(matrix_));
-	call(glUniform1f, UniformTextureEnabled, currentTexture_ != 0 ? 1.0f : 0.0f);
+	if (u->modified && u->location != -1)
+	{
+		u->modified = false;
+		mat4 mvp = projection_ * matrix_;
+		glUniformMatrix4fv(u->location, 1, GL_FALSE, glm::value_ptr(mvp));
+	}
 
-	#undef call
+	u = &uniforms[UniformTextureEnabled];
+
+	if (u->modified && u->location != -1)
+	{
+		u->modified = false;
+		glUniform1f(u->location, currentTexture_ != 0 ? 1.0f : 0.0f);
+	}
 }
 
 void Graphics::viewport(int width, int height, int rotation)
@@ -117,7 +120,7 @@ void Graphics::viewport(int width, int height, int rotation)
 	if (rotation != 0)
 		projection_ = glm::rotate((float)rotation, 0.0f, 0.0f, 1.0f) * projection_;
 
-	uniformModified(UniformProjection);
+	uniformModified(UniformMatrix);
 }
 
 // -----------------------------------------------------------------------------

@@ -89,7 +89,6 @@ private:
 	enum /* uniforms */
 	{
 		UniformMatrix = 0,
-		UniformProjection,
 		UniformSampler,
 		UniformTextureEnabled,
 		UniformCount
