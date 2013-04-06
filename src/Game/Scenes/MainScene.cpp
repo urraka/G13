@@ -1,10 +1,8 @@
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
-#include <Game/Map.h>
 
 MainScene::MainScene(Game *game)
 	:	Scene(game),
-		map_(0),
 		background_(0),
 		textures_(),
 		sprites_(0)
@@ -13,7 +11,6 @@ MainScene::MainScene(Game *game)
 
 MainScene::~MainScene()
 {
-	delete map_;
 	delete background_;
 	delete sprites_;
 
@@ -27,18 +24,21 @@ void MainScene::init()
 
 	sprites_ = graphics->batch(1);
 	textures_[TextureGuy] = graphics->texture("data/guy.png");
-	sprites_->texture(textures_[TextureGuy]);
+	textures_[TextureTree] = graphics->texture("data/tree.png");
 
 	int width, height;
 	game_->window->size(width, height);
 	background_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::TriangleFan, VBO<ColorVertex>::StaticDraw, 4);
 	updateBackground(width, height);
 
-	map_ = new Map();
-	map_->load(graphics);
-
+	map_.load(graphics);
 	camera_.target(&character_);
 	camera_.viewport(width, height);
+
+	tree_.position = vec2(0.0f, -100.0f);
+	tree_.center = vec2(128.0f, 250.0f);
+	tree_.size = vec2(256.0f, 256.0f);
+	tree_.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void MainScene::update(Time dt)
@@ -69,16 +69,27 @@ void MainScene::draw(float framePercent)
 {
 	Graphics *graphics = game_->graphics;
 
-	sprites_->clear();
-
 	graphics->clear();
+
 	graphics->bind(Graphics::ColorShader);
-	graphics->matrix(mat4(1.0f));
 	graphics->draw(background_);
+
+	graphics->save();
 	graphics->matrix(camera_.matrix(framePercent));
-	map_->draw(graphics);
-	character_.draw(sprites_, framePercent);
+
+	map_.draw(graphics);
+
+	sprites_->clear();
+	sprites_->add(tree_);
+	sprites_->texture(textures_[TextureTree]);
 	graphics->draw(sprites_);
+
+	sprites_->clear();
+	character_.draw(sprites_, framePercent);
+	sprites_->texture(textures_[TextureGuy]);
+	graphics->draw(sprites_);
+
+	graphics->restore();
 }
 
 void MainScene::event(const Event &evt)
@@ -87,7 +98,6 @@ void MainScene::event(const Event &evt)
 	{
 		case Event::Resize:
 		{
-			game_->graphics->viewport(evt.resize.width, evt.resize.height, evt.resize.rotation);
 			updateBackground(evt.resize.width, evt.resize.height);
 			camera_.viewport(evt.resize.width, evt.resize.height);
 			break;
@@ -115,10 +125,10 @@ void MainScene::updateBackground(int width, int height)
 	vertices[2].position = vec2((float)width, (float)height);
 	vertices[3].position = vec2(0.0f, (float)height);
 
-	vertices[0].color = u8vec4(0, 0, 255, 255);
-	vertices[1].color = u8vec4(0, 0, 255, 255);
-	vertices[2].color = u8vec4(255);
-	vertices[3].color = u8vec4(255);
+	vertices[0].color = u8vec4(0x11, 0x11, 0x11, 255);
+	vertices[1].color = u8vec4(0x11, 0x11, 0x11, 255);
+	vertices[2].color = u8vec4(0xCC, 0xCC, 0xCC, 255);
+	vertices[3].color = u8vec4(0xCC, 0xCC, 0xCC, 255);
 
 	background_->set(vertices, 0, 4);
 }

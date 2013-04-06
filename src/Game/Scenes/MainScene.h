@@ -2,8 +2,7 @@
 
 #include <Game/Entities/Camera.h>
 #include <Game/Entities/Character.h>
-
-class Map;
+#include <Game/Map.h>
 
 class MainScene : public Scene
 {
@@ -20,13 +19,15 @@ private:
 	enum
 	{
 		TextureGuy = 0,
+		TextureTree,
 		TextureCount
 	};
 
-	Map *map_;
-	VBO<ColorVertex> *background_;
+	Map map_;
 	Camera camera_;
 	Character character_;
+	Sprite tree_;
+	VBO<ColorVertex> *background_;
 	Texture *textures_[TextureCount];
 	SpriteBatch *sprites_;
 

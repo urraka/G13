@@ -13,11 +13,11 @@ void Map::load(Graphics *graphics)
 {
 	ColorVertex vertices[6];
 
-	vertices[0].position = vec2(-200.0f, 0.0f);
-	vertices[1].position = vec2(-100.0f, -100.0f);
-	vertices[2].position = vec2(100.0f, -100.0f);
-	vertices[3].position = vec2(200.0f, 0.0f);
-	vertices[4].position = vec2(100.0f, 100.0f);
+	vertices[0].position = vec2(-400.0f, 0.0f);
+	vertices[1].position = vec2(-100.0f, 100.0f);
+	vertices[2].position = vec2(100.0f, 100.0f);
+	vertices[3].position = vec2(400.0f, 0.0f);
+	vertices[4].position = vec2(100.0f, -100.0f);
 	vertices[5].position = vec2(-100.0f, -100.0f);
 
 	vertices[0].color = u8vec4(0, 0, 0, 255);

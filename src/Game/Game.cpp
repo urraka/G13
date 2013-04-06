@@ -75,6 +75,9 @@ void Game::input()
 
 	while (window->poll(&event))
 	{
+		if (event.type == Event::Resize)
+			graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
+
 		scene_->event(event);
 	}
 }

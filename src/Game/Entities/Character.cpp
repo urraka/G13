@@ -3,12 +3,13 @@
 
 Character::Character() : moveInput_(0)
 {
+	position_[PreviousFrame] = position_[CurrentFrame] = vec2(0.0f, -100.0f);
 	vec2 tex0(1.0f, 1.0f);
 	vec2 tex1 = tex0 + vec2(52.0f, 82.0f);
 	vec2 texSize(375.0f, 82.0f);
 
 	sprite_.size = vec2(52.0f, 82.0f);
-	sprite_.center = vec2(26.0f, 80.0f);
+	sprite_.center = vec2(26.0f, 78.0f);
 	sprite_.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
 }
 
@@ -23,9 +24,8 @@ void Character::update(Time dt)
 
 	velocity_.x = moveInput_ & MoveRight ? kVelocity : moveInput_ & MoveLeft ? -kVelocity : 0.0f;
 	velocity_.y = moveInput_ & MoveDown ? kVelocity : moveInput_ & MoveUp ? -kVelocity : 0.0f;
-
+	sprite_.scale.x = velocity_.x > 0.0f ? -1.0f : velocity_.x < 0.0f ? 1.0f : sprite_.scale.x;
 	position += velocity_ * dts;
-
 	moveInput_ = 0;
 }
 
