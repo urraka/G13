@@ -3,43 +3,59 @@ targets := win32 win32-d unix unix-d osx osx-d
 help:
 	@echo "Build targets: $(targets)"
 
-# common for all systems
+# common
+debug := no
+platform := unknown
 cxx := g++
 inc := -Isrc
 opt := -Wall
 
-# if debug
 ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
-  dbg := -d
+  debug := yes
 endif
 
-# windows
 ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),win32)
-  out-dir := bin/win32$(dbg)
+  platform := win32
+endif
+
+ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),unix)
+  platform := unix
+endif
+
+ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),osx)
+  platform := osx
+endif
+
+ifeq ($(debug),yes)
+  out-dir-suffix := -d
+endif
+
+ifeq ($(platform),win32)
+  out-dir := bin/win32$(out-dir-suffix)
   out := $(out-dir)/G13.exe
   lib := -lglew32 -lglfw -lopengl32 -lpng -lz
   def := -DWIN32 -DGLEW_STATIC
-  opt += -mwindows
+  ifeq ($(debug),no)
+    opt += -mwindows
+  endif
 endif
 
-# unix
-ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),unix)
-  out-dir := bin/unix$(dbg)
+ifeq ($(platform),unix)
+  out-dir := bin/unix$(out-dir-suffix)
   out := $(out-dir)/G13
   lib := -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz
   def := -DUNIX -DPNG_SKIP_SETJMP_CHECK
 endif
 
-# osx
-ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),osx)
-  out-dir := bin/osx$(dbg)
+ifeq ($(platform),osx)
+  out-dir := bin/osx$(out-dir-suffix)
   out := $(out-dir)/G13
   lib := -lGLEW -lglfw -framework OpenGL -lpng -lz
   def := -DOSX
 endif
 
 # if debug
-ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
+ifeq ($(debug),yes)
   opt += -g
   def += -DDEBUG
 else
@@ -55,15 +71,15 @@ dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
 
 $(targets): $(bin-dir) $(out)
 
-$(out): $(obj)
+$(out): makefile $(obj)
 	$(cxx) -o $(out) $(obj) $(lib) $(opt)
 
 ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),help)
-ifneq ($(MAKECMDGOALS),)
--include $(dep)
-endif
-endif
+  ifneq ($(MAKECMDGOALS),help)
+    ifneq ($(MAKECMDGOALS),)
+      -include $(dep)
+    endif
+  endif
 endif
 
 # make-depend(dep-file,src-file,stem)
