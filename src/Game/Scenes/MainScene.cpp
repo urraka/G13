@@ -32,6 +32,7 @@ void MainScene::init()
 	updateBackground(width, height);
 
 	map_.load(graphics);
+	character_.spawn(vec2(0.0f, -100.0f));
 	camera_.target(&character_);
 	camera_.viewport(width, height);
 
@@ -107,6 +108,18 @@ void MainScene::event(const Event &evt)
 		{
 			if (evt.keyboard.pressed && evt.keyboard.key == Keyboard::Escape)
 				game_->window->close();
+
+			break;
+		}
+
+		case Event::Mouse:
+		{
+			if (evt.mouse.pressed && evt.mouse.button == Mouse::Left)
+			{
+				ivec2 mousePosition;
+				Mouse::position(mousePosition.x, mousePosition.y);
+				character_.moveTo(vec2(camera_.matrix(1.0f, Camera::MatrixInverted) * vec4(vec2(mousePosition), 0.0f, 1.0f)));
+			}
 
 			break;
 		}

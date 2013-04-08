@@ -16,8 +16,18 @@ public:
 	void update(Time dt);
 	void draw(SpriteBatch *batch, float framePercent);
 	void move(MoveInput moveInput);
+	void spawn(vec2 pos);
+	void moveTo(vec2 pos);
 
 private:
+	enum MoveMode
+	{
+		MovingToTarget,
+		FreeMovement
+	};
+
 	uint32_t moveInput_;
 	Sprite sprite_;
+	vec2 targetPosition_;
+	MoveMode moveMode_;
 };

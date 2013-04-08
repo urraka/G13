@@ -12,10 +12,16 @@ public:
 		ZoomOut = -1
 	};
 
+	enum MatrixMode
+	{
+		MatrixNormal,
+		MatrixInverted
+	};
+
 	void update(Time dt);
 	void target(const Entity *target);
 	void viewport(int width, int height);
-	mat4 matrix(float framePercent);
+	mat4 matrix(float framePercent, MatrixMode mode = MatrixNormal);
 	void zoom(ZoomType zoomType);
 
 private:

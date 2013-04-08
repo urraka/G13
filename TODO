@@ -7,3 +7,4 @@
  ☐ Make texture class use Image class and add ability to load from buffer.
  ☐ Add mipmaping support with glGenMipmaps and GL_GENERATE_MIPMAP or whatever (for 2.1)
  ☐ Add text rendering.
+ ☐ Add shader type to VBO object so it binds it for you.
