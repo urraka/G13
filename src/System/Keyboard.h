@@ -1,7 +1,8 @@
 #pragma once
 
-namespace Keyboard
+class Keyboard
 {
+public:
 	enum Key
 	{
 		A = 'A',
@@ -112,5 +113,5 @@ namespace Keyboard
 		Menu
 	};
 
-	bool pressed(Key key);
-}
+	static bool pressed(Key key);
+};

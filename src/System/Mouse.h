@@ -1,7 +1,8 @@
 #pragma once
 
-namespace Mouse
+class Mouse
 {
+public:
 	enum Button
 	{
 		Button1 = 0,
@@ -16,4 +17,6 @@ namespace Mouse
 		Right = Button2,
 		Middle = Button3
 	};
-}
+
+	static void position(int &x, int &y);
+};

@@ -4,14 +4,11 @@
 #endif
 #include <System/Keyboard.h>
 
-namespace Keyboard
+bool Keyboard::pressed(Key key)
 {
-	bool pressed(Key key)
-	{
-		#if !defined(IOS)
-			return (glfwGetKey(key) == GLFW_PRESS);
-		#else
-			return false;
-		#endif
-	}
+	#if !defined(IOS)
+		return (glfwGetKey(key) == GLFW_PRESS);
+	#else
+		return false;
+	#endif
 }
