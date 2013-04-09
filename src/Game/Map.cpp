@@ -22,23 +22,18 @@ void Map::load(Graphics *graphics)
 	polygon[6] = vec2(100.0f, -100.0f);
 	polygon[7] = vec2(-100.0f, -100.0f);
 
-	std::vector<Triangle> triangles = math::triangulate(polygon);
+	std::vector<ColorVertex> vertices(polygon.size());
+	std::vector<uint16_t> indices = math::triangulate(polygon);
 
-	ColorVertex vertices[3];
-	vertices[0].color = u8vec4(0, 0, 0, 255);
-	vertices[1].color = u8vec4(0, 0, 0, 255);
-	vertices[2].color = u8vec4(0, 0, 0, 255);
-
-	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::Triangles, VBO<ColorVertex>::StaticDraw, 3 * triangles.size());
-
-	for (size_t i = 0; i < triangles.size(); i++)
+	for (size_t i = 0; i < polygon.size(); i++)
 	{
-		vertices[0].position = triangles[i].a;
-		vertices[1].position = triangles[i].b;
-		vertices[2].position = triangles[i].c;
-
-		buffer_->set(vertices, 3 * i, 3);
+		vertices[i].position = polygon[i];
+		vertices[i].color = u8vec4(0, 0, 0, 255);
 	}
+
+	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::Triangles, VBO<ColorVertex>::StaticDraw, VBO<ColorVertex>::StaticDraw, vertices.size(), indices.size());
+	buffer_->set(vertices.data(), 0, vertices.size());
+	buffer_->set(indices.data(), 0, indices.size());
 }
 
 void Map::draw(Graphics *graphics)

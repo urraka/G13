@@ -22,5 +22,5 @@ using glm::u8vec4;
 
 namespace math
 {
-	std::vector<Triangle> triangulate(const std::vector<vec2> &polygon);
+	std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon);
 }

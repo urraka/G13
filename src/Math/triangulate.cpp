@@ -10,7 +10,7 @@ namespace
 	{
 		vertex_t *prev;
 		vertex_t *next;
-		size_t index;
+		uint16_t index;
 		float winding_value;
 		bool reflex;
 	};
@@ -48,7 +48,7 @@ namespace
 
 		for (it = reflexVertices.begin(); it != reflexVertices.end(); it++)
 		{
-			size_t index = (*it)->index;
+			uint16_t index = (*it)->index;
 
 			if (index == vertex.prev->index || index == vertex.next->index)
 				continue;
@@ -63,17 +63,22 @@ namespace
 
 namespace math
 {
-	std::vector<Triangle> triangulate(const std::vector<vec2> &polygon)
+	std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon)
 	{
+		assert(polygon.size() <= 0x10000);
+
 		const size_t N = polygon.size();
-		std::vector<Triangle> triangles;
+		std::vector<uint16_t> triangles;
 
 		if (N <= 2)
 			return triangles;
 
 		if (N == 3)
 		{
-			triangles.push_back(Triangle(polygon[0], polygon[1], polygon[2]));
+			triangles.resize(3);
+			triangles[0] = 0;
+			triangles[1] = 1;
+			triangles[2] = 2;
 			return triangles;
 		}
 
@@ -84,17 +89,17 @@ namespace math
 		for (size_t i = 1; i <= N; i++)
 		{
 			size_t index = i % N;
-			vertex_t &v = vertices[index];
+			vertex_t &vertex = vertices[index];
 
-			v.index = index;
-			v.prev = &vertices[(i - 1) % N];
-			v.next = &vertices[(i + 1) % N];
-			v.winding_value = winding_value(polygon, v);
-			v.reflex = false;
+			vertex.index = static_cast<uint16_t>(index);
+			vertex.prev = &vertices[(i - 1) % N];
+			vertex.next = &vertices[(i + 1) % N];
+			vertex.winding_value = winding_value(polygon, vertex);
+			vertex.reflex = false;
 
-			if (v.winding_value > 0.0f)
+			if (vertex.winding_value > 0.0f)
 				ccwCount++;
-			else if (v.winding_value < 0.0f)
+			else if (vertex.winding_value < 0.0f)
 				cwCount++;
 		}
 
@@ -115,7 +120,7 @@ namespace math
 		size_t iTriangle = 0;
 		size_t nVertices = vertices.size();
 		vertex_t *current = &vertices[0];
-		triangles.resize(N - 2);
+		triangles.resize(3 * (N - 2));
 
 		while (nVertices > 3)
 		{
@@ -124,9 +129,9 @@ namespace math
 
 			if (is_ear_tip(polygon, *current, reflexVertices))
 			{
-				triangles[iTriangle].a = polygon[prev->index];
-				triangles[iTriangle].b = polygon[current->index];
-				triangles[iTriangle].c = polygon[next->index];
+				triangles[iTriangle + 0] = prev->index;
+				triangles[iTriangle + 1] = current->index;
+				triangles[iTriangle + 2] = next->index;
 
 				prev->next = next;
 				next->prev = prev;
@@ -148,7 +153,7 @@ namespace math
 				if (current->reflex)
 					reflexVertices.remove(current);
 
-				iTriangle++;
+				iTriangle += 3;
 				nVertices--;
 				skipped = 0;
 			}
@@ -162,9 +167,9 @@ namespace math
 			current = next;
 		}
 
-		triangles[iTriangle].a = polygon[current->prev->index];
-		triangles[iTriangle].b = polygon[current->index];
-		triangles[iTriangle].c = polygon[current->next->index];
+		triangles[iTriangle + 0] = current->prev->index;
+		triangles[iTriangle + 1] = current->index;
+		triangles[iTriangle + 2] = current->next->index;
 
 		return triangles;
 	}
