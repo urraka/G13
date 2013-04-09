@@ -11,24 +11,34 @@ Map::~Map()
 
 void Map::load(Graphics *graphics)
 {
-	ColorVertex vertices[6];
+	std::vector<vec2> polygon(8);
 
-	vertices[0].position = vec2(-400.0f, 0.0f);
-	vertices[1].position = vec2(-100.0f, 100.0f);
-	vertices[2].position = vec2(100.0f, 100.0f);
-	vertices[3].position = vec2(400.0f, 0.0f);
-	vertices[4].position = vec2(100.0f, -100.0f);
-	vertices[5].position = vec2(-100.0f, -100.0f);
+	polygon[0] = vec2(-300.0f, 0.0f);
+	polygon[1] = vec2(-100.0f, 100.0f);
+	polygon[2] = vec2(-100.0f, 200.0f);
+	polygon[3] = vec2(100.0f, 200.0f);
+	polygon[4] = vec2(100.0f, 100.0f);
+	polygon[5] = vec2(300.0f, 0.0f);
+	polygon[6] = vec2(100.0f, -100.0f);
+	polygon[7] = vec2(-100.0f, -100.0f);
 
+	std::vector<Triangle> triangles = math::triangulate(polygon);
+
+	ColorVertex vertices[3];
 	vertices[0].color = u8vec4(0, 0, 0, 255);
 	vertices[1].color = u8vec4(0, 0, 0, 255);
 	vertices[2].color = u8vec4(0, 0, 0, 255);
-	vertices[3].color = u8vec4(0, 0, 0, 255);
-	vertices[4].color = u8vec4(0, 0, 0, 255);
-	vertices[5].color = u8vec4(0, 0, 0, 255);
 
-	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::TriangleFan, VBO<ColorVertex>::StaticDraw, 7);
-	buffer_->set(vertices, 0, 6);
+	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::Triangles, VBO<ColorVertex>::StaticDraw, 3 * triangles.size());
+
+	for (size_t i = 0; i < triangles.size(); i++)
+	{
+		vertices[0].position = triangles[i].a;
+		vertices[1].position = triangles[i].b;
+		vertices[2].position = triangles[i].c;
+
+		buffer_->set(vertices, 3 * i, 3);
+	}
 }
 
 void Map::draw(Graphics *graphics)

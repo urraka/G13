@@ -3,8 +3,8 @@
 
 Camera::Camera()
 	:	zoom_(),
-		maxZoom_(1.0f),
-		zoomRate_(2.0f),
+		maxZoom_(1.2f),
+		zoomRate_(1.5f),
 		zoomVelocity_(0.0f),
 		zoomTarget_(0.0f),
 		zoomType_(ZoomNone),
@@ -25,7 +25,7 @@ void Camera::update(Time dt)
 
 	zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);
 	zoomVelocity_ = zoomTarget_ - zoom;
-	zoom += zoomVelocity_ * kVelMultiplier * dts;
+	zoom += zoomVelocity_ * kVelMultiplier * zoomRate_ * dts;
 	zoomType_ = ZoomNone;
 
 	if (target_ == 0)
