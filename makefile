@@ -72,7 +72,8 @@ dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
 $(targets): $(bin-dir) $(out)
 
 $(out): makefile $(obj)
-	$(cxx) -o $(out) $(obj) $(lib) $(opt)
+	@echo Linking...
+	@$(cxx) -o $(out) $(obj) $(lib) $(opt)
 
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),help)
@@ -104,7 +105,8 @@ endef
 define obj-rule
 $(out-dir)/$1/%.o: src/$1/%.cpp
 	@$$(call make-depend,$$(patsubst %.o,%.d,$$@),$$<,$$*)
-	$(cxx) -o $$@ -c $$< $(inc) $(def) $(opt)
+	@echo Compiling $$<...
+	@$(cxx) -o $$@ -c $$< $(inc) $(def) $(opt)
 endef
 
 $(foreach module,$(modules),$(eval $(call obj-rule,$(module))))
