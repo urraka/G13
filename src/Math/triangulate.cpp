@@ -24,16 +24,6 @@ namespace
 		return (b.x - a.x) * (c.y - b.y) - (c.x - b.x) * (b.y - a.y);
 	}
 
-	inline bool winding_cw(const vertex_t &vertex)
-	{
-		return vertex.winding_value < 0;
-	}
-
-	inline bool winding_ccw(const vertex_t &vertex)
-	{
-		return vertex.winding_value > 0;
-	}
-
 	inline bool is_ear_tip(const std::vector<vec2> &polygon, const vertex_t &vertex, const std::list<vertex_t*> &reflexVertices)
 	{
 		if (vertex.reflex)
@@ -84,6 +74,7 @@ namespace math
 
 		int cwCount = 0;
 		int ccwCount = 0;
+
 		std::vector<vertex_t> vertices(N);
 
 		for (size_t i = 1; i <= N; i++)
@@ -94,22 +85,25 @@ namespace math
 			vertex.index = static_cast<uint16_t>(index);
 			vertex.prev = &vertices[(i - 1) % N];
 			vertex.next = &vertices[(i + 1) % N];
+			vertex.prev->index = (i - 1) % N;
+			vertex.next->index = (i + 1) % N;
 			vertex.winding_value = winding_value(polygon, vertex);
 			vertex.reflex = false;
 
-			if (vertex.winding_value > 0.0f)
-				ccwCount++;
-			else if (vertex.winding_value < 0.0f)
-				cwCount++;
+			ccwCount += vertex.winding_value > 0.0f;
+			cwCount += vertex.winding_value < 0.0f;
 		}
 
 		assert(ccwCount - cwCount != 0);
-		bool (*isReflex)(const vertex_t&) = (ccwCount - cwCount > 0) ? winding_cw : winding_ccw;
+
+		const float mult = (ccwCount - cwCount > 0) ? 1.0f : -1.0f;
+		#define is_reflex(v) ((v).winding_value * mult <= 0.0f)
+
 		std::list<vertex_t*> reflexVertices;
 
 		for (size_t i = 0; i < N; i++)
 		{
-			if (isReflex(vertices[i]))
+			if (is_reflex(vertices[i]))
 			{
 				vertices[i].reflex = true;
 				reflexVertices.push_back(&vertices[i]);
@@ -143,7 +137,7 @@ namespace math
 					if (adjacent[i]->reflex)
 					{
 						adjacent[i]->winding_value = winding_value(polygon, *adjacent[i]);
-						adjacent[i]->reflex = isReflex(*adjacent[i]);
+						adjacent[i]->reflex = is_reflex(*adjacent[i]);
 
 						if (!adjacent[i]->reflex)
 							reflexVertices.remove(adjacent[i]);
@@ -172,5 +166,7 @@ namespace math
 		triangles[iTriangle + 2] = current->next->index;
 
 		return triangles;
+
+		#undef is_reflex
 	}
 }

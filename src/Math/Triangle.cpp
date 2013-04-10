@@ -17,5 +17,5 @@ bool Triangle::contains(const vec2 &point)
 	float s = (a.y * c.x - a.x * c.y + (c.y - a.y) * point.x + (a.x - c.x) * point.y) * sign;
 	float t = (a.x * b.y - a.y * b.x + (a.y - b.y) * point.x + (b.x - a.x) * point.y) * sign;
 
-	return s > 0.0f && t > 0.0f && (s + t) < (2.0f * A * sign);
+	return s >= 0.0f && t >= 0.0f && (s + t) <= (2.0f * A * sign);
 }
