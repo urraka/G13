@@ -2,8 +2,8 @@
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo); \
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t count); \
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t offset, size_t count); \
-	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage vboUsage, VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize); \
-	template VBO<VertexT> *Graphics::buffer<VertexT>(VBO<VertexT>::Mode mode, VBO<VertexT>::Usage usage, size_t size);
+	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage vboUsage, vbo_t::Usage iboUsage, size_t vboSize, size_t iboSize); \
+	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage usage, size_t size);
 
 #include <System/System.h>
 #include <Graphics/Graphics.h>
@@ -157,9 +157,9 @@ template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t offset, si
 
 	updateUniforms();
 
-	if (pointedBuffer_ != vbo->handle())
+	if (pointedBuffer_ != vbo)
 	{
-		bind<VertexT>(vbo, VBO<VertexT>::Vertices);
+		bind<VertexT>(vbo, vbo_t::Vertices);
 
 		for (int i = nEnabledAttributes_; i < VertexT::AttributesCount; i++)
 			glEnableVertexAttribArray(i);
@@ -173,13 +173,13 @@ template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo, size_t offset, si
 			glVertexAttribPointer(i, attr.size, attr.type, attr.normalized, attr.stride, attr.pointer);
 		}
 
-		pointedBuffer_ = vbo->handle();
+		pointedBuffer_ = vbo;
 		nEnabledAttributes_ = VertexT::AttributesCount;
 	}
 
-	if (vbo->id(VBO<VertexT>::Elements) != 0)
+	if (vbo->id(vbo_t::Elements) != 0)
 	{
-		bind<VertexT>(vbo, VBO<VertexT>::Elements);
+		bind<VertexT>(vbo, vbo_t::Elements);
 		glDrawElements(vbo->mode(), count, GL_UNSIGNED_SHORT, (GLvoid*)(sizeof(uint16_t) * offset));
 	}
 	else
@@ -216,12 +216,12 @@ Texture *Graphics::texture(const char *path, Texture::Mode mode)
 	return tx;
 }
 
-template<class VertexT> VBO<VertexT> *Graphics::buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage usage, size_t size)
+template<class VertexT> VBO<VertexT> *Graphics::buffer(vbo_t::Mode mode, vbo_t::Usage usage, size_t size)
 {
 	return buffer<VertexT>(mode, usage, usage, size, 0);
 }
 
-template<class VertexT> VBO<VertexT> *Graphics::buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage vboUsage, typename VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize)
+template<class VertexT> VBO<VertexT> *Graphics::buffer(vbo_t::Mode mode, vbo_t::Usage vboUsage, vbo_t::Usage iboUsage, size_t vboSize, size_t iboSize)
 {
 	VBO<VertexT> *vbo = new VBO<VertexT>(this);
 
@@ -264,15 +264,15 @@ void Graphics::bind(Texture *tx)
 	}
 }
 
-template<class VertexT> void Graphics::bind(VBO<VertexT> *vbo, typename VBO<VertexT>::Type type)
+template<class VertexT> void Graphics::bind(VBO<VertexT> *vbo, vbo_t::Type type)
 {
-	vbo_t &current = (type == VBO<VertexT>::Vertices ? currentVbo_ : currentIbo_);
+	vbo_t *&current = (type == vbo_t::Vertices ? currentVbo_ : currentIbo_);
 
-	if (vbo->handle() != current)
+	if (vbo != current)
 	{
-		GLenum target = (type == VBO<VertexT>::Vertices ? GL_ARRAY_BUFFER : GL_ELEMENT_ARRAY_BUFFER);
+		GLenum target = (type == vbo_t::Vertices ? GL_ARRAY_BUFFER : GL_ELEMENT_ARRAY_BUFFER);
 		glBindBuffer(target, vbo != 0 ? vbo->id(type) : 0);
-		current = vbo ? vbo->handle() : 0;
+		current = vbo;
 	}
 }
 

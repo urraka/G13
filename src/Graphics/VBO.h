@@ -1,8 +1,6 @@
 #pragma once
 
-typedef void* vbo_t;
-
-template<class VertexT> class VBO
+class vbo_t
 {
 public:
 	enum Type
@@ -28,7 +26,11 @@ public:
 		StaticDraw = GL_STATIC_DRAW,
 		DynamicDraw = GL_DYNAMIC_DRAW
 	};
+};
 
+template<class VertexT> class VBO : public vbo_t
+{
+public:
 	~VBO();
 
 	Mode mode() const;
@@ -41,7 +43,6 @@ private:
 	VBO(Graphics *graphics);
 	void create(Mode mode, Usage vboUsage, Usage iboUsage, size_t vboSize, size_t iboSize);
 	GLuint id(Type type) const;
-	vbo_t handle();
 
 	Graphics *graphics_;
 	Mode mode_;

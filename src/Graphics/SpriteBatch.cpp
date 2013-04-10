@@ -34,7 +34,7 @@ void SpriteBatch::add(const Sprite &sprite)
 void SpriteBatch::create(size_t maxSize)
 {
 	maxSize_ = maxSize;
-	buffer_ = graphics_->buffer<TextureVertex>(VBO<TextureVertex>::Triangles, VBO<TextureVertex>::DynamicDraw, VBO<TextureVertex>::StaticDraw, 4 * maxSize, 6 * maxSize);
+	buffer_ = graphics_->buffer<TextureVertex>(vbo_t::Triangles, vbo_t::DynamicDraw, vbo_t::StaticDraw, 4 * maxSize, 6 * maxSize);
 
 	uint16_t indices[] = { 0, 1, 2, 2, 3, 0};
 

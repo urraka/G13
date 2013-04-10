@@ -31,7 +31,7 @@ void Map::load(Graphics *graphics)
 		vertices[i].color = u8vec4(0, 0, 0, 255);
 	}
 
-	buffer_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::Triangles, VBO<ColorVertex>::StaticDraw, VBO<ColorVertex>::StaticDraw, vertices.size(), indices.size());
+	buffer_ = graphics->buffer<ColorVertex>(vbo_t::Triangles, vbo_t::StaticDraw, vbo_t::StaticDraw, vertices.size(), indices.size());
 	buffer_->set(vertices.data(), 0, vertices.size());
 	buffer_->set(indices.data(), 0, indices.size());
 }

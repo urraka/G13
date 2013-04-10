@@ -28,7 +28,7 @@ void MainScene::init()
 
 	int width, height;
 	game_->window->size(width, height);
-	background_ = graphics->buffer<ColorVertex>(VBO<ColorVertex>::TriangleFan, VBO<ColorVertex>::StaticDraw, 4);
+	background_ = graphics->buffer<ColorVertex>(vbo_t::TriangleFan, vbo_t::StaticDraw, 4);
 	updateBackground(width, height);
 
 	map_.load(graphics);

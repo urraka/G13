@@ -36,7 +36,7 @@ template<class VertexT> void VBO<VertexT>::mode(Mode mode)
 	mode_ = mode;
 }
 
-template<class VertexT> typename VBO<VertexT>::Mode VBO<VertexT>::mode() const
+template<class VertexT> vbo_t::Mode VBO<VertexT>::mode() const
 {
 	return mode_;
 }
@@ -75,11 +75,6 @@ template<class VertexT> void VBO<VertexT>::create(Mode mode, Usage vboUsage, Usa
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_[Elements]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * iboSize, 0, iboUsage);
 	}
-}
-
-template<class VertexT> vbo_t VBO<VertexT>::handle()
-{
-	return static_cast<vbo_t>(this);
 }
 
 VBO_TEMPLATE_INSTANCES();

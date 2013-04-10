@@ -44,16 +44,14 @@ public:
 
 	Texture *texture(const char *path, Texture::Mode mode = Texture::Default);
 	SpriteBatch *batch(size_t maxSize);
-	template<class VertexT>
-	VBO<VertexT> *buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage vboUsage, typename VBO<VertexT>::Usage iboUsage, size_t vboSize, size_t iboSize);
-	template<class VertexT>
-	VBO<VertexT> *buffer(typename VBO<VertexT>::Mode mode, typename VBO<VertexT>::Usage usage, size_t size);
+	template<class VertexT> VBO<VertexT> *buffer(vbo_t::Mode mode, vbo_t::Usage vboUsage, vbo_t::Usage iboUsage, size_t vboSize, size_t iboSize);
+	template<class VertexT> VBO<VertexT> *buffer(vbo_t::Mode mode, vbo_t::Usage usage, size_t size);
 
 	// Bind
 
 	void bind(Texture *tx);
 	void bind(ShaderType shader);
-	template<class VertexT> void bind(VBO<VertexT> *vbo, typename VBO<VertexT>::Type type);
+	template<class VertexT> void bind(VBO<VertexT> *vbo, vbo_t::Type type);
 
 	// Matrix
 
@@ -98,8 +96,8 @@ private:
 
 	ShaderType currentShader_;
 	Texture *currentTexture_;
-	vbo_t currentVbo_;
-	vbo_t currentIbo_;
-	vbo_t pointedBuffer_;
+	vbo_t *currentVbo_;
+	vbo_t *currentIbo_;
+	vbo_t *pointedBuffer_;
 	int nEnabledAttributes_;
 };
