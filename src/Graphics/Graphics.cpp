@@ -3,7 +3,8 @@
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t count); \
 	template void Graphics::draw<VertexT>(VBO<VertexT> *vbo, size_t offset, size_t count); \
 	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage vboUsage, vbo_t::Usage iboUsage, size_t vboSize, size_t iboSize); \
-	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage usage, size_t size);
+	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage usage, size_t size); \
+	template void Graphics::bind<VertexT>(VBO<VertexT> *vbo, vbo_t::Type type)
 
 #include <System/System.h>
 #include <Graphics/Graphics.h>
