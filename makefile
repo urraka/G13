@@ -1,18 +1,21 @@
-targets := win32 win32-d unix unix-d osx osx-d
-
-help:
-	@echo "Build targets: $(targets)"
-
-# common
-debug := no
 platform := unknown
-cxx := g++
-inc := -Isrc
-opt := -Wall
+debug := no
 
-ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
-  debug := yes
+# detect platform with uname
+
+ifeq ($(shell uname | grep 'MINGW32_NT' -c),1)
+  platform := win32
 endif
+
+ifeq ($(shell uname | grep 'Linux' -c),1)
+  platform := unix
+endif
+
+ifeq ($(shell uname | grep 'Darwin' -c),1)
+  platform := osx
+endif
+
+# detect platform from target name
 
 ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),win32)
   platform := win32
@@ -26,8 +29,38 @@ ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),osx)
   platform := osx
 endif
 
+# make sure that a platform is set
+
+ifeq ($(platform),unknown)
+  ifneq ($(MAKECMDGOALS),clean)
+    ifneq ($(MAKECMDGOALS),help)
+      $(error Could not detect platform.)
+    endif
+  endif
+endif
+
+# detect debug mode
+
+ifeq ($(MAKECMDGOALS),debug)
+  debug := yes
+endif
+
+ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
+  debug := yes
+endif
+
+# configuration
+
+cxx := g++
+inc := -Isrc
+opt := -Wall
+
 ifeq ($(debug),yes)
+  opt += -g
+  def += -DDEBUG
   out-dir-suffix := -d
+else
+  opt += -O2
 endif
 
 ifeq ($(platform),win32)
@@ -54,13 +87,7 @@ ifeq ($(platform),osx)
   def := -DOSX
 endif
 
-# if debug
-ifeq ($(debug),yes)
-  opt += -g
-  def += -DDEBUG
-else
-  opt += -O2
-endif
+# magic
 
 modules := . $(patsubst src/%,%,$(shell find src -depth -type d))
 src-dir := $(addprefix src/,$(modules))
@@ -69,7 +96,10 @@ src := $(foreach sdir,$(src-dir),$(wildcard $(sdir)/*.cpp))
 obj := $(patsubst src/%.cpp,$(out-dir)/%.o,$(src))
 dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
 
-$(targets): $(bin-dir) $(out)
+win32 win32-d unix unix-d osx osx-d debug: $(bin-dir) $(out)
+
+help:
+	@echo "Usage: make [debug]"
 
 $(out): makefile $(obj)
 	@echo Linking...
@@ -77,9 +107,7 @@ $(out): makefile $(obj)
 
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),help)
-    ifneq ($(MAKECMDGOALS),)
-      -include $(dep)
-    endif
+    -include $(dep)
   endif
 endif
 
@@ -117,4 +145,4 @@ $(bin-dir):
 clean:
 	rm -r bin
 
-.PHONY: clean help $(targets)
+.PHONY: clean help debug win32 win32-d unix unix-d osx osx-d

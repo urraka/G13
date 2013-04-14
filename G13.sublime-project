@@ -7,7 +7,7 @@
 	"build_systems": [
 		{
 			"name": "MinGW-win",
-			"cmd": ["C:/mingw/msys/1.0/bin/sh.exe", "--login", "-i", "-c", "cd ${project_path/\\\\/\\//g}; make win32-d -j"],
+			"cmd": ["C:/mingw/msys/1.0/bin/sh.exe", "--login", "-i", "-c", "cd ${project_path/\\\\/\\//g}; make debug -j"],
 			"variants": [
 				{
 					"name": "Run",
