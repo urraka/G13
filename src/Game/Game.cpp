@@ -47,7 +47,7 @@ void Game::init(Application *app)
 	currentTime_ = Clock::time();
 	dt_ = Clock::milliseconds(30);
 
-	window = app->window(false);
+	window = app->window(false, 16);
 	window->display(Game::display);
 	window->title("G13");
 	window->vsync(true);

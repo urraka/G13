@@ -16,7 +16,7 @@ public:
 	void launched(LaunchedCallback callback);
 	void terminate(TerminateCallback callback);
 
-	Window *window(bool fullscreen);
+	Window *window(bool fullscreen, int fsaa = 0);
 
 private:
 	int argc_;

@@ -54,12 +54,12 @@ void Application::terminate(TerminateCallback callback)
 	#endif
 }
 
-Window *Application::window(bool fullscreen)
+Window *Application::window(bool fullscreen, int fsaa)
 {
 	assert(window_ == 0);
 
 	window_ = new Window();
-	window_->create(fullscreen);
+	window_->create(fullscreen, fsaa);
 
 	return window_;
 }
