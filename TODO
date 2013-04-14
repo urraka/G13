@@ -8,3 +8,4 @@
  ☐ Add mipmaping support with glGenMipmaps and GL_GENERATE_MIPMAP or whatever (for 2.1)
  ☐ Add text rendering.
  ☐ Add shader type to VBO object so it binds it for you.
+ ☐ Add lineWidth method to Graphics.

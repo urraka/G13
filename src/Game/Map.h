@@ -8,5 +8,5 @@ public:
 	void load(Graphics *graphics);
 	void draw(Graphics *graphics);
 protected:
-	VBO<ColorVertex> *buffer_;
+	std::vector< VBO<ColorVertex>* > buffers_;
 };

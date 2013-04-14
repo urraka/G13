@@ -64,14 +64,12 @@ mat4 Camera::matrix(float framePercent, MatrixMode mode)
 
 	if (mode == MatrixInverted)
 	{
-		return
-			glm::translate(position.x, position.y, 0.0f) *
+		return glm::translate(position.x, position.y, 0.0f) *
 			glm::scale(1.0f / scale, 1.0f / scale, 1.0f) *
 			glm::translate(-viewport_.x / 2.0f, -viewport_.y / 2.0f, 0.0f);
 	}
 
-	return
-		glm::translate(viewport_.x / 2.0f, viewport_.y / 2.0f, 0.0f) *
+	return glm::translate(viewport_.x / 2.0f, viewport_.y / 2.0f, 0.0f) *
 		glm::scale(scale, scale, 1.0f) *
 		glm::translate(-position.x, -position.y, 0.0f);
 }

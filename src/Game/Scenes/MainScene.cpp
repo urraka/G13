@@ -78,12 +78,12 @@ void MainScene::draw(float framePercent)
 	graphics->save();
 	graphics->matrix(camera_.matrix(framePercent));
 
-	map_.draw(graphics);
-
 	sprites_->clear();
 	sprites_->add(tree_);
 	sprites_->texture(textures_[TextureTree]);
 	graphics->draw(sprites_);
+
+	map_.draw(graphics);
 
 	sprites_->clear();
 	character_.draw(sprites_, framePercent);
@@ -138,10 +138,10 @@ void MainScene::updateBackground(int width, int height)
 	vertices[2].position = vec2((float)width, (float)height);
 	vertices[3].position = vec2(0.0f, (float)height);
 
-	vertices[0].color = u8vec4(0x11, 0x11, 0x11, 255);
-	vertices[1].color = u8vec4(0x11, 0x11, 0x11, 255);
-	vertices[2].color = u8vec4(0xCC, 0xCC, 0xCC, 255);
-	vertices[3].color = u8vec4(0xCC, 0xCC, 0xCC, 255);
+	vertices[0].color = u8vec4(0, 0, 255, 255);
+	vertices[1].color = u8vec4(0, 0, 255, 255);
+	vertices[2].color = u8vec4(255, 255, 255, 255);
+	vertices[3].color = u8vec4(255, 255, 255, 255);
 
 	background_->set(vertices, 0, 4);
 }
