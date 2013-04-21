@@ -9,3 +9,5 @@
  ☐ Add text rendering.
  ☐ Add shader type to VBO object so it binds it for you.
  ☐ Add lineWidth method to Graphics.
+ ☐ Move glewInit to system module to remove platform specific code in graphics module.
+ ☐ Sort headers again so Graphics doesn't depend on useless stuff.

@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <vector>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,7 +18,8 @@ using glm::vec4;
 using glm::ivec2;
 using glm::u8vec4;
 
-#include <Math/Triangle.h>
+#include "fpm/fpm.h"
+#include "Triangle.h"
 
 namespace math
 {

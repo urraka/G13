@@ -66,8 +66,9 @@ endif
 ifeq ($(platform),win32)
   out-dir := bin/win32$(out-dir-suffix)
   out := $(out-dir)/G13.exe
-  lib := -lglew32 -lglfw -lopengl32 -lpng -lz
-  def := -DWIN32 -DGLEW_STATIC
+  lib := -lglew32 -lglfw -lopengl32 -lpng -lz -lfixmath
+  def += -DWIN32 -DGLEW_STATIC
+  opt += -static-libgcc -static-libstdc++
   ifeq ($(debug),no)
     opt += -mwindows
   endif
@@ -76,15 +77,15 @@ endif
 ifeq ($(platform),unix)
   out-dir := bin/unix$(out-dir-suffix)
   out := $(out-dir)/G13
-  lib := -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz
-  def := -DUNIX -DPNG_SKIP_SETJMP_CHECK
+  lib := -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -lfixmath
+  def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
 endif
 
 ifeq ($(platform),osx)
   out-dir := bin/osx$(out-dir-suffix)
   out := $(out-dir)/G13
-  lib := -lGLEW -lglfw -framework OpenGL -lpng -lz
-  def := -DOSX
+  lib := -lGLEW -lglfw -framework OpenGL -lpng -lz -lfixmath
+  def += -DOSX
 endif
 
 # magic
