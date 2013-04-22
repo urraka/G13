@@ -1,9 +1,9 @@
-#include <Game/Physics/Physics.h>
+#include <Game/CollisionMap.h>
 
-Physics::Physics() {}
-Physics::~Physics() {}
+CollisionMap::CollisionMap() {}
+CollisionMap::~CollisionMap() {}
 
-Physics::CollisionResult Physics::collision(const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
+CollisionMap::CollisionResult CollisionMap::collision(const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
 {
 	CollisionResult result = {};
 	result.position = position;
@@ -65,7 +65,7 @@ Physics::CollisionResult Physics::collision(const fixvec2 &position, const fixve
 	return result;
 }
 
-Physics::Hull Physics::createHull(const LineNode *node, const fixrect &bbox)
+CollisionMap::Hull CollisionMap::createHull(const LineNode *node, const fixrect &bbox)
 {
 	Hull hull = {};
 

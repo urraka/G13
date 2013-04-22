@@ -8,7 +8,7 @@ typedef fpm::vec2 fixvec2;
 typedef fpm::rect fixrect;
 typedef fpm::line fixline;
 
-class Physics
+class CollisionMap
 {
 public:
 	struct LineNode
@@ -33,8 +33,8 @@ public:
 		const LineNode *node;
 	};
 
-	Physics();
-	~Physics();
+	CollisionMap();
+	~CollisionMap();
 
 	CollisionResult collision(const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox);
 
