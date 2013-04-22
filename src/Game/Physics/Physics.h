@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <Math/math.h>
 
 typedef fpm::fixed fixed;
@@ -10,14 +11,35 @@ typedef fpm::line fixline;
 class Physics
 {
 public:
+	struct LineNode
+	{
+		const LineNode *prev;
+		const LineNode *next;
+		fixline line;
+		bool floor;
+	};
+
+	struct Hull
+	{
+		LineNode nodes[3];
+	};
+
 	struct CollisionResult
 	{
 		fixvec2 position;
 		fixed percent;
+		Hull hull;
+		int iHullNode;
+		const LineNode *node;
 	};
 
 	Physics();
 	~Physics();
 
-	CollisionResult collision(fixvec2 position, fixvec2 dest, fixrect bbox);
+	CollisionResult collision(const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox);
+
+private:
+	std::vector<LineNode> nodes_;
+
+	Hull createHull(const LineNode *node, const fixrect &bbox);
 };

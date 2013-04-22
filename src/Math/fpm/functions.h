@@ -20,7 +20,7 @@ namespace fpm
 	fixed asin (fixed const & x);
 	fixed acos (fixed const & x);
 	fixed atan (fixed const & x);
-	fixed atan2(fixed const & x, fixed const & y);
+	fixed atan2(fixed const & y, fixed const & x);
 	fixed min  (fixed const & x, fixed const & y);
 	fixed max  (fixed const & x, fixed const & y);
 	fixed fmod (fixed const & x, fixed const & y);
@@ -40,5 +40,5 @@ namespace fpm
 	vec2  normal      (line const & l);
 	vec2  midpoint    (line const & l);
 	rect  bounds      (line const & l);
-	vec2  intersection(line const & l1, line const & l2);
+	bool  intersection(line const & l1, line const & l2, vec2 *result);
 }

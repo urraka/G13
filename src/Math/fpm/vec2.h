@@ -23,5 +23,8 @@ namespace fpm
 		vec2& operator-=(vec2  const & rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 		vec2& operator*=(fixed const & rhs) { x *= rhs;   y *= rhs;   return *this; }
 		vec2& operator/=(fixed const & rhs) { x /= rhs;   y /= rhs;   return *this; }
+
+		bool operator==(vec2 const & rhs) const { return x == rhs.x && y == rhs.y; }
+		bool operator!=(vec2 const & rhs) const { return x != rhs.x || y != rhs.y; }
 	};
 }

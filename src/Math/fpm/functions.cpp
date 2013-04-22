@@ -19,7 +19,7 @@ namespace fpm
 	fixed asin      (fixed const & x)                    { return fixed::from_value(fix16_asin (x.value_));           }
 	fixed acos      (fixed const & x)                    { return fixed::from_value(fix16_acos (x.value_));           }
 	fixed atan      (fixed const & x)                    { return fixed::from_value(fix16_atan (x.value_));           }
-	fixed atan2     (fixed const & x, fixed const & y)   { return fixed::from_value(fix16_atan2(x.value_, y.value_)); }
+	fixed atan2     (fixed const & y, fixed const & x)   { return fixed::from_value(fix16_atan2(y.value_, x.value_)); }
 	fixed min       (fixed const & x, fixed const & y)   { return fixed::from_value(fix16_min  (x.value_, y.value_)); }
 	fixed max       (fixed const & x, fixed const & y)   { return fixed::from_value(fix16_max  (x.value_, y.value_)); }
 	fixed fmod      (fixed const & x, fixed const & y)   { return fixed::from_value(fix16_mod  (x.value_, y.value_)); }
@@ -37,7 +37,7 @@ namespace fpm
 	vec2  midpoint    (line const & l) { return (l.p1 + l.p2) / fixed(2); }
 	rect  bounds      (line const & l) { return rect(min(l.p1.x, l.p2.x), min(l.p1.y, l.p2.y), max(l.p1.x, l.p2.x), max(l.p1.y, l.p2.y)); }
 
-	vec2 intersection(line const & l1, line const & l2)
+	bool intersection(line const & l1, line const & l2, vec2 *result)
 	{
 		fixed x1 = l1.p1.x;
 		fixed x2 = l1.p2.x;
@@ -54,17 +54,17 @@ namespace fpm
 		fixed uaDem = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
 
 		if (uaDem == fixed::zero)
-			return vec2();
+			return false;
 
 		fixed ua = uaNum / uaDem;
 		fixed ub = ubNum / uaDem;
 
 		if (ua < fixed::zero || ua > fixed::one || ub < fixed::zero || ub > fixed::one)
-			return vec2();
+			return false;
 
-		fixed x = x1 + ua * (x2 - x1);
-		fixed y = y1 + ua * (y2 - y1);
+		result->x = x1 + ua * (x2 - x1);
+		result->y = y1 + ua * (y2 - y1);
 
-		return vec2(x, y);
+		return true;
 	}
 }
