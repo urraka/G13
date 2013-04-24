@@ -21,6 +21,11 @@ using glm::u8vec4;
 #include "fpm/fpm.h"
 #include "Triangle.h"
 
+typedef fpm::fixed fixed;
+typedef fpm::vec2 fixvec2;
+typedef fpm::rect fixrect;
+typedef fpm::line fixline;
+
 namespace math
 {
 	std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon);

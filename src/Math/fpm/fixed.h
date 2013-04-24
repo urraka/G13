@@ -60,6 +60,7 @@ namespace fpm
 		fixed& operator*=(fixed const & rhs);
 		fixed& operator/=(fixed const & rhs);
 
+		friend fixed sign (fixed const & x);
 		friend fixed fabs (fixed const & x);
 		friend fixed ceil (fixed const & x);
 		friend fixed floor(fixed const & x);

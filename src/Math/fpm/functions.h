@@ -8,6 +8,7 @@
 namespace fpm
 {
 	// fixed
+	fixed sign (fixed const & x);
 	fixed fabs (fixed const & x);
 	fixed ceil (fixed const & x);
 	fixed floor(fixed const & x);
@@ -28,7 +29,9 @@ namespace fpm
 	// vec2
 	fixed dot       (vec2 const & a, vec2 const & b);
 	fixed length    (vec2 const & x);
+	fixed length2   (vec2 const & x);
 	vec2  normalize (vec2 const & x);
+	vec2  sign      (vec2 const & x);
 
 	// rect
 	bool  contains  (rect const & rc, vec2 const & p);

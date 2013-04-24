@@ -4,9 +4,11 @@
 #include "vec2.h"
 #include "rect.h"
 #include "line.h"
+#include "functions.h"
 
 namespace fpm
 {
+	fixed sign      (fixed const & x)                    { return x.value_ > fixed::zero.value_ ? fixed::one : x.value_ < fixed::zero.value_ ? -fixed::one : fixed::zero; }
 	fixed fabs      (fixed const & x)                    { return fixed::from_value(fix16_abs  (x.value_));           }
 	fixed ceil      (fixed const & x)                    { return fixed::from_value(fix16_ceil (x.value_));           }
 	fixed floor     (fixed const & x)                    { return fixed::from_value(fix16_floor(x.value_));           }
@@ -24,9 +26,10 @@ namespace fpm
 	fixed max       (fixed const & x, fixed const & y)   { return fixed::from_value(fix16_max  (x.value_, y.value_)); }
 	fixed fmod      (fixed const & x, fixed const & y)   { return fixed::from_value(fix16_mod  (x.value_, y.value_)); }
 
-	fixed dot       (vec2 const & a, vec2 const & b)     { return a.x * b.x + a.y + b.y; }
-	fixed length    (vec2 const & x)                     { return sqrt(x.x * x.x + x.y * x.y); }
-	vec2  normalize (vec2 const & x)                     { fixed L = length(x); return vec2(x.x / L, x.y / L); }
+	fixed dot       (vec2 const & a, vec2 const & b)     { return a.x * b.x + a.y * b.y; }
+	fixed length    (vec2 const & x)                     { return x.x == fixed::zero ? fabs(x.y) : x.y == fixed::zero ? fabs(x.x) : sqrt(x.x * x.x + x.y * x.y); }
+	fixed length2   (vec2 const & x)                     { return x.x * x.x + x.y * x.y; }
+	vec2  sign      (vec2 const & x)                     { return vec2(sign(x.x), sign(x.y)); }
 
 	bool  contains  (rect const & rc, vec2 const & p)    { return p.x >= rc.tl.x && p.x <= rc.br.x && p.y >= rc.tl.y && p.y <= rc.br.y; }
 	bool  intersects(rect const & rc1, rect const & rc2) { return rc1.tl.x < rc2.br.x && rc1.br.x > rc2.tl.x && rc1.tl.y < rc2.br.y && rc1.br.y > rc2.tl.y; }
@@ -36,6 +39,24 @@ namespace fpm
 	vec2  normal      (line const & l) { return normalize(vec2(-(l.p2.y - l.p1.y), l.p2.x - l.p1.x)); }
 	vec2  midpoint    (line const & l) { return (l.p1 + l.p2) / fixed(2); }
 	rect  bounds      (line const & l) { return rect(min(l.p1.x, l.p2.x), min(l.p1.y, l.p2.y), max(l.p1.x, l.p2.x), max(l.p1.y, l.p2.y)); }
+
+	vec2 normalize(vec2 const & x)
+	{
+		fixed scalar;
+
+		if (x.x != fixed::zero && x.y != fixed::zero)
+			scalar = max(fabs(x.x), fabs(x.y));
+		else if (x.x == fixed::zero)
+			scalar = fabs(x.y);
+		else
+			scalar = fabs(x.x);
+
+		vec2 r = x / scalar;
+		fixed L = length(r);
+		r /= L;
+
+		return r;
+	}
 
 	bool intersection(line const & l1, line const & l2, vec2 *result)
 	{
