@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Game/Entities/Camera.h>
-#include <Game/Entities/Character.h>
+#include <Game/Entities/Soldier.h>
 #include <Game/Map.h>
 
 class MainScene : public Scene
@@ -25,7 +25,7 @@ private:
 
 	Map map_;
 	Camera camera_;
-	Character character_;
+	Soldier soldier_;
 	Sprite tree_;
 	VBO<ColorVertex> *background_;
 	Texture *textures_[TextureCount];

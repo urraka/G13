@@ -73,9 +73,6 @@ void Map::load(Graphics *graphics)
 		}
 	}
 
-	std::cout << "lines.size() = " << lines.size() << std::endl;
-	std::cout << "linesIndices.size() = " << linesIndices.size() << std::endl;
-
 	buffers_.resize(2);
 	buffers_[0] = graphics->buffer<ColorVertex>(vbo_t::Triangles, vbo_t::StaticDraw, vbo_t::StaticDraw, vertices.size(), trianglesIndices.size());
 	buffers_[0]->set(vertices.data(), 0, vertices.size());
@@ -87,6 +84,22 @@ void Map::load(Graphics *graphics)
 	buffers_[1] = graphics->buffer<ColorVertex>(vbo_t::Lines, vbo_t::StaticDraw, vbo_t::StaticDraw, vertices.size(), linesIndices.size());
 	buffers_[1]->set(vertices.data(), 0, vertices.size());
 	buffers_[1]->set(linesIndices.data(), 0, linesIndices.size());
+
+	// create collision map
+
+	std::vector< std::vector<ivec2> > lineStrips(1);
+
+	for (size_t i = 0; i < polygon.size(); i++)
+		lineStrips[0].push_back(ivec2((int)polygon[i].x, (int)polygon[i].y));
+
+	lineStrips[0].push_back(ivec2((int)polygon[0].x, (int)polygon[0].y));
+
+	collisionMap_.create(lineStrips);
+}
+
+const Collision::Map *Map::collisionMap() const
+{
+	return &collisionMap_;
 }
 
 void Map::draw(Graphics *graphics)

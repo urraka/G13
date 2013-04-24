@@ -1,0 +1,55 @@
+#include <Game/Game.h>
+#include <Game/Entities/Soldier.h>
+
+Soldier::Soldier() : moveInput_(0), moveMode_(FreeMovement)
+{
+	vec2 tex0(1.0f, 1.0f);
+	vec2 tex1 = tex0 + vec2(52.0f, 82.0f);
+	vec2 texSize(375.0f, 82.0f);
+
+	sprite_.size = vec2(52.0f, 82.0f);
+	sprite_.center = vec2(26.0f, 78.0f);
+	sprite_.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
+
+	physics_.bbox = fixrect(fixed(-26), fixed(-80), fixed(26), fixed(0));
+}
+
+void Soldier::update(Time dt)
+{
+	vec2 &position = position_[CurrentFrame];
+	position_[PreviousFrame] = position;
+
+	physics_.update(dt);
+	position.x = physics_.position.x.to_float();
+	position.y = physics_.position.y.to_float();
+
+	sprite_.scale.x = physics_.velocity.x > fixed::zero ? -1.0f : physics_.velocity.x < fixed::zero ? 1.0f : sprite_.scale.x;
+}
+
+void Soldier::draw(SpriteBatch *batch, float framePercent)
+{
+	sprite_.position = glm::mix(position_[PreviousFrame], position_[CurrentFrame], framePercent);
+	batch->add(sprite_);
+}
+
+void Soldier::move(MoveInput moveInput)
+{
+	moveInput_ |= moveInput;
+}
+
+void Soldier::spawn(vec2 pos)
+{
+	position_[PreviousFrame] = pos;
+	position_[CurrentFrame] = pos;
+
+	physics_.teleport(fixvec2(fixed(pos.x), fixed(pos.y)));
+}
+
+void Soldier::moveTo(vec2 pos)
+{
+}
+
+void Soldier::map(const Collision::Map *map)
+{
+	physics_.map = map;
+}

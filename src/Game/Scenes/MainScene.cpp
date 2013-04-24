@@ -32,8 +32,9 @@ void MainScene::init()
 	updateBackground(width, height);
 
 	map_.load(graphics);
-	character_.spawn(vec2(0.0f, -100.0f));
-	camera_.target(&character_);
+	soldier_.map(map_.collisionMap());
+	soldier_.spawn(vec2(150.0f, -500.0f));
+	camera_.target(&soldier_);
 	camera_.viewport(width, height);
 
 	tree_.position = vec2(0.0f, -100.0f);
@@ -51,18 +52,18 @@ void MainScene::update(Time dt)
 		camera_.zoom(Camera::ZoomOut);
 
 	if (Keyboard::pressed(Keyboard::Left))
-		character_.move(Character::MoveLeft);
+		soldier_.move(Soldier::MoveLeft);
 
 	if (Keyboard::pressed(Keyboard::Right))
-		character_.move(Character::MoveRight);
+		soldier_.move(Soldier::MoveRight);
 
 	if (Keyboard::pressed(Keyboard::Up))
-		character_.move(Character::MoveUp);
+		soldier_.move(Soldier::MoveUp);
 
 	if (Keyboard::pressed(Keyboard::Down))
-		character_.move(Character::MoveDown);
+		soldier_.move(Soldier::MoveDown);
 
-	character_.update(dt);
+	soldier_.update(dt);
 	camera_.update(dt);
 }
 
@@ -86,7 +87,7 @@ void MainScene::draw(float framePercent)
 	map_.draw(graphics);
 
 	sprites_->clear();
-	character_.draw(sprites_, framePercent);
+	soldier_.draw(sprites_, framePercent);
 	sprites_->texture(textures_[TextureGuy]);
 	graphics->draw(sprites_);
 
@@ -118,7 +119,7 @@ void MainScene::event(const Event &evt)
 			{
 				ivec2 mousePosition;
 				Mouse::position(mousePosition.x, mousePosition.y);
-				character_.moveTo(vec2(camera_.matrix(1.0f, Camera::MatrixInverted) * vec4(vec2(mousePosition), 0.0f, 1.0f)));
+				soldier_.moveTo(vec2(camera_.matrix(1.0f, Camera::MatrixInverted) * vec4(vec2(mousePosition), 0.0f, 1.0f)));
 			}
 
 			break;

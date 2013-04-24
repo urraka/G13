@@ -1,9 +1,12 @@
 #pragma once
 
-class Character : public Entity
+#include "../Collision.h"
+#include "../Components/SoldierPhysics.h"
+
+class Soldier : public Entity
 {
 public:
-	Character();
+	Soldier();
 
 	enum MoveInput
 	{
@@ -18,6 +21,7 @@ public:
 	void move(MoveInput moveInput);
 	void spawn(vec2 pos);
 	void moveTo(vec2 pos);
+	void map(const Collision::Map *map);
 
 private:
 	enum MoveMode
@@ -30,4 +34,6 @@ private:
 	Sprite sprite_;
 	vec2 targetPosition_;
 	MoveMode moveMode_;
+
+	SoldierPhysics physics_;
 };
