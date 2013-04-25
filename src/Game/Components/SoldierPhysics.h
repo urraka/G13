@@ -22,5 +22,5 @@ private:
 	bool ducking_;
 
 	Collision::Hull currentHull_;
-	Collision::Node *currentNode_;
+	const Collision::Node *currentNode_;
 };

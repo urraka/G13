@@ -68,8 +68,8 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 
 		if (strip[0] == strip[strip.size() - 1])
 		{
-			nodes_[iStrip].prev = &nodes_[iStrip + strip.size() - 1];
-			nodes_[iStrip + strip.size() - 1].next = &nodes_[iStrip];
+			nodes_[iStrip].prev = &nodes_[iStrip + strip.size() - 2];
+			nodes_[iStrip + strip.size() - 2].next = &nodes_[iStrip];
 		}
 
 		iStrip += strip.size() - 1;
@@ -77,7 +77,8 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 
 	#ifdef DEBUG
 	{
-		std::cout << "Collision map data: " << std::endl;
+		std::cout << std::endl;
+		std::cout << "Collision map data: " << std::endl << std::endl;
 		std::stringstream s;
 
 		std::cout << std::setw(4)  << std::left << " ";
@@ -121,6 +122,8 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 
 			std::cout << std::endl;
 		}
+
+		std::cout << std::endl;
 	}
 	#endif
 }

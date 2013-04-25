@@ -11,7 +11,7 @@ Soldier::Soldier() : moveInput_(0), moveMode_(FreeMovement)
 	sprite_.center = vec2(26.0f, 78.0f);
 	sprite_.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
 
-	physics_.bbox = fixrect(fixed(-26), fixed(-80), fixed(26), fixed(0));
+	physics_.bbox = fixrect(fixed(-17), fixed(-80), fixed(17), fixed(0));
 }
 
 void Soldier::update(Time dt)
@@ -20,6 +20,8 @@ void Soldier::update(Time dt)
 	position_[PreviousFrame] = position;
 
 	physics_.update(dt);
+	physics_.input.move = SoldierInput::None;
+
 	position.x = physics_.position.x.to_float();
 	position.y = physics_.position.y.to_float();
 
@@ -34,6 +36,12 @@ void Soldier::draw(SpriteBatch *batch, float framePercent)
 
 void Soldier::move(MoveInput moveInput)
 {
+	if (moveInput == MoveLeft)
+		physics_.input.move = SoldierInput::Left;
+
+	if (moveInput == MoveRight)
+		physics_.input.move = SoldierInput::Right;
+
 	moveInput_ |= moveInput;
 }
 
