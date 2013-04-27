@@ -34,6 +34,7 @@ void SoldierPhysics::update(Time dt)
 	while (nextDelta.x != fixed::zero || nextDelta.y != fixed::zero)
 	{
 		fixvec2 delta = nextDelta;
+		fixvec2 direction;
 
 		nextDelta.x = fixed::zero;
 		nextDelta.y = fixed::zero;
@@ -47,7 +48,7 @@ void SoldierPhysics::update(Time dt)
 
 			if (delta.x != fixed::zero)
 			{
-				fixvec2 direction = currentNode_->line.p2 - currentNode_->line.p1;
+				direction = currentNode_->line.p2 - currentNode_->line.p1;
 				const fixvec2 *dest = &currentNode_->line.p2;
 
 				if (fpm::sign(direction.x) != fpm::sign(delta.x))
@@ -85,7 +86,7 @@ void SoldierPhysics::update(Time dt)
 
 			if (fpm::dot(delta, normal) < fixed::zero)
 			{
-				fixvec2 direction = fpm::normalize(currentNode_->line.p2 - currentNode_->line.p1);
+				direction = fpm::normalize(currentNode_->line.p2 - currentNode_->line.p1);
 				fixed length = fpm::dot(direction, delta);
 				fixvec2 vel = direction * length;
 
@@ -96,9 +97,6 @@ void SoldierPhysics::update(Time dt)
 					velocity.y = vel.y / dts;
 
 				delta = vel;
-
-				// if (delta.x < fixed::from_value(2048)) delta.x = fixed::zero;
-				// if (delta.y < fixed::from_value(2048)) delta.y = fixed::zero;
 			}
 		}
 
@@ -116,17 +114,18 @@ void SoldierPhysics::update(Time dt)
 				}
 				else
 				{
-					// TODO: maybe even better way would be to keep last collision.position, if "equal" abort
+					// TODO: maybe even better would be to check against last collision.position, if "equal" abort
+					if (currentNode_ == 0)
+					{
+						if (direction == fixvec2(fixed::zero, fixed::zero))
+							direction = normalize(delta);
 
-					if (currentNode_ == 0/* || collision.percent > fixed::from_value(2048)*/)
-						nextDelta = delta; // TODO: try something similar to nextDelta.x assignment on floor collision
+						fixed length = fpm::length(delta);
+						nextDelta = direction * fpm::max(fixed::zero, (length - length * collision.percent));
+					}
 
 					currentHull_ = collision.hull;
 					currentNode_ = &currentHull_.nodes[collision.iHullNode];
-
-					// if (collision.percent > fixed::zero)
-					// 	nextDelta = delta * (fixed::one - collision.percent);
-
 				}
 			}
 			else if (currentNode_ != 0 && !currentNode_->floor)
