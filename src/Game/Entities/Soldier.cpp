@@ -1,7 +1,7 @@
-#include <Game/Game.h>
-#include <Game/Entities/Soldier.h>
+#include "../Game.h"
+#include "Soldier.h"
 
-Soldier::Soldier() : moveInput_(0), moveMode_(FreeMovement)
+Soldier::Soldier()
 {
 	vec2 tex0(1.0f, 1.0f);
 	vec2 tex1 = tex0 + vec2(52.0f, 82.0f);
@@ -12,6 +12,7 @@ Soldier::Soldier() : moveInput_(0), moveMode_(FreeMovement)
 	sprite_.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
 
 	physics_.bbox = fixrect(fixed(-17), fixed(-80), fixed(17), fixed(0));
+	physics_.input = &input_;
 }
 
 void Soldier::update(Time dt)
@@ -19,8 +20,8 @@ void Soldier::update(Time dt)
 	vec2 &position = position_[CurrentFrame];
 	position_[PreviousFrame] = position;
 
+	input_.update();
 	physics_.update(dt);
-	physics_.input.move = SoldierInput::None;
 
 	position.x = physics_.position.x.to_float();
 	position.y = physics_.position.y.to_float();
@@ -34,27 +35,12 @@ void Soldier::draw(SpriteBatch *batch, float framePercent)
 	batch->add(sprite_);
 }
 
-void Soldier::move(MoveInput moveInput)
-{
-	if (moveInput == MoveLeft)
-		physics_.input.move = SoldierInput::Left;
-
-	if (moveInput == MoveRight)
-		physics_.input.move = SoldierInput::Right;
-
-	moveInput_ |= moveInput;
-}
-
 void Soldier::spawn(vec2 pos)
 {
 	position_[PreviousFrame] = pos;
 	position_[CurrentFrame] = pos;
 
 	physics_.teleport(fixvec2(fixed(pos.x), fixed(pos.y)));
-}
-
-void Soldier::moveTo(vec2 pos)
-{
 }
 
 void Soldier::map(const Collision::Map *map)

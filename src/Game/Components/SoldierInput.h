@@ -3,12 +3,13 @@
 class SoldierInput
 {
 public:
-	enum Direction { None, Left, Right };
+	SoldierInput();
+	void update();
+	void reset();
 
-	Direction move;
+	bool left;
+	bool right;
 	bool jump;
 	bool run;
 	bool duck;
-
-	SoldierInput() : move(None), jump(false), run(false), duck(false) {}
 };

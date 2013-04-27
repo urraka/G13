@@ -1,6 +1,8 @@
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
 
+#define DEBUG_FPS 0
+
 namespace
 {
 	Game *game = 0;
@@ -89,15 +91,17 @@ void Game::update()
 	Time newTime = Clock::time();
 	Time frameTime = newTime - currentTime_;
 
-	fpsTimer_ += frameTime;
+	#if defined(DEBUG) && DEBUG_FPS
+		fpsTimer_ += frameTime;
 
-	if (fpsTimer_ >= Clock::seconds(1))
-	{
-		std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
+		if (fpsTimer_ >= Clock::seconds(1))
+		{
+			std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
 
-		fpsTimer_ -= Clock::seconds(1);
-		fps_ = 0;
-	}
+			fpsTimer_ -= Clock::seconds(1);
+			fps_ = 0;
+		}
+	#endif
 
 	if (frameTime > maxFrameTime)
 		frameTime = maxFrameTime;

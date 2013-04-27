@@ -51,18 +51,6 @@ void MainScene::update(Time dt)
 	if (Keyboard::pressed(Keyboard::NumpadSubtract))
 		camera_.zoom(Camera::ZoomOut);
 
-	if (Keyboard::pressed(Keyboard::Left))
-		soldier_.move(Soldier::MoveLeft);
-
-	if (Keyboard::pressed(Keyboard::Right))
-		soldier_.move(Soldier::MoveRight);
-
-	if (Keyboard::pressed(Keyboard::Up))
-		soldier_.move(Soldier::MoveUp);
-
-	if (Keyboard::pressed(Keyboard::Down))
-		soldier_.move(Soldier::MoveDown);
-
 	soldier_.update(dt);
 	camera_.update(dt);
 }
@@ -109,18 +97,6 @@ void MainScene::event(const Event &evt)
 		{
 			if (evt.keyboard.pressed && evt.keyboard.key == Keyboard::Escape)
 				game_->window->close();
-
-			break;
-		}
-
-		case Event::Mouse:
-		{
-			if (evt.mouse.pressed && evt.mouse.button == Mouse::Left)
-			{
-				ivec2 mousePosition;
-				Mouse::position(mousePosition.x, mousePosition.y);
-				soldier_.moveTo(vec2(camera_.matrix(1.0f, Camera::MatrixInverted) * vec4(vec2(mousePosition), 0.0f, 1.0f)));
-			}
 
 			break;
 		}

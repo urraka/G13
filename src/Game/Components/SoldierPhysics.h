@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../Collision.h"
-#include "SoldierInput.h"
+
+class SoldierInput;
 
 class SoldierPhysics
 {
@@ -15,7 +16,8 @@ public:
 	fixvec2 position;
 	fixvec2 velocity;
 	fixvec2 acceleration;
-	SoldierInput input;
+
+	const SoldierInput *input;
 	const Collision::Map *map;
 
 private:

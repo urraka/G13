@@ -1,20 +1,33 @@
 #include "../Game.h"
+#include "SoldierInput.h"
 #include "SoldierPhysics.h"
 
-SoldierPhysics::SoldierPhysics() : map(0), ducking_(false), currentNode_(0) {}
+#include <assert.h>
+
+SoldierPhysics::SoldierPhysics() : input(0), map(0), ducking_(false), currentNode_(0) {}
 
 void SoldierPhysics::update(Time dt)
 {
+	assert(map != 0);
+	assert(input != 0);
+
 	const fixed dts = fixed((int)dt / 1000) / fixed(1000);
-	const fixed G = fixed(1470); // 9.8 * 150
-	const fixed walkVelocity = fixed(250);
-	const fixed duckVelocity = fixed(150);
-	const fixed runVelocity = fixed(300);
+	const fixed kGravity = fixed(1470); // 9.8 * 150
+	const fixed kJumpVel = fixed(-550);
+	const fixed kWalkVel = fixed(250);
+	const fixed kDuckVel = fixed(150);
+	const fixed kRunVel  = fixed(300);
 
 	acceleration.x = fixed::zero;
-	acceleration.y = G;
-	velocity.x = input.move == SoldierInput::Right ? walkVelocity : input.move == SoldierInput::Left ? -walkVelocity : fixed::zero;
+	acceleration.y = kGravity;
+	velocity.x = input->right ? kWalkVel : input->left ? -kWalkVel : fixed::zero;
 	velocity.y += acceleration.y * dts;
+
+	if (input->jump && currentNode_ != 0 && currentNode_->floor)
+	{
+		velocity.y = kJumpVel;
+		currentNode_ = 0;
+	}
 
 	fixvec2 delta;
 

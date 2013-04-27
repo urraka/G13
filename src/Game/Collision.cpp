@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <sstream>
 
+#define DEBUG_COLLISION_DATA 0
+
 Collision::Hull::Hull() : nodes() {}
 
 Collision::Hull::Hull(const Collision::Hull &hull)
@@ -75,7 +77,7 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 		iStrip += strip.size() - 1;
 	}
 
-	#ifdef DEBUG
+	#if defined(DEBUG) && DEBUG_COLLISION_DATA
 	{
 		std::cout << std::endl;
 		std::cout << "Collision map data: " << std::endl << std::endl;
@@ -179,6 +181,9 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 			if (!fpm::intersection(hullLine, pathLine, &intersection))
 				continue;
 
+			if (fpm::fabs(delta.x) < epsilon) intersection.x = position.x;
+			if (fpm::fabs(delta.y) < epsilon) intersection.y = position.y;
+
 			fixed percent = fixed::zero;
 
 			if (fpm::fabs(delta.x) > fpm::fabs(delta.y))
@@ -219,7 +224,9 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 
 				// ...but not too much
 
-				if (fpm::sign(result.position - position) != fpm::sign(delta))
+				fixvec2 rdelta = result.position - position; // result delta
+
+				if (fpm::sign(rdelta) != fpm::sign(delta))
 				{
 					result.position = position;
 					result.percent = fixed::zero;
