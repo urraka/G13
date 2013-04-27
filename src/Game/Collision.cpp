@@ -64,7 +64,7 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 			node.prev = j > 0 ? &nodes_[iStrip + j - 1] : 0;
 
 			node.floor = node.line.p1.x != node.line.p2.x &&
-				fpm::slope(node.line) <= fixed(2) &&
+				fpm::fabs(fpm::slope(node.line)) <= fixed(2) &&
 				fpm::dot(fixvec2(fixed(0), fixed(-1)), fpm::normal(node.line)) > fixed(0);
 		}
 
