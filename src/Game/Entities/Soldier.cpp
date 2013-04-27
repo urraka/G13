@@ -11,7 +11,7 @@ Soldier::Soldier()
 	sprite_.center = vec2(26.0f, 78.0f);
 	sprite_.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
 
-	physics_.bbox = fixrect(fixed(-17), fixed(-80), fixed(17), fixed(0));
+	physics_.bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
 	physics_.input = &input_;
 }
 

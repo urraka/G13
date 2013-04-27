@@ -29,94 +29,110 @@ void SoldierPhysics::update(Time dt)
 		currentNode_ = 0;
 	}
 
-	fixvec2 delta;
+	fixvec2 nextDelta = velocity * dts;
 
-	if (currentNode_ != 0 && currentNode_->floor)
+	while (nextDelta.x != fixed::zero || nextDelta.y != fixed::zero)
 	{
-		// adjust velocity to floor direction
+		fixvec2 delta = nextDelta;
 
-		delta.x = velocity.x * dts;
-		delta.y = fixed::zero;
-		velocity.y = fixed::zero;
+		nextDelta.x = fixed::zero;
+		nextDelta.y = fixed::zero;
 
-		if (delta.x != fixed::zero)
+		if (currentNode_ != 0 && currentNode_->floor)
 		{
-			fixvec2 direction = currentNode_->line.p2 - currentNode_->line.p1;
-			const fixvec2 *dest = &currentNode_->line.p2;
+			// adjust velocity to floor direction
 
-			if (fpm::sign(direction.x) != fpm::sign(delta.x))
+			delta.y = fixed::zero;
+			velocity.y = fixed::zero;
+
+			if (delta.x != fixed::zero)
 			{
-				direction = -direction;
-				dest = &currentNode_->line.p1;
-			}
+				fixvec2 direction = currentNode_->line.p2 - currentNode_->line.p1;
+				const fixvec2 *dest = &currentNode_->line.p2;
 
-			fixed length = fpm::fabs(delta.x);
-			delta = fpm::normalize(direction) * length;
+				if (fpm::sign(direction.x) != fpm::sign(delta.x))
+				{
+					direction = -direction;
+					dest = &currentNode_->line.p1;
+				}
 
-			if (fpm::sign(dest->x - position.x) != fpm::sign(dest->x - (position.x + delta.x)))
-			{
-				delta.y = (dest->x - position.x) * delta.y / delta.x;
-				delta.x = dest->x - position.x;
+				fixed length = fpm::fabs(delta.x);
+				delta = fpm::normalize(direction) * length;
 
-				const Collision::Node *nextNode = (dest == &currentNode_->line.p1 ? currentNode_->prev : currentNode_->next);
+				if (fpm::sign(dest->x - position.x) != fpm::sign(dest->x - (position.x + delta.x)))
+				{
+					delta.y = (dest->x - position.x) * delta.y / delta.x;
+					delta.x = dest->x - position.x;
 
-				if (nextNode != 0 && !nextNode->floor)
-					nextNode = 0;
+					const Collision::Node *nextNode = (dest == &currentNode_->line.p1 ? currentNode_->prev : currentNode_->next);
 
-				if (nextNode != 0 && (nextNode < &currentHull_.nodes[0] || nextNode > &currentHull_.nodes[2]))
-					currentHull_ = Collision::createHull(nextNode, bbox);
+					if (nextNode != 0 && !nextNode->floor)
+						nextNode = 0;
 
-				currentNode_ = nextNode;
-				// rDelta.x -= fpm::max(fixed::zero, length - fpm::length(delta)) * fpm::sign(rDelta.x);
-			}
-		}
-	}
-	else if (currentNode_ != 0)
-	{
-		// wall/roof collision
+					if (nextNode != 0 && (nextNode < &currentHull_.nodes[0] || nextNode > &currentHull_.nodes[2]))
+						currentHull_ = Collision::createHull(nextNode, bbox);
 
-		fixvec2 normal = fpm::normal(currentNode_->line);
-
-		if (fpm::dot(velocity, normal) < fixed::zero)
-		{
-			fixvec2 direction = fpm::normalize(currentNode_->line.p2 - currentNode_->line.p1);
-			fixed length = fpm::dot(direction, velocity);
-			fixvec2 vel = direction * length;
-
-			if (fpm::fabs(vel.y) > fpm::fabs(velocity.y))
-				vel *= fpm::fabs(velocity.y / vel.y);
-
-			if (fpm::dot(normal, fixvec2(fixed::zero, -fixed::one)) <= fixed::zero)
-				velocity = vel;
-
-			delta = vel * dts;
-		}
-	}
-	else
-	{
-		delta = velocity * dts;
-	}
-
-	if (delta.x != fixed::zero || delta.y != fixed::zero)
-	{
-		Collision::Result collision = Collision::resolve(*map, position, position + delta, bbox);
-		position = collision.position;
-
-		if (collision.node)
-		{
-			if (currentNode_ != 0 && currentNode_->floor && !collision.hull.nodes[collision.iHullNode].floor)
-			{
-				velocity.x = fixed::zero;
-			}
-			else
-			{
-				currentHull_ = collision.hull;
-				currentNode_ = &currentHull_.nodes[collision.iHullNode];
+					currentNode_ = nextNode;
+					nextDelta.x = fpm::max(fixed::zero, length - fpm::length(delta)) * fpm::sign(delta.x);
+				}
 			}
 		}
-		else if (currentNode_ != 0 && !currentNode_->floor)
+		else if (currentNode_ != 0)
 		{
-			currentNode_ = 0;
+			// wall/roof collision
+
+			fixvec2 normal = fpm::normal(currentNode_->line);
+
+			if (fpm::dot(delta, normal) < fixed::zero)
+			{
+				fixvec2 direction = fpm::normalize(currentNode_->line.p2 - currentNode_->line.p1);
+				fixed length = fpm::dot(direction, delta);
+				fixvec2 vel = direction * length;
+
+				if (fpm::fabs(vel.y) > fpm::fabs(delta.y))
+					vel *= fpm::fabs(delta.y / vel.y);
+
+				if (fpm::dot(normal, fixvec2(fixed::zero, -fixed::one)) <= fixed::zero)
+					velocity.y = vel.y / dts;
+
+				delta = vel;
+
+				// if (delta.x < fixed::from_value(2048)) delta.x = fixed::zero;
+				// if (delta.y < fixed::from_value(2048)) delta.y = fixed::zero;
+			}
+		}
+
+		if (delta.x != fixed::zero || delta.y != fixed::zero)
+		{
+			Collision::Result collision = Collision::resolve(*map, position, position + delta, bbox);
+			position = collision.position;
+
+			if (collision.node)
+			{
+				if (currentNode_ != 0 && currentNode_->floor && !collision.hull.nodes[collision.iHullNode].floor)
+				{
+					velocity.x = fixed::zero;
+					nextDelta.x = fixed::zero;
+				}
+				else
+				{
+					// TODO: maybe even better way would be to keep last collision.position, if "equal" abort
+
+					if (currentNode_ == 0/* || collision.percent > fixed::from_value(2048)*/)
+						nextDelta = delta; // TODO: try something similar to nextDelta.x assignment on floor collision
+
+					currentHull_ = collision.hull;
+					currentNode_ = &currentHull_.nodes[collision.iHullNode];
+
+					// if (collision.percent > fixed::zero)
+					// 	nextDelta = delta * (fixed::one - collision.percent);
+
+				}
+			}
+			else if (currentNode_ != 0 && !currentNode_->floor)
+			{
+				currentNode_ = 0;
+			}
 		}
 	}
 }
