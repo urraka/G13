@@ -98,8 +98,6 @@ void Window::create(bool fullscreen, int fsaa)
 			return;
 		}
 
-		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
-		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0);
 		glfwOpenWindowHint(GLFW_FSAA_SAMPLES, fsaa);
 
 		GLFWvidmode mode;
