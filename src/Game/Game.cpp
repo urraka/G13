@@ -1,7 +1,7 @@
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
 
-#define DEBUG_FPS 0
+#define DEBUG_FPS 1
 
 namespace
 {
@@ -49,10 +49,10 @@ void Game::init(Application *app)
 	currentTime_ = Clock::time();
 	dt_ = Clock::milliseconds(30);
 
-	window = app->window(false, 16);
+	window = app->window(false, 0);
 	window->display(Game::display);
 	window->title("G13");
-	window->vsync(true);
+	window->vsync(false);
 
 	graphics = new Graphics();
 	graphics->init();

@@ -67,10 +67,10 @@ void MainScene::draw(float framePercent)
 	graphics->save();
 	graphics->matrix(camera_.matrix(framePercent));
 
-	sprites_->clear();
-	sprites_->add(tree_);
-	sprites_->texture(textures_[TextureTree]);
-	graphics->draw(sprites_);
+	// sprites_->clear();
+	// sprites_->add(tree_);
+	// sprites_->texture(textures_[TextureTree]);
+	// graphics->draw(sprites_);
 
 	map_.draw(graphics);
 
