@@ -28,14 +28,23 @@ namespace fpm
 		int32_t value() const;
 
 		fixed();
+		fixed(int x);
 
-		explicit fixed(int    x);
 		explicit fixed(float  x);
 		explicit fixed(double x);
 
 		int    to_int()    const;
 		float  to_float()  const;
 		double to_double() const;
+
+		fixed& operator= (int rhs);
+
+		bool operator==(int rhs) const;
+		bool operator!=(int rhs) const;
+		bool operator<=(int rhs) const;
+		bool operator>=(int rhs) const;
+		bool operator< (int rhs) const;
+		bool operator> (int rhs) const;
 
 		bool operator! ()                  const;
 		bool operator==(fixed const & rhs) const;

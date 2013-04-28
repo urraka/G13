@@ -20,13 +20,13 @@ void Soldier::update(Time dt)
 	vec2 &position = position_[CurrentFrame];
 	position_[PreviousFrame] = position;
 
-	input_.update();
+	input_.update(dt);
 	physics_.update(dt);
 
 	position.x = physics_.position.x.to_float();
 	position.y = physics_.position.y.to_float();
 
-	sprite_.scale.x = physics_.velocity.x > fixed::zero ? -1.0f : physics_.velocity.x < fixed::zero ? 1.0f : sprite_.scale.x;
+	sprite_.scale.x = input_.right ? -1.0f : input_.left ? 1.0f : sprite_.scale.x;
 }
 
 void Soldier::draw(SpriteBatch *batch, float framePercent)
@@ -46,4 +46,14 @@ void Soldier::spawn(vec2 pos)
 void Soldier::map(const Collision::Map *map)
 {
 	physics_.map = map;
+}
+
+void Soldier::saveInput(const char *filename)
+{
+	input_.save(filename);
+}
+
+void Soldier::replay(const char *filename)
+{
+	input_.replay(filename);
 }

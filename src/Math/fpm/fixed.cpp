@@ -25,6 +25,15 @@ namespace fpm
 	float  fixed::to_float()  const { return fix16_to_float(value_); }
 	double fixed::to_double() const { return fix16_to_dbl  (value_); }
 
+	fixed& fixed::operator= (int rhs) { value_ = fix16_from_int(rhs); return *this; }
+
+	bool fixed::operator==(int rhs) const { return *this == fixed(rhs); }
+	bool fixed::operator!=(int rhs) const { return *this != fixed(rhs); }
+	bool fixed::operator<=(int rhs) const { return *this <= fixed(rhs); }
+	bool fixed::operator>=(int rhs) const { return *this >= fixed(rhs); }
+	bool fixed::operator< (int rhs) const { return *this <  fixed(rhs); }
+	bool fixed::operator> (int rhs) const { return *this >  fixed(rhs); }
+
 	bool fixed::operator! ()                  const { return value_ == 0;          }
 	bool fixed::operator==(fixed const & rhs) const { return value_ == rhs.value_; }
 	bool fixed::operator!=(fixed const & rhs) const { return value_ != rhs.value_; }

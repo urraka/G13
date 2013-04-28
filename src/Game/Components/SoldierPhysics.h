@@ -13,6 +13,8 @@ public:
 	void teleport(fixvec2 pos);
 
 	fixrect bbox;
+	fixrect bboxNormal;
+	fixrect bboxDucked;
 	fixvec2 position;
 	fixvec2 velocity;
 	fixvec2 acceleration;
@@ -21,7 +23,7 @@ public:
 	const Collision::Map *map;
 
 private:
-	bool ducking_;
+	bool ducked_;
 
 	Collision::Hull currentHull_;
 	const Collision::Node *currentNode_;

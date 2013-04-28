@@ -102,8 +102,10 @@ Map::~Map()
 	collisionMap_.create(lineStrips);
 }*/
 
-void Map::load(Graphics *graphics)
+void Map::load()
 {
+	Graphics *graphics = game->graphics;
+
 	std::vector< std::vector<ivec2> > lineStrips = line_strips();
 	collisionMap_.create(lineStrips);
 

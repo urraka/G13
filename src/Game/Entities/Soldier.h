@@ -13,6 +13,8 @@ public:
 	void draw(SpriteBatch *batch, float framePercent);
 	void spawn(vec2 pos);
 	void map(const Collision::Map *map);
+	void saveInput(const char *filename);
+	void replay(const char *filename);
 
 private:
 	Sprite sprite_;

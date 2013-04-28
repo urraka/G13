@@ -1,12 +1,9 @@
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
 
-#define DEBUG_FPS 1
+#define DEBUG_FPS 0
 
-namespace
-{
-	Game *game = 0;
-}
+Game *game = 0;
 
 void Game::launch(Application *app)
 {
@@ -34,7 +31,9 @@ Game::Game()
 		timeAccumulator_(0),
 		dt_(0),
 		fpsTimer_(0),
-		fps_(0)
+		fps_(0),
+		tick_(0),
+		stepMode_(false)
 {
 }
 
@@ -61,13 +60,19 @@ void Game::init(Application *app)
 	window->size(size.x, size.y);
 	graphics->viewport(size.x, size.y, window->rotation());
 
-	scene_ = new MainScene(this);
+	scene_ = new MainScene();
 	scene_->init();
 }
 
 void Game::draw()
 {
-	scene_->draw((float)(timeAccumulator_ / (double)dt_));
+	float percent = (float)(timeAccumulator_ / (double)dt_);
+
+	#ifdef DEBUG
+		if (stepMode_) percent = 1.0f;
+	#endif
+
+	scene_->draw(percent);
 	fps_++;
 }
 
@@ -77,15 +82,36 @@ void Game::input()
 
 	while (window->poll(&event))
 	{
+		scene_->event(event);
+
 		if (event.type == Event::Resize)
 			graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
 
-		scene_->event(event);
+		#ifdef DEBUG
+			if (event.type == Event::Keyboard)
+			{
+				if (event.keyboard.pressed)
+				{
+					if (event.keyboard.key == Keyboard::F5)
+						stepMode_ = !stepMode_;
+
+					if (stepMode_ && event.keyboard.key == Keyboard::F10)
+					{
+						scene_->update(dt_);
+						tick_++;
+					}
+				}
+			}
+		#endif
 	}
 }
 
 void Game::update()
 {
+	#ifdef DEBUG
+		if (stepMode_) return;
+	#endif
+
 	const Time maxFrameTime = Clock::milliseconds(250);
 
 	Time newTime = Clock::time();
@@ -113,5 +139,6 @@ void Game::update()
 	{
 		scene_->update(dt_);
 		timeAccumulator_ -= dt_;
+		tick_++;
 	}
 }

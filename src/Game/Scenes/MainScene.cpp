@@ -1,9 +1,8 @@
 #include <Game/Game.h>
 #include <Game/Scenes/MainScene.h>
 
-MainScene::MainScene(Game *game)
-	:	Scene(game),
-		background_(0),
+MainScene::MainScene()
+	:	background_(0),
 		textures_(),
 		sprites_(0)
 {
@@ -20,18 +19,18 @@ MainScene::~MainScene()
 
 void MainScene::init()
 {
-	Graphics *graphics = game_->graphics;
+	Graphics *graphics = game->graphics;
 
 	sprites_ = graphics->batch(1);
 	textures_[TextureGuy] = graphics->texture("data/guy.png");
 	textures_[TextureTree] = graphics->texture("data/tree.png");
 
 	int width, height;
-	game_->window->size(width, height);
+	game->window->size(width, height);
 	background_ = graphics->buffer<ColorVertex>(vbo_t::TriangleFan, vbo_t::StaticDraw, 4);
 	updateBackground(width, height);
 
-	map_.load(graphics);
+	map_.load();
 	soldier_.map(map_.collisionMap());
 	soldier_.spawn(vec2(150.0f, -500.0f));
 	camera_.target(&soldier_);
@@ -57,7 +56,7 @@ void MainScene::update(Time dt)
 
 void MainScene::draw(float framePercent)
 {
-	Graphics *graphics = game_->graphics;
+	Graphics *graphics = game->graphics;
 
 	graphics->clear();
 
@@ -95,8 +94,20 @@ void MainScene::event(const Event &evt)
 
 		case Event::Keyboard:
 		{
-			if (evt.keyboard.pressed && evt.keyboard.key == Keyboard::Escape)
-				game_->window->close();
+			if (evt.keyboard.pressed)
+			{
+				if (evt.keyboard.key == Keyboard::Escape)
+				{
+					//soldier_.saveInput("G13.replay");
+					game->window->close();
+				}
+				else if (evt.keyboard.key == Keyboard::Enter)
+				{
+					soldier_.spawn(vec2(150.0f, -500.0f));
+					camera_.target(&soldier_);
+					soldier_.replay("G13.replay");
+				}
+			}
 
 			break;
 		}

@@ -4,23 +4,23 @@
 
 #include <assert.h>
 
-SoldierPhysics::SoldierPhysics() : input(0), map(0), ducking_(false), currentNode_(0) {}
+SoldierPhysics::SoldierPhysics() : input(0), map(0), ducked_(false), currentNode_(0) {}
 
 void SoldierPhysics::update(Time dt)
 {
 	assert(map != 0);
 	assert(input != 0);
 
-	const fixed dts = fixed((int)dt / 1000) / fixed(1000);
+	fixed dts = fixed((int)dt / 1000) / fixed(1000);
 	const fixed kGravity = fixed(1470); // 9.8 * 150
 	const fixed kJumpVel = fixed(-550);
 	const fixed kWalkVel = fixed(250);
 	const fixed kDuckVel = fixed(150);
 	const fixed kRunVel  = fixed(300);
 
-	acceleration.x = fixed::zero;
+	acceleration.x = 0;
 	acceleration.y = kGravity;
-	velocity.x = input->right ? kWalkVel : input->left ? -kWalkVel : fixed::zero;
+	velocity.x = input->right ? kWalkVel : input->left ? -kWalkVel : 0;
 	velocity.y += acceleration.y * dts;
 
 	if (input->jump && currentNode_ != 0 && currentNode_->floor)
@@ -30,23 +30,23 @@ void SoldierPhysics::update(Time dt)
 	}
 
 	fixvec2 nextDelta = velocity * dts;
+	fixvec2 lastCollisionValue, *lastCollision = 0;
 
-	while (nextDelta.x != fixed::zero || nextDelta.y != fixed::zero)
+	while (nextDelta != fixvec2(0, 0))
 	{
 		fixvec2 delta = nextDelta;
 		fixvec2 direction;
 
-		nextDelta.x = fixed::zero;
-		nextDelta.y = fixed::zero;
+		nextDelta = fixvec2(0, 0);
 
 		if (currentNode_ != 0 && currentNode_->floor)
 		{
 			// adjust velocity to floor direction
 
-			delta.y = fixed::zero;
-			velocity.y = fixed::zero;
+			delta.y = 0;
+			velocity.y = 0;
 
-			if (delta.x != fixed::zero)
+			if (delta.x != 0)
 			{
 				direction = currentNode_->line.p2 - currentNode_->line.p1;
 				const fixvec2 *dest = &currentNode_->line.p2;
@@ -74,7 +74,7 @@ void SoldierPhysics::update(Time dt)
 						currentHull_ = Collision::createHull(nextNode, bbox);
 
 					currentNode_ = nextNode;
-					nextDelta.x = fpm::max(fixed::zero, length - fpm::length(delta)) * fpm::sign(delta.x);
+					nextDelta.x = fpm::max(0, length - fpm::length(delta)) * fpm::sign(delta.x);
 				}
 			}
 		}
@@ -84,23 +84,23 @@ void SoldierPhysics::update(Time dt)
 
 			fixvec2 normal = fpm::normal(currentNode_->line);
 
-			if (fpm::dot(delta, normal) < fixed::zero)
+			if (fpm::dot(velocity, normal) < 0)
 			{
 				direction = fpm::normalize(currentNode_->line.p2 - currentNode_->line.p1);
-				fixed length = fpm::dot(direction, delta);
+				fixed length = fpm::dot(direction, velocity);
 				fixvec2 vel = direction * length;
 
-				if (fpm::fabs(vel.y) > fpm::fabs(delta.y))
-					vel *= fpm::fabs(delta.y / vel.y);
+				if (fpm::fabs(vel.y) > fpm::fabs(velocity.y))
+					vel *= fpm::fabs(velocity.y / vel.y);
 
-				if (fpm::dot(normal, fixvec2(fixed::zero, -fixed::one)) <= fixed::zero)
-					velocity.y = vel.y / dts;
+				if (fpm::dot(normal, fixvec2(0, -1)) <= 0)
+					velocity = vel;
 
-				delta = vel;
+				delta = vel * dts;
 			}
 		}
 
-		if (delta.x != fixed::zero || delta.y != fixed::zero)
+		if (delta != fixvec2(0, 0))
 		{
 			Collision::Result collision = Collision::resolve(*map, position, position + delta, bbox);
 			position = collision.position;
@@ -109,19 +109,25 @@ void SoldierPhysics::update(Time dt)
 			{
 				if (currentNode_ != 0 && currentNode_->floor && !collision.hull.nodes[collision.iHullNode].floor)
 				{
-					velocity.x = fixed::zero;
-					nextDelta.x = fixed::zero;
+					velocity.x = 0;
+					nextDelta.x = 0;
 				}
 				else
 				{
-					// TODO: maybe even better would be to check against last collision.position, if "equal" abort
-					if (currentNode_ == 0)
+					if (lastCollision == 0 || *lastCollision != collision.position)
 					{
-						if (direction == fixvec2(fixed::zero, fixed::zero))
+						dts = dts * (fixed::one - collision.percent);
+
+						if (direction == fixvec2(0, 0))
 							direction = normalize(delta);
+						else if (fpm::sign(direction) != fpm::sign(delta))
+							direction = -direction;
 
 						fixed length = fpm::length(delta);
-						nextDelta = direction * fpm::max(fixed::zero, (length - length * collision.percent));
+						length = fpm::max(0, (length - length * collision.percent));
+
+						if (length > fixed::from_value(1000))
+							nextDelta = direction * length;
 					}
 
 					currentHull_ = collision.hull;
@@ -132,6 +138,9 @@ void SoldierPhysics::update(Time dt)
 			{
 				currentNode_ = 0;
 			}
+
+			lastCollisionValue = collision.position;
+			lastCollision = &lastCollisionValue;
 		}
 	}
 }
@@ -139,11 +148,11 @@ void SoldierPhysics::update(Time dt)
 void SoldierPhysics::teleport(fixvec2 pos)
 {
 	position = pos;
-	velocity.x = fixed::zero;
-	velocity.y = fixed::zero;
-	acceleration.x = fixed::zero;
-	acceleration.y = fixed::zero;
+	velocity.x = 0;
+	velocity.y = 0;
+	acceleration.x = 0;
+	acceleration.y = 0;
 
-	ducking_ = false;
+	ducked_ = false;
 	currentNode_ = 0;
 }

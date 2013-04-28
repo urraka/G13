@@ -142,19 +142,27 @@ const std::vector<const Collision::Node*> &Collision::Map::retrieve(const fixrec
 
 Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
 {
+	const fixed epsilon = fixed::from_value(2048); // 1/32
+	const fixline pathLine(position, dest);
+
+	fixvec2 delta = dest - position;
+
+	if (fpm::fabs(delta.x) < epsilon) delta.x = 0;
+	if (fpm::fabs(delta.y) < epsilon) delta.y = 0;
+
 	Result result;
-	result.position = dest;
-	result.percent = fixed::one;
+	result.position = position + delta;
+	result.percent = 1;
+
+	if (delta == fixvec2(0, 0))
+		return result;
 
 	fixrect bboxStart = bbox + position;
-	fixrect bboxEnd = bbox + dest;
+	fixrect bboxEnd = bboxStart + delta;
 	fixrect bounds = fpm::expand(bboxStart, bboxEnd);
 
 	const std::vector<const Collision::Node*> &nodes = map.retrieve(bounds);
 
-	const fixline pathLine(position, dest);
-	const fixvec2 delta = dest - position;
-	const fixed epsilon = fixed::from_value(2048); // 1/32
 	fixvec2 ndelta; // normalized delta, will be calculated inside loop if necessary
 
 	for (size_t iNode = 0; iNode < nodes.size(); iNode++)
@@ -173,7 +181,7 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 			if (hullLine.p1 == hullLine.p2)
 				continue;
 
-			if (fpm::dot(fpm::normal(hullLine), delta) > fixed::zero)
+			if (fpm::dot(fpm::normal(hullLine), delta) > 0)
 				continue;
 
 			fixvec2 intersection;
@@ -181,10 +189,10 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 			if (!fpm::intersection(hullLine, pathLine, &intersection))
 				continue;
 
-			if (fpm::fabs(delta.x) < epsilon) intersection.x = position.x;
-			if (fpm::fabs(delta.y) < epsilon) intersection.y = position.y;
+			if (delta.x == 0) intersection.x = position.x;
+			if (delta.y == 0) intersection.y = position.y;
 
-			fixed percent = fixed::zero;
+			fixed percent = 0;
 
 			if (fpm::fabs(delta.x) > fpm::fabs(delta.y))
 				percent = (intersection.x - position.x) / delta.x;
@@ -200,21 +208,35 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 				result.position.x = intersection.x;
 				result.position.y = intersection.y;
 
+				if (fpm::length(result.position - position) < epsilon)
+				{
+					result.position = position;
+					result.percent = 0;
+					return result;
+				}
+				else
+				{
+					fixed angle = fpm::atan2(delta.y, delta.x) + fixed::pi;
+					result.position.x += fpm::cos(angle) * epsilon;
+					result.position.y += fpm::sin(angle) * epsilon;
+				}
+
+				/*
 				// go back a little...
 
 				fixvec2 offset;
 
-				if (delta.x == fixed::zero)
+				if (delta.x == 0)
 				{
 					offset.y = epsilon * fpm::sign(delta.y);
 				}
-				else if (delta.y == fixed::zero)
+				else if (delta.y == 0)
 				{
 					offset.x = epsilon * fpm::sign(delta.x);
 				}
 				else
 				{
-					if (ndelta.x == fixed::zero && ndelta.y == fixed::zero)
+					if (ndelta.x == 0 && ndelta.y == 0)
 						ndelta = fpm::normalize(delta);
 
 					offset = ndelta * epsilon;
@@ -229,9 +251,10 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 				if (fpm::sign(rdelta) != fpm::sign(delta))
 				{
 					result.position = position;
-					result.percent = fixed::zero;
+					result.percent = 0;
 					return result;
 				}
+				*/
 			}
 		}
 	}
@@ -292,7 +315,7 @@ Collision::Hull Collision::createHull(const Collision::Node *node, const fixrect
 
 	fixvec2 normal = fpm::normal(node->line);
 
-	if (normal.y == fixed::one)
+	if (normal.y == 1)
 	{
 		p1 += fixvec2(L, T);
 		p2 += fixvec2(R, T);
@@ -301,7 +324,7 @@ Collision::Hull Collision::createHull(const Collision::Node *node, const fixrect
 		lines[2]->p1 = fixvec2(p2.x, p2.y);
 		lines[2]->p2 = fixvec2(p2.x, p2.y - bbox.height());
 	}
-	else if (normal.y == -fixed::one)
+	else if (normal.y == -1)
 	{
 		p1 += fixvec2(R, B);
 		p2 += fixvec2(L, B);
@@ -312,7 +335,7 @@ Collision::Hull Collision::createHull(const Collision::Node *node, const fixrect
 		hull.nodes[1].floor = false;
 		hull.nodes[2].floor = false;
 	}
-	else if (normal.x == fixed::one)
+	else if (normal.x == 1)
 	{
 		p1 += fixvec2(R, T);
 		p2 += fixvec2(R, B);
@@ -326,7 +349,7 @@ Collision::Hull Collision::createHull(const Collision::Node *node, const fixrect
 			hull.nodes[2].floor = true;
 		}
 	}
-	else if (normal.x == -fixed::one)
+	else if (normal.x == -1)
 	{
 		p1 += fixvec2(L, B);
 		p2 += fixvec2(L, T);
@@ -343,20 +366,20 @@ Collision::Hull Collision::createHull(const Collision::Node *node, const fixrect
 	}
 	else
 	{
-		fixed dx = normal.x > fixed::zero ? R : L;
-		fixed dy = normal.y > fixed::zero ? T : B;
+		fixed dx = normal.x > 0 ? R : L;
+		fixed dy = normal.y > 0 ? T : B;
 
 		p1 += fixvec2(dx, dy);
 		p2 += fixvec2(dx, dy);
 
-		if (normal.x > fixed::zero && normal.y > fixed::zero)
+		if (normal.x > 0 && normal.y > 0)
 		{
 			lines[1]->p1 = fixvec2(p1.x - bbox.width(), p1.y);
 			lines[1]->p2 = fixvec2(p1.x, p1.y);
 			lines[2]->p1 = fixvec2(p2.x, p2.y);
 			lines[2]->p2 = fixvec2(p2.x, p2.y - bbox.height());
 		}
-		else if (normal.x < fixed::zero && normal.y < fixed::zero)
+		else if (normal.x < 0 && normal.y < 0)
 		{
 			if (!prevFloor)
 			{
@@ -368,7 +391,7 @@ Collision::Hull Collision::createHull(const Collision::Node *node, const fixrect
 			lines[2]->p1 = fixvec2(p2.x, p2.y);
 			lines[2]->p2 = fixvec2(p2.x, p2.y + bbox.height());
 		}
-		else if (normal.x < fixed::zero && normal.y > fixed::zero)
+		else if (normal.x < 0 && normal.y > 0)
 		{
 			lines[1]->p1 = fixvec2(p1.x, p1.y - bbox.height());
 			lines[1]->p2 = fixvec2(p1.x, p1.y);

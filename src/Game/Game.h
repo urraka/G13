@@ -35,4 +35,8 @@ private:
 	Time dt_;
 	Time fpsTimer_;
 	int fps_;
+	uint64_t tick_;
+	bool stepMode_;
 };
+
+extern Game *game;

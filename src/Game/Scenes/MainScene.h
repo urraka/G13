@@ -7,7 +7,7 @@
 class MainScene : public Scene
 {
 public:
-	MainScene(Game *game);
+	MainScene();
 	~MainScene();
 
 	void init();

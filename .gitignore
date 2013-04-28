@@ -3,6 +3,7 @@
 *.sublime-workspace
 *.suo
 *.vcxproj.user
+*.replay
 
 # files
 

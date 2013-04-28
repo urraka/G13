@@ -7,7 +7,7 @@ class Map
 public:
 	Map();
 	~Map();
-	void load(Graphics *graphics);
+	void load();
 	void draw(Graphics *graphics);
 	const Collision::Map *collisionMap() const;
 
