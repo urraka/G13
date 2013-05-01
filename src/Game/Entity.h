@@ -3,7 +3,6 @@
 class Entity
 {
 public:
-	virtual void update(Time dt) = 0;
 	const vec2 &position() const;
 
 protected:

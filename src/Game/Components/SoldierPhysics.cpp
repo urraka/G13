@@ -126,7 +126,7 @@ void SoldierPhysics::update(Time dt)
 						fixed length = fpm::length(delta);
 						length = fpm::max(0, (length - length * collision.percent));
 
-						if (length > fixed::from_value(1000))
+						// if (length > fixed::from_value(1000))
 							nextDelta = direction * length;
 					}
 
@@ -145,7 +145,7 @@ void SoldierPhysics::update(Time dt)
 	}
 }
 
-void SoldierPhysics::teleport(fixvec2 pos)
+void SoldierPhysics::reset(fixvec2 pos)
 {
 	position = pos;
 	velocity.x = 0;

@@ -1,28 +1,25 @@
 #include "../../System/Keyboard.h"
 #include "SoldierInput.h"
 
-#include <fstream>
-#include <iostream>
-
 SoldierInput::SoldierInput()
 	:	left(false),
 		right(false),
 		jump(false),
 		run(false),
-		duck(false),
-		time_(0),
-		replaying_(false)
+		duck(false)
+		/*tick_(0),
+		replaying_(false)*/
 {
 }
 
-void SoldierInput::update(Time dt)
+void SoldierInput::update()
 {
-	if (replaying_)
+	/*if (replaying_)
 	{
 		if (replayIndex_ >= recording_.size())
 		{
 			replaying_ = false;
-			time_ = 0;
+			tick_ = 0;
 			recording_.resize(0);
 			reset();
 			return;
@@ -30,10 +27,12 @@ void SoldierInput::update(Time dt)
 
 		const StateChange &change = recording_[replayIndex_];
 
-		uint32_t tick = (uint32_t)(time_ / dt);
-
-		if (change.tick == tick)
+		if (change.tick == tick_)
 		{
+			#ifdef DEBUG
+				std::cout << "Replay tick: " << tick_ << std::endl;
+			#endif
+
 			left  = change.state & 0x01;
 			right = change.state & 0x02;
 			jump  = change.state & 0x04;
@@ -62,7 +61,7 @@ void SoldierInput::update(Time dt)
 		{
 			StateChange change;
 
-			change.tick = (uint32_t)(time_ / dt);
+			change.tick = tick_;
 			change.state = 0;
 			change.state |= 0x01 * left;
 			change.state |= 0x02 * right;
@@ -70,14 +69,20 @@ void SoldierInput::update(Time dt)
 			change.state |= 0x08 * run;
 			change.state |= 0x10 * duck;
 
-			// if (recording_.size() == recording_.capacity())
-			// 	recording_.reserve(recording_.capacity() + 1024);
-
 			recording_.push_back(change);
 		}
 	}
 
-	time_ += dt;
+	tick_++;*/
+
+	reset();
+
+	left  = Keyboard::pressed(Keyboard::Left);
+	right = Keyboard::pressed(Keyboard::Right);
+	jump  = Keyboard::pressed(Keyboard::Up);
+	duck  = Keyboard::pressed(Keyboard::Down);
+
+	if (left && right) left = right = false;
 }
 
 void SoldierInput::reset()
@@ -89,7 +94,7 @@ void SoldierInput::reset()
 	duck  = false;
 }
 
-void SoldierInput::save(const char *filename)
+/*void SoldierInput::save(const char *filename)
 {
 	std::ofstream file(filename, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 
@@ -107,7 +112,7 @@ void SoldierInput::replay(const char *filename)
 		return;
 
 	reset();
-	time_ = 0;
+	tick_ = 0;
 	replaying_ = true;
 	replayIndex_ = 0;
 
@@ -121,16 +126,28 @@ void SoldierInput::replay(const char *filename)
 	}
 }
 
-bool SoldierInput::operator==(SoldierInput const & rhs)
+uint32_t SoldierInput::tick() const
 {
-	return left == rhs.left &&
-		right == rhs.right &&
-		jump  == rhs.jump &&
-		run   == rhs.run &&
-		duck  == rhs.duck;
+	return tick_;
+}*/
+
+uint8_t SoldierInput::serialize() const
+{
+	uint8_t data = 0;
+	data |= 0x01 * left;
+	data |= 0x02 * right;
+	data |= 0x04 * jump;
+	data |= 0x08 * run;
+	data |= 0x10 * duck;
+
+	return data;
 }
 
-bool SoldierInput::operator!=(SoldierInput const & rhs)
+void SoldierInput::unserialize(uint8_t data)
 {
-	return !(*this == rhs);
+	left  = data & 0x01;
+	right = data & 0x02;
+	jump  = data & 0x04;
+	run   = data & 0x08;
+	duck  = data & 0x10;
 }

@@ -31,27 +31,32 @@ void MainScene::init()
 	updateBackground(width, height);
 
 	map_.load();
+
 	soldier_.map(map_.collisionMap());
-	soldier_.spawn(vec2(150.0f, -500.0f));
+	soldier_.reset(fixvec2(150, -500));
+
 	camera_.target(&soldier_);
 	camera_.viewport(width, height);
-
-	tree_.position = vec2(0.0f, -100.0f);
-	tree_.center = vec2(128.0f, 250.0f);
-	tree_.size = vec2(256.0f, 256.0f);
-	tree_.texcoords = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void MainScene::update(Time dt)
 {
+	if (replay_.tick() == 85)
+		assert(replay_.tick() > 1);
+
+	replayLog_.update(&replay_, &soldier_);
+
 	if (Keyboard::pressed(Keyboard::NumpadAdd))
 		camera_.zoom(Camera::ZoomIn);
 
 	if (Keyboard::pressed(Keyboard::NumpadSubtract))
 		camera_.zoom(Camera::ZoomOut);
 
-	soldier_.update(dt);
+	soldier_.update(dt, &replay_);
 	camera_.update(dt);
+
+	if (replay_.state() == Replay::Recording)
+		replay_.input(&soldier_.input);
 }
 
 void MainScene::draw(float framePercent)
@@ -65,11 +70,6 @@ void MainScene::draw(float framePercent)
 
 	graphics->save();
 	graphics->matrix(camera_.matrix(framePercent));
-
-	// sprites_->clear();
-	// sprites_->add(tree_);
-	// sprites_->texture(textures_[TextureTree]);
-	// graphics->draw(sprites_);
 
 	map_.draw(graphics);
 
@@ -96,16 +96,40 @@ void MainScene::event(const Event &evt)
 		{
 			if (evt.keyboard.pressed)
 			{
-				if (evt.keyboard.key == Keyboard::Escape)
+				switch (evt.keyboard.key)
 				{
-					//soldier_.saveInput("G13.replay");
-					game->window->close();
-				}
-				else if (evt.keyboard.key == Keyboard::Enter)
-				{
-					soldier_.spawn(vec2(150.0f, -500.0f));
-					camera_.target(&soldier_);
-					soldier_.replay("G13.replay");
+					case Keyboard::Escape:
+					{
+						game->window->close();
+					}
+					break;
+
+					case Keyboard::F11:
+					{
+						if (replay_.state() == Replay::Idle)
+							replay_.startRecording(&soldier_);
+						else if (replay_.state() == Replay::Recording)
+							replay_.stopRecording("G13.replay");
+					}
+					break;
+
+					case Keyboard::F12:
+					{
+						if (replay_.state() == Replay::Idle)
+						{
+							replay_.play("G13.replay", &soldier_);
+							camera_.target(&soldier_);
+						}
+						else if (replay_.state() == Replay::Playing)
+						{
+							replay_.stop();
+							replayLog_.save("replay.log");
+						}
+					}
+					break;
+
+					default:
+						break;
 				}
 			}
 

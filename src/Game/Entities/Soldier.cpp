@@ -1,4 +1,5 @@
 #include "../Game.h"
+#include "../Replay.h"
 #include "Soldier.h"
 
 Soldier::Soldier()
@@ -7,53 +8,49 @@ Soldier::Soldier()
 	vec2 tex1 = tex0 + vec2(52.0f, 82.0f);
 	vec2 texSize(375.0f, 82.0f);
 
-	sprite_.size = vec2(52.0f, 82.0f);
-	sprite_.center = vec2(26.0f, 78.0f);
-	sprite_.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
+	sprite.size = vec2(52.0f, 82.0f);
+	sprite.center = vec2(26.0f, 78.0f);
+	sprite.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
 
-	physics_.bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
-	physics_.input = &input_;
+	physics.bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
+	physics.input = &input;
 }
 
-void Soldier::update(Time dt)
+void Soldier::update(Time dt, Replay *replay)
 {
 	vec2 &position = position_[CurrentFrame];
 	position_[PreviousFrame] = position;
 
-	input_.update(dt);
-	physics_.update(dt);
+	if (replay->state() == Replay::Playing)
+		input = replay->input();
+	else
+		input.update();
 
-	position.x = physics_.position.x.to_float();
-	position.y = physics_.position.y.to_float();
+	physics.update(dt);
 
-	sprite_.scale.x = input_.right ? -1.0f : input_.left ? 1.0f : sprite_.scale.x;
+	position.x = physics.position.x.to_float();
+	position.y = physics.position.y.to_float();
+
+	sprite.scale.x = input.right ? -1.0f : input.left ? 1.0f : sprite.scale.x;
 }
 
 void Soldier::draw(SpriteBatch *batch, float framePercent)
 {
-	sprite_.position = glm::mix(position_[PreviousFrame], position_[CurrentFrame], framePercent);
-	batch->add(sprite_);
+	sprite.position = glm::mix(position_[PreviousFrame], position_[CurrentFrame], framePercent);
+	batch->add(sprite);
 }
 
-void Soldier::spawn(vec2 pos)
+void Soldier::reset(fixvec2 pos)
 {
-	position_[PreviousFrame] = pos;
-	position_[CurrentFrame] = pos;
+	position_[PreviousFrame].x = pos.x.to_float();
+	position_[PreviousFrame].y = pos.y.to_float();
+	position_[CurrentFrame].x  = pos.x.to_float();
+	position_[CurrentFrame].y  = pos.y.to_float();
 
-	physics_.teleport(fixvec2(fixed(pos.x), fixed(pos.y)));
+	physics.reset(pos);
 }
 
 void Soldier::map(const Collision::Map *map)
 {
-	physics_.map = map;
-}
-
-void Soldier::saveInput(const char *filename)
-{
-	input_.save(filename);
-}
-
-void Soldier::replay(const char *filename)
-{
-	input_.replay(filename);
+	physics.map = map;
 }

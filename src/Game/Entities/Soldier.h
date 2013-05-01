@@ -4,20 +4,19 @@
 #include "../Components/SoldierInput.h"
 #include "../Components/SoldierPhysics.h"
 
+class Replay;
+
 class Soldier : public Entity
 {
 public:
 	Soldier();
 
-	void update(Time dt);
+	void update(Time dt, Replay *replay);
 	void draw(SpriteBatch *batch, float framePercent);
-	void spawn(vec2 pos);
+	void reset(fixvec2 pos);
 	void map(const Collision::Map *map);
-	void saveInput(const char *filename);
-	void replay(const char *filename);
 
-private:
-	Sprite sprite_;
-	SoldierInput input_;
-	SoldierPhysics physics_;
+	Sprite sprite;
+	SoldierInput input;
+	SoldierPhysics physics;
 };

@@ -1,5 +1,5 @@
-#include <Game/Game.h>
-#include <Game/Scenes/MainScene.h>
+#include "Game.h"
+#include "Scenes/MainScene.h"
 
 #define DEBUG_FPS 0
 
@@ -93,10 +93,14 @@ void Game::input()
 				if (event.keyboard.pressed)
 				{
 					if (event.keyboard.key == Keyboard::F5)
+					{
 						stepMode_ = !stepMode_;
+						currentTime_ = Clock::time();
+					}
 
 					if (stepMode_ && event.keyboard.key == Keyboard::F10)
 					{
+						std::cout << "tick: " << tick_ << std::endl;
 						scene_->update(dt_);
 						tick_++;
 					}
@@ -141,4 +145,9 @@ void Game::update()
 		timeAccumulator_ -= dt_;
 		tick_++;
 	}
+}
+
+uint64_t Game::tick() const
+{
+	return tick_;
 }

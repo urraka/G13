@@ -6,6 +6,8 @@
 #include "line.h"
 #include "functions.h"
 
+#include <assert.h>
+
 namespace fpm
 {
 	fixed sign      (fixed const & x)                    { return x.value_ > fixed::zero.value_ ? fixed::one : x.value_ < fixed::zero.value_ ? -fixed::one : fixed::zero; }
@@ -52,13 +54,19 @@ namespace fpm
 			scalar = fabs(x.x);
 
 		vec2 r = x / scalar;
+		assert(r.x != fixed::overflow && r.y != fixed::overflow);
+
 		fixed L = length(r);
+		assert(L != fixed::overflow);
+
 		r /= L;
+
+		assert(r.x != fixed::overflow && r.y != fixed::overflow);
 
 		return r;
 	}
 
-	bool intersection(line const & l1, line const & l2, vec2 *result)
+	/*bool intersection(line const & l1, line const & l2, vec2 *result)
 	{
 		fixed x1 = l1.p1.x;
 		fixed x2 = l1.p2.x;
@@ -85,6 +93,37 @@ namespace fpm
 
 		result->x = x1 + ua * (x2 - x1);
 		result->y = y1 + ua * (y2 - y1);
+
+		return true;
+	}*/
+
+	bool intersection(line const & A, line const & B, vec2 *result)
+	{
+		int64_t x1 = A.p1.x.value();
+		int64_t x2 = A.p2.x.value();
+		int64_t x3 = B.p1.x.value();
+		int64_t x4 = B.p2.x.value();
+
+		int64_t y1 = A.p1.y.value();
+		int64_t y2 = A.p2.y.value();
+		int64_t y3 = B.p1.y.value();
+		int64_t y4 = B.p2.y.value();
+
+		int64_t uaNum = (((x4 - x3) * (y1 - y3)) >> 16) - (((y4 - y3) * (x1 - x3)) >> 16);
+		int64_t ubNum = (((x2 - x1) * (y1 - y3)) >> 16) - (((y2 - y1) * (x1 - x3)) >> 16);
+		int64_t uaDem = (((y4 - y3) * (x2 - x1)) >> 16) - (((x4 - x3) * (y2 - y1)) >> 16);
+
+		if (uaDem == 0)
+			return false;
+
+		int64_t ua = (uaNum << 16) / uaDem;
+		int64_t ub = (ubNum << 16) / uaDem;
+
+		if (ua < 0 || ua > fixed::one.value() || ub < 0 || ub > fixed::one.value())
+			return false;
+
+		result->x = A.p1.x + fixed::from_value(ua) * (A.p2.x - A.p1.x);
+		result->y = A.p1.y + fixed::from_value(ua) * (A.p2.y - A.p1.y);
 
 		return true;
 	}

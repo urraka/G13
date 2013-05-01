@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Game/Entities/Camera.h>
-#include <Game/Entities/Soldier.h>
-#include <Game/Map.h>
+#include "../Entities/Camera.h"
+#include "../Entities/Soldier.h"
+#include "../Map.h"
+#include "../Replay.h"
 
 class MainScene : public Scene
 {
@@ -23,6 +24,8 @@ private:
 		TextureCount
 	};
 
+	Replay replay_;
+	Replay::Log replayLog_;
 	Map map_;
 	Camera camera_;
 	Soldier soldier_;

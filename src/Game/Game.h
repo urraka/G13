@@ -1,9 +1,9 @@
 #pragma once
 
-#include <System/System.h>
-#include <Graphics/Graphics.h>
-#include <Game/Entity.h>
-#include <Game/Scene.h>
+#include "../System/System.h"
+#include "../Graphics/Graphics.h"
+#include "Entity.h"
+#include "Scene.h"
 
 class Application;
 class Window;
@@ -23,6 +23,7 @@ public:
 	void draw();
 	void input();
 	void update();
+	uint64_t tick() const;
 
 	Window *window;
 	Graphics *graphics;

@@ -10,7 +10,7 @@ public:
 	SoldierPhysics();
 
 	void update(Time time);
-	void teleport(fixvec2 pos);
+	void reset(fixvec2 pos);
 
 	fixrect bbox;
 	fixrect bboxNormal;

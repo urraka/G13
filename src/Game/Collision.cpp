@@ -87,11 +87,16 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 		std::cout << std::setw(12) << std::left << "P1";
 		std::cout << std::setw(12) << std::left << "P2";
 		std::cout << std::setw(16) << std::left << "Normal";
-		std::cout << std::setw(5)  << std::left << "Floor";
+		std::cout << std::setw(7)  << std::left << "Floor";
+		std::cout << std::setw(12) << std::left << "Hull[0].p1";
+		std::cout << std::setw(12) << std::left << "Hull[0].p2";
 		std::cout << std::endl;
+
+		fixrect bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
 
 		for (size_t i = 0; i < nodes_.size(); i++)
 		{
+			Collision::Hull hull = createHull(&nodes_[i], bbox);
 			fixvec2 normal = fpm::normal(nodes_[i].line);
 
 			s.str(std::string());
@@ -120,7 +125,19 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 			s.str(std::string());
 			s.clear();
 			s << (nodes_[i].floor ? "true" : "false");
-			std::cout << std::setw(5) << std::left << s.str();
+			std::cout << std::setw(7) << std::left << s.str();
+
+			s.precision(0);
+
+			s.str(std::string());
+			s.clear();
+			s << "(" << hull.nodes[0].line.p1.x << "," << hull.nodes[0].line.p1.y << ")";
+			std::cout << std::setw(12) << std::left << s.str();
+
+			s.str(std::string());
+			s.clear();
+			s << "(" << hull.nodes[0].line.p2.x << "," << hull.nodes[0].line.p2.y << ")";
+			std::cout << std::setw(12) << std::left << s.str();
 
 			std::cout << std::endl;
 		}
@@ -143,27 +160,30 @@ const std::vector<const Collision::Node*> &Collision::Map::retrieve(const fixrec
 Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
 {
 	const fixed epsilon = fixed::from_value(2048); // 1/32
-	const fixline pathLine(position, dest);
+	const fixed half = fixed::from_value(65536 / 2);
+
+	Result result;
+	result.position = dest;
+	result.percent = 1;
 
 	fixvec2 delta = dest - position;
 
 	if (fpm::fabs(delta.x) < epsilon) delta.x = 0;
 	if (fpm::fabs(delta.y) < epsilon) delta.y = 0;
 
-	Result result;
-	result.position = position + delta;
-	result.percent = 1;
-
-	if (delta == fixvec2(0, 0))
+	if (delta.x == 0 && delta.y == 0)
+	{
+		result.position = position;
 		return result;
+	}
 
 	fixrect bboxStart = bbox + position;
-	fixrect bboxEnd = bboxStart + delta;
+	fixrect bboxEnd = bbox + dest;
 	fixrect bounds = fpm::expand(bboxStart, bboxEnd);
+	fixline pathLine(position, dest);
+	fixvec2 udelta = fpm::normalize(delta);
 
 	const std::vector<const Collision::Node*> &nodes = map.retrieve(bounds);
-
-	fixvec2 ndelta; // normalized delta, will be calculated inside loop if necessary
 
 	for (size_t iNode = 0; iNode < nodes.size(); iNode++)
 	{
@@ -189,8 +209,13 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 			if (!fpm::intersection(hullLine, pathLine, &intersection))
 				continue;
 
-			if (delta.x == 0) intersection.x = position.x;
-			if (delta.y == 0) intersection.y = position.y;
+			fixvec2 idelta = intersection - position;
+
+			if (delta.x == 0 || fpm::sign(idelta.x) != fpm::sign(delta.x) || fpm::fabs(idelta.x) < epsilon)
+				intersection.x = position.x;
+
+			if (delta.y == 0 || fpm::sign(idelta.y) != fpm::sign(delta.y) || fpm::fabs(idelta.y) < epsilon)
+				intersection.y = position.y;
 
 			fixed percent = 0;
 
@@ -199,50 +224,24 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 			else
 				percent = (intersection.y - position.y) / delta.y;
 
+			assert(percent >= 0 && percent <= 1 && percent != fixed::overflow);
+
 			if (percent < result.percent)
 			{
 				result.percent = percent;
 				result.node = node;
 				result.hull = hull;
 				result.iHullNode = iHullNode;
-				result.position.x = intersection.x;
-				result.position.y = intersection.y;
+				result.position = intersection - udelta * half; // go back a little...
 
-				if (fpm::length(result.position - position) < epsilon)
-				{
-					result.position = position;
-					result.percent = 0;
-					return result;
-				}
-				else
-				{
-					fixed angle = fpm::atan2(delta.y, delta.x) + fixed::pi;
-					result.position.x += fpm::cos(angle) * epsilon;
-					result.position.y += fpm::sin(angle) * epsilon;
-				}
-
-				/*
-				// go back a little...
-
-				fixvec2 offset;
-
-				if (delta.x == 0)
-				{
-					offset.y = epsilon * fpm::sign(delta.y);
-				}
-				else if (delta.y == 0)
-				{
-					offset.x = epsilon * fpm::sign(delta.x);
-				}
-				else
-				{
-					if (ndelta.x == 0 && ndelta.y == 0)
-						ndelta = fpm::normalize(delta);
-
-					offset = ndelta * epsilon;
-				}
-
-				result.position -= offset;
+				#ifdef DEBUG
+					if (!fpm::intersection(hullLine, fixline(result.position, dest), &intersection))
+					{
+						std::cout << "Error: result.position -> dest doesn't intersect." << std::endl;
+						std::cout << "Angle: " << (fpm::atan2(delta.y, delta.x) * 180 / fixed::pi) << std::endl;
+						std::cout << "udelta: (" << udelta.x << "," << udelta.y << ")" << std::endl;
+					}
+				#endif
 
 				// ...but not too much
 
@@ -252,9 +251,48 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 				{
 					result.position = position;
 					result.percent = 0;
-					return result;
+					iHullNode = 3;
+					iNode = nodes.size();
 				}
-				*/
+			}
+		}
+	}
+
+	if (result.position == position)
+		return result;
+
+	bounds.tl = result.position - fixvec2(epsilon, epsilon);
+	bounds.br = result.position + fixvec2(epsilon, epsilon);
+
+	for (size_t iNode = 0; iNode < nodes.size(); iNode++)
+	{
+		const Collision::Node *const node = nodes[iNode];
+
+		if (!fpm::intersects(fpm::bounds(node->line), bounds))
+			continue;
+
+		Collision::Hull hull = createHull(node, bbox);
+
+		for (int iHullNode = 0; iHullNode < 3; iHullNode++)
+		{
+			const fixline &hullLine = hull.nodes[iHullNode].line;
+
+			if (hullLine.p1 == hullLine.p2)
+				continue;
+
+			fixvec2 normal = fpm::normal(hullLine);
+
+			if (fpm::dot(normal, delta) > 0)
+				continue;
+
+			fixvec2 point;
+			fixline line(result.position, result.position - normal * epsilon);
+
+			if (fpm::intersection(hullLine, line, &point))
+			{
+				fixvec2 offset = line.p2 - point;
+				result.position -= offset;
+				bounds -= offset;
 			}
 		}
 	}

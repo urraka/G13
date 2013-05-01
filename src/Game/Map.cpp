@@ -18,90 +18,6 @@ Map::~Map()
 		delete buffers_[i];
 }
 
-/*void Map::load(Graphics *graphics)
-{
-	std::vector<vec2> polygon(8);
-
-	polygon[0] = vec2(-300.0f, 0.0f);
-	polygon[1] = vec2(-100.0f, 100.0f);
-	polygon[2] = vec2(-100.0f, 200.0f);
-	polygon[3] = vec2(100.0f, 200.0f);
-	polygon[4] = vec2(100.0f, 100.0f);
-	polygon[5] = vec2(300.0f, 0.0f);
-	polygon[6] = vec2(100.0f, -100.0f);
-	polygon[7] = vec2(-100.0f, -100.0f);
-
-	std::vector<ColorVertex> vertices(polygon.size());
-	std::vector<uint16_t> trianglesIndices = math::triangulate(polygon);
-
-	std::vector<uint16_t> linesIndices;
-	linesIndices.reserve(trianglesIndices.size() * 2);
-
-	for (size_t i = 0; i < polygon.size(); i++)
-	{
-		vertices[i].position = polygon[i];
-		vertices[i].color = u8vec4(0, 0x30, 0, 255);
-	}
-
-	struct line_t
-	{
-		uint16_t a;
-		uint16_t b;
-		uint32_t pack()
-		{
-			uint32_t x = a;
-			uint32_t y = b;
-			return x < y ? (a << 16) | b : a | (b << 16);
-		};
-	};
-
-	std::set<uint32_t> lines;
-
-	for (size_t i = 0; i < trianglesIndices.size(); i += 3)
-	{
-		line_t L[3];
-
-		L[0].a = trianglesIndices[i + 0];
-		L[0].b = trianglesIndices[i + 1];
-		L[1].a = trianglesIndices[i + 1];
-		L[1].b = trianglesIndices[i + 2];
-		L[2].a = trianglesIndices[i + 2];
-		L[2].b = trianglesIndices[i + 0];
-
-		for (int j = 0; j < 3; j++)
-		{
-			if (lines.insert(L[j].pack()).second)
-			{
-				linesIndices.push_back(L[j].a);
-				linesIndices.push_back(L[j].b);
-			}
-		}
-	}
-
-	buffers_.resize(2);
-	buffers_[0] = graphics->buffer<ColorVertex>(vbo_t::Triangles, vbo_t::StaticDraw, vbo_t::StaticDraw, vertices.size(), trianglesIndices.size());
-	buffers_[0]->set(vertices.data(), 0, vertices.size());
-	buffers_[0]->set(trianglesIndices.data(), 0, trianglesIndices.size());
-
-	for (size_t i = 0; i < polygon.size(); i++)
-		vertices[i].color = u8vec4(0, 0, 0, 255);
-
-	buffers_[1] = graphics->buffer<ColorVertex>(vbo_t::Lines, vbo_t::StaticDraw, vbo_t::StaticDraw, vertices.size(), linesIndices.size());
-	buffers_[1]->set(vertices.data(), 0, vertices.size());
-	buffers_[1]->set(linesIndices.data(), 0, linesIndices.size());
-
-	// create collision map
-
-	std::vector< std::vector<ivec2> > lineStrips(1);
-
-	for (size_t i = 0; i < polygon.size(); i++)
-		lineStrips[0].push_back(ivec2((int)polygon[i].x, (int)polygon[i].y));
-
-	lineStrips[0].push_back(ivec2((int)polygon[0].x, (int)polygon[0].y));
-
-	collisionMap_.create(lineStrips);
-}*/
-
 void Map::load()
 {
 	Graphics *graphics = game->graphics;
@@ -112,11 +28,11 @@ void Map::load()
 	std::vector<vec2> polygon;
 	std::vector<ColorVertex> vert;
 
-	// first line strip is map bounds, so create a polygon around it
-
-	std::vector<ivec2> firstStrip;
+	// first line strip is map bounds, so i'll replace it with a new strip that makes a polygon around it
 
 	{
+		std::vector<ivec2> firstStrip;
+
 		const std::vector<ivec2> &strip = lineStrips[0];
 
 		size_t leftmost = 0;
@@ -149,13 +65,15 @@ void Map::load()
 		firstStrip[sz + 4] = vec2(tl.x - padding, tl.y - padding);
 		firstStrip[sz + 5] = vec2(tl.x - padding, firstStrip[0].y);
 		firstStrip[sz + 6] = vec2(firstStrip[0].x, firstStrip[0].y);
+
+		lineStrips[0].swap(firstStrip);
 	}
 
 	// the rest of the strips are normal polygons
 
 	for (size_t iStrip = 0; iStrip < lineStrips.size(); iStrip++)
 	{
-		const std::vector<ivec2> &strip = iStrip == 0 ? firstStrip : lineStrips[iStrip];
+		const std::vector<ivec2> &strip = lineStrips[iStrip];
 		std::vector<vec2> polygon(strip.size() - 1);
 
 		vert.resize(polygon.size());
@@ -172,7 +90,65 @@ void Map::load()
 		VBO<ColorVertex> *buffer = graphics->buffer<ColorVertex>(vbo_t::Triangles, vbo_t::StaticDraw, vbo_t::StaticDraw, vert.size(), indices.size());
 		buffer->set(vert.data(), 0, vert.size());
 		buffer->set(indices.data(), 0, indices.size());
+		buffers_.push_back(buffer);
+	}
 
+	// create a buffer to draw collision hulls
+
+	{
+		const fixrect bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
+		const std::vector<const Collision::Node*> &nodes = collisionMap_.retrieve(fixrect());
+		std::vector<uint16_t> indices;
+
+		vert.resize(0);
+		vert.reserve(nodes.size() * 4);
+		indices.reserve(nodes.size() * 6);
+
+		ColorVertex vertex;
+		vertex.color = u8vec4(255, 255, 0, 255);
+
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			Collision::Hull hull = Collision::createHull(nodes[i], bbox);
+
+			uint16_t index = vert.size();
+
+			vertex.position.x = hull.nodes[0].line.p1.x.to_float();
+			vertex.position.y = hull.nodes[0].line.p1.y.to_float();
+			vert.push_back(vertex);
+
+			vertex.position.x = hull.nodes[0].line.p2.x.to_float();
+			vertex.position.y = hull.nodes[0].line.p2.y.to_float();
+			vert.push_back(vertex);
+
+			indices.push_back(index);
+			indices.push_back(index + 1);
+
+			bool prev = hull.nodes[1].line.p1 != hull.nodes[1].line.p2;
+			bool next = hull.nodes[2].line.p1 != hull.nodes[2].line.p2;
+
+			if (prev)
+			{
+				vertex.position.x = hull.nodes[1].line.p1.x.to_float();
+				vertex.position.y = hull.nodes[1].line.p1.y.to_float();
+				vert.push_back(vertex);
+				indices.push_back(index);
+				indices.push_back(index + 2);
+			}
+
+			if (next)
+			{
+				vertex.position.x = hull.nodes[2].line.p2.x.to_float();
+				vertex.position.y = hull.nodes[2].line.p2.y.to_float();
+				vert.push_back(vertex);
+				indices.push_back(index + 1);
+				indices.push_back(index + 2 + (uint16_t)prev);
+			}
+		}
+
+		VBO<ColorVertex> *buffer = graphics->buffer<ColorVertex>(vbo_t::Lines, vbo_t::StaticDraw, vbo_t::StaticDraw, vert.size(), indices.size());
+		buffer->set(vert.data(), 0, vert.size());
+		buffer->set(indices.data(), 0, indices.size());
 		buffers_.push_back(buffer);
 	}
 }

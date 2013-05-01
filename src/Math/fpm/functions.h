@@ -43,5 +43,5 @@ namespace fpm
 	vec2  normal      (line const & l);
 	vec2  midpoint    (line const & l);
 	rect  bounds      (line const & l);
-	bool  intersection(line const & l1, line const & l2, vec2 *result);
+	bool  intersection(line const & A, line const & B, vec2 *result);
 }
