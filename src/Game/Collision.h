@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <Math/math.h>
+#include "../Math/math.h"
 
 class Collision
 {

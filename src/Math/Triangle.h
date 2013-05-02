@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Math/math.h>
+#include "math.h"
 
 class Triangle
 {

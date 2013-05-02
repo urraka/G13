@@ -52,7 +52,6 @@ endif
 # configuration
 
 cxx := g++
-inc := -Isrc
 opt := -Wall
 
 ifeq ($(debug),yes)
