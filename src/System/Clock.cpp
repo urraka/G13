@@ -1,4 +1,5 @@
-#include <System/System.h>
+#include "platform.h"
+#include "Clock.h"
 
 #if defined(WIN32)
 	#include <windows.h>

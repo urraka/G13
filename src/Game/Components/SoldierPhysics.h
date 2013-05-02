@@ -12,7 +12,6 @@ public:
 	void update(Time time);
 	void reset(fixvec2 pos);
 
-	fixrect bbox;
 	fixrect bboxNormal;
 	fixrect bboxDucked;
 	fixvec2 position;

@@ -1,16 +1,15 @@
 #pragma once
 
-class Graphics;
-class Shader;
-
 #include <stack>
-#include <Math/math.h>
-#include <Graphics/OpenGL.h>
-#include <Graphics/Vertex.h>
-#include <Graphics/VBO.h>
-#include <Graphics/Texture.h>
-#include <Graphics/Sprite.h>
-#include <Graphics/SpriteBatch.h>
+#include "../Math/math.h"
+#include "OpenGL.h"
+#include "Vertex.h"
+#include "VBO.h"
+#include "Texture.h"
+#include "Sprite.h"
+#include "SpriteBatch.h"
+
+class Shader;
 
 class Graphics
 {

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "OpenGL.h"
+#include "../Math/math.h"
+
 #if !defined(VBO_TEMPLATE_INSTANCE)
 	#define VBO_TEMPLATE_INSTANCE(VertexT)
 #endif

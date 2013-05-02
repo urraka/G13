@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Event.h"
+
+#include <vector>
+#include <stddef.h>
+
 class Window
 {
 public:

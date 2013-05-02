@@ -1,9 +1,8 @@
 #pragma once
 
-#include "../System/System.h"
-#include "../Graphics/Graphics.h"
-#include "Entity.h"
-#include "Scene.h"
+#include "../System/Clock.h"
+
+#include <stdint.h>
 
 class Application;
 class Window;

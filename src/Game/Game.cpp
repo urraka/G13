@@ -1,5 +1,13 @@
 #include "Game.h"
+#include "Scene.h"
 #include "Scenes/MainScene.h"
+#include "../Graphics/Graphics.h"
+#include "../System/Event.h"
+#include "../System/Keyboard.h"
+#include "../System/Application.h"
+#include "../System/Window.h"
+
+#include <iostream>
 
 #define DEBUG_FPS 0
 

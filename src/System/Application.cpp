@@ -1,10 +1,14 @@
-#include <System/System.h>
+#include "platform.h"
+#include "Window.h"
+#include "Application.h"
 
 #if defined(IOS)
-	#include <System/ios.h>
+	#include "ios.h"
 #else
 	#include <GL/glfw.h>
 #endif
+
+#include <assert.h>
 
 namespace
 {

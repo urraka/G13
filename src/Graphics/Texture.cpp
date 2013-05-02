@@ -1,6 +1,7 @@
-#include <System/System.h>
-#include <Graphics/Graphics.h>
+#include "Texture.h"
+#include "Graphics.h"
 
+#include <iostream>
 #include <stdio.h>
 #include <setjmp.h>
 #include <png.h>

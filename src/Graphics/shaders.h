@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../System/platform.h"
+
 namespace
 {
 

@@ -1,6 +1,6 @@
-#include <System/System.h>
-#include <Graphics/Graphics.h>
-#include <Graphics/Shader.h>
+#include "Shader.h"
+
+#include <iostream>
 
 Shader::Shader()
 	:	program_(0),

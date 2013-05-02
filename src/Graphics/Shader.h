@@ -1,5 +1,10 @@
 #pragma once
 
+#include "OpenGL.h"
+#include "Vertex.h"
+
+#include <string>
+
 class Shader
 {
 public:

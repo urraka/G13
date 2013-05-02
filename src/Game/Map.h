@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Graphics/Graphics.h"
 #include "Collision.h"
 
 class Map

@@ -1,10 +1,14 @@
-#include <System/System.h>
+#include "platform.h"
+#include "Window.h"
 
 #if defined(IOS)
-	#include <System/ios.h>
+	#include "ios.h"
 #else
+	#include <GL/glew.h>
 	#include <GL/glfw.h>
 #endif
+
+#include <iostream>
 
 namespace { namespace callbacks {
 
@@ -121,10 +125,14 @@ void Window::create(bool fullscreen, int fsaa)
 			return;
 		}
 
-		int mayor, minor, rev;
+		#ifdef DEBUG
+			int mayor, minor, rev;
+			glfwGetGLVersion(&mayor, &minor, &rev);
+			std::cout << "OpenGL context initialized. Version: " << mayor << "." << minor << "." << rev << std::endl;
+		#endif
 
-		glfwGetGLVersion(&mayor, &minor, &rev);
-		std::cout << "OpenGL context initialized. Version: " << mayor << "." << minor << "." << rev << std::endl;
+		if (glewInit() != GLEW_OK)
+			std::cerr << "Error initializing glew." << std::endl;
 
 		glfwSetWindowCloseCallback(callbacks::close);
 		glfwSetWindowSizeCallback(callbacks::resize);

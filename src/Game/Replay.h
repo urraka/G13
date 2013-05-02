@@ -4,7 +4,7 @@
 #include "Components/SoldierInput.h"
 
 #include <stdint.h>
-#include <cstdio>
+#include <stddef.h>
 #include <vector>
 #include <string>
 

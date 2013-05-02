@@ -1,8 +1,9 @@
-#include <System/platform.h>
+#include "platform.h"
+#include "Keyboard.h"
+
 #if !defined(IOS)
 	#include <GL/glfw.h>
 #endif
-#include <System/Keyboard.h>
 
 bool Keyboard::pressed(Key key)
 {

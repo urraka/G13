@@ -1,5 +1,14 @@
 #pragma once
 
+#include "Sprite.h"
+#include "Vertex.h"
+#include "VBO.h"
+
+#include <stddef.h>
+
+class Graphics;
+class Texture;
+
 class SpriteBatch
 {
 public:

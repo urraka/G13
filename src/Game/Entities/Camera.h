@@ -1,6 +1,9 @@
 #pragma once
 
-class Camera : public Entity
+#include "../../Math/math.h"
+#include "../../System/Clock.h"
+
+class Camera
 {
 public:
 	Camera();
@@ -19,18 +22,20 @@ public:
 	};
 
 	void update(Time dt);
-	void target(const Entity *target);
+	void target(const vec2 *target);
 	void viewport(int width, int height);
 	mat4 matrix(float framePercent, MatrixMode mode = MatrixNormal);
 	void zoom(ZoomType zoomType);
 
 private:
-	float zoom_[2];
+	math::interpolable<float> zoom_;
 	float maxZoom_;
 	float zoomRate_;
 	float zoomVelocity_;
 	float zoomTarget_;
 	ZoomType zoomType_;
 	ivec2 viewport_;
-	const Entity *target_;
+	const vec2 *target_;
+	math::interpolable<vec2> position_;
+	vec2 velocity_;
 };

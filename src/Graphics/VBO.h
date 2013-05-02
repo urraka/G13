@@ -1,5 +1,13 @@
 #pragma once
 
+#include "OpenGL.h"
+#include "Vertex.h"
+
+#include <stddef.h>
+#include <stdint.h>
+
+class Graphics;
+
 class vbo_t
 {
 public:

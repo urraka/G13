@@ -1,5 +1,9 @@
 #pragma once
 
+#include "OpenGL.h"
+
+class Graphics;
+
 class Texture
 {
 public:

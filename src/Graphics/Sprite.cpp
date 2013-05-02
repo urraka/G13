@@ -1,5 +1,4 @@
-#include <System/System.h>
-#include <Graphics/Graphics.h>
+#include "Sprite.h"
 
 Sprite::Sprite()
 	:	scale(1.0f),

@@ -1,5 +1,5 @@
-#include <System/platform.h>
-#include <System/ios.h>
+#include "platform.h"
+#include "ios.h"
 
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>

@@ -1,5 +1,6 @@
-#include <System/System.h>
-#include <Graphics/Graphics.h>
+#include "SpriteBatch.h"
+#include "Graphics.h"
+#include "Texture.h"
 
 SpriteBatch::SpriteBatch(Graphics *graphics)
 	:	graphics_(graphics),

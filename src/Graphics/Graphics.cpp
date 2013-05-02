@@ -6,10 +6,9 @@
 	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage usage, size_t size); \
 	template void Graphics::bind<VertexT>(VBO<VertexT> *vbo, vbo_t::Type type)
 
-#include <System/System.h>
-#include <Graphics/Graphics.h>
-#include <Graphics/Shader.h>
-#include <Graphics/shaders.h>
+#include "Graphics.h"
+#include "Shader.h"
+#include "shaders.h"
 
 Graphics::Graphics()
 	:	matrix_(1.0f),
@@ -33,11 +32,6 @@ Graphics::~Graphics()
 
 void Graphics::init()
 {
-	#if !defined(IOS)
-		if (glewInit() != GLEW_OK)
-			std::cerr << "Error initializing glew." << std::endl;
-	#endif
-
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

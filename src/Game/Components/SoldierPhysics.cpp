@@ -4,7 +4,15 @@
 
 #include <assert.h>
 
-SoldierPhysics::SoldierPhysics() : input(0), map(0), ducked_(false), currentNode_(0) {}
+SoldierPhysics::SoldierPhysics()
+	:	bboxNormal(-17, -66, 17, 0),
+		bboxDucked(-17, -50, 17, 0),
+		input(0),
+		map(0),
+		ducked_(false),
+		currentNode_(0)
+{
+}
 
 void SoldierPhysics::update(Time dt)
 {
@@ -15,8 +23,10 @@ void SoldierPhysics::update(Time dt)
 	const fixed kGravity = fixed(1470); // 9.8 * 150
 	const fixed kJumpVel = fixed(-550);
 	const fixed kWalkVel = fixed(250);
-	const fixed kDuckVel = fixed(150);
-	const fixed kRunVel  = fixed(300);
+	// const fixed kDuckVel = fixed(150);
+	// const fixed kRunVel  = fixed(300);
+
+	fixrect bbox = bboxNormal;
 
 	acceleration.x = 0;
 	acceleration.y = kGravity;
@@ -126,8 +136,7 @@ void SoldierPhysics::update(Time dt)
 						fixed length = fpm::length(delta);
 						length = fpm::max(0, (length - length * collision.percent));
 
-						// if (length > fixed::from_value(1000))
-							nextDelta = direction * length;
+						nextDelta = direction * length;
 					}
 
 					currentHull_ = collision.hull;

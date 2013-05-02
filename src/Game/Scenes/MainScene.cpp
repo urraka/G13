@@ -1,5 +1,7 @@
-#include <Game/Game.h>
-#include <Game/Scenes/MainScene.h>
+#include "MainScene.h"
+#include "../Game.h"
+#include "../../System/Keyboard.h"
+#include "../../System/Window.h"
 
 MainScene::MainScene()
 	:	background_(0),
@@ -35,15 +37,12 @@ void MainScene::init()
 	soldier_.map(map_.collisionMap());
 	soldier_.reset(fixvec2(150, -500));
 
-	camera_.target(&soldier_);
+	camera_.target(&soldier_.graphics.position.current);
 	camera_.viewport(width, height);
 }
 
 void MainScene::update(Time dt)
 {
-	if (replay_.tick() == 85)
-		assert(replay_.tick() > 1);
-
 	replayLog_.update(&replay_, &soldier_);
 
 	if (Keyboard::pressed(Keyboard::NumpadAdd))
@@ -61,6 +60,8 @@ void MainScene::update(Time dt)
 
 void MainScene::draw(float framePercent)
 {
+	soldier_.graphics.frame(framePercent);
+
 	Graphics *graphics = game->graphics;
 
 	graphics->clear();
@@ -74,8 +75,9 @@ void MainScene::draw(float framePercent)
 	map_.draw(graphics);
 
 	sprites_->clear();
-	soldier_.draw(sprites_, framePercent);
 	sprites_->texture(textures_[TextureGuy]);
+	sprites_->add(soldier_.graphics.sprite);
+
 	graphics->draw(sprites_);
 
 	graphics->restore();
@@ -118,7 +120,7 @@ void MainScene::event(const Event &evt)
 						if (replay_.state() == Replay::Idle)
 						{
 							replay_.play("G13.replay", &soldier_);
-							camera_.target(&soldier_);
+							camera_.target(&soldier_.graphics.position.current);
 						}
 						else if (replay_.state() == Replay::Playing)
 						{

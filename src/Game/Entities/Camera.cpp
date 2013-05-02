@@ -1,8 +1,7 @@
-#include <Game/Game.h>
-#include <Game/Entities/Camera.h>
+#include "Camera.h"
 
 Camera::Camera()
-	:	zoom_(),
+	:	zoom_(0.0f),
 		maxZoom_(1.2f),
 		zoomRate_(1.5f),
 		zoomVelocity_(0.0f),
@@ -17,35 +16,30 @@ void Camera::update(Time dt)
 	const float kVelMultiplier = 2.5f;
 
 	float dts = Clock::toSeconds<float>(dt);
-	vec2 &position = position_[CurrentFrame];
-	float &zoom = zoom_[CurrentFrame];
 
-	position_[PreviousFrame] = position_[CurrentFrame];
-	zoom_[PreviousFrame] = zoom_[CurrentFrame];
+	position_.update();
+	zoom_.update();
 
 	zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);
-	zoomVelocity_ = zoomTarget_ - zoom;
-	zoom += zoomVelocity_ * kVelMultiplier * zoomRate_ * dts;
+	zoomVelocity_ = zoomTarget_ - zoom_.current;
+	zoom_.current += zoomVelocity_ * kVelMultiplier * zoomRate_ * dts;
 	zoomType_ = ZoomNone;
 
 	if (target_ == 0)
 		return;
 
-	vec2 distance = target_->position() - position;
+	vec2 distance = *target_ - position_.current;
 
 	velocity_ = distance * kVelMultiplier;
-	position += velocity_ * dts;
+	position_.current += velocity_ * dts;
 }
 
-void Camera::target(const Entity *target)
+void Camera::target(const vec2 *target)
 {
 	target_ = target;
 
 	if (target)
-	{
-		position_[PreviousFrame] = target->position();
-		position_[CurrentFrame] = target->position();
-	}
+		position_.set(*target);
 }
 
 void Camera::viewport(int width, int height)
@@ -59,8 +53,8 @@ mat4 Camera::matrix(float framePercent, MatrixMode mode)
 	const float initialWidth = 1200.0f; // in world units
 	const float initialScale = viewport_.x * worldUnitsPerPixel / initialWidth;
 
-	vec2 position = glm::mix(position_[PreviousFrame], position_[CurrentFrame], framePercent);
-	float scale = initialScale * glm::exp(maxZoom_ * glm::mix(zoom_[PreviousFrame], zoom_[CurrentFrame], framePercent));
+	vec2 position = position_.value(framePercent);
+	float scale = initialScale * glm::exp(maxZoom_ * zoom_.value(framePercent));
 
 	if (mode == MatrixInverted)
 	{

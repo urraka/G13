@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../Math/math.h"
+#include "Vertex.h"
+
 class Sprite
 {
 public:

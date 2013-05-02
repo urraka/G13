@@ -1,8 +1,8 @@
 #define VBO_TEMPLATE_INSTANCE(VertexT) \
 	template class VBO<VertexT>;
 
-#include <System/System.h>
-#include <Graphics/Graphics.h>
+#include "VBO.h"
+#include "Graphics.h"
 
 template<class VertexT> VBO<VertexT>::VBO(Graphics *graphics)
 	:	graphics_(graphics),

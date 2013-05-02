@@ -1,4 +1,6 @@
-#include <System/System.h>
+#include "platform.h"
+#include "Mouse.h"
+
 #if !defined(IOS)
 	#include <GL/glfw.h>
 #endif

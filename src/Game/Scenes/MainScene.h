@@ -1,9 +1,13 @@
 #pragma once
 
+#include "../../System/Clock.h"
+#include "../../System/Event.h"
+#include "../../Graphics/Graphics.h"
 #include "../Entities/Camera.h"
 #include "../Entities/Soldier.h"
 #include "../Map.h"
 #include "../Replay.h"
+#include "../Scene.h"
 
 class MainScene : public Scene
 {
