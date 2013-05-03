@@ -112,7 +112,9 @@ bool Texture::load(const char *path, Mode mode)
 	png_destroy_read_struct(&png, &info, &info_end);
 	fclose(file);
 
-	std::cout << "Texture loaded (" << path << ") - ID: " << textureId_ << " - Size: " << width_ << "x" << height_ << " - Alpha: " << (alpha ? "true" : "false") << std::endl;
+	#ifdef DEBUG
+		std::cout << "Texture loaded (" << path << ") - ID: " << textureId_ << " - Size: " << width_ << "x" << height_ << " - Alpha: " << (alpha ? "true" : "false") << std::endl;
+	#endif
 
 	return true;
 }

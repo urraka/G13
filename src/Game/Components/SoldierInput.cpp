@@ -24,6 +24,7 @@ void SoldierInput::update(Replay *replay)
 		left  = Keyboard::pressed(Keyboard::Left);
 		right = Keyboard::pressed(Keyboard::Right);
 		jump  = Keyboard::pressed(Keyboard::Up);
+		run   = Keyboard::pressed(Keyboard::LShift);
 		duck  = Keyboard::pressed(Keyboard::Down);
 
 		if (left && right) left = right = false;

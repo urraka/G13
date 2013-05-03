@@ -11,6 +11,8 @@ public:
 
 	void update(Time time);
 	void reset(fixvec2 pos);
+	bool ducking() const;
+	bool floor() const;
 
 	fixrect bboxNormal;
 	fixrect bboxDucked;
@@ -23,6 +25,7 @@ public:
 
 private:
 	bool ducked_;
+	bool running_;
 
 	Collision::Hull currentHull_;
 	const Collision::Node *currentNode_;

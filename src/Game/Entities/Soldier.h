@@ -18,7 +18,6 @@ public:
 	void reset(fixvec2 pos);
 	void map(const Collision::Map *map);
 
-	Sprite sprite;
 	SoldierInput input;
 	SoldierPhysics physics;
 	SoldierGraphics graphics;
