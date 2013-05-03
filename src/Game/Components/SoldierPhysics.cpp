@@ -10,7 +10,6 @@ SoldierPhysics::SoldierPhysics()
 		input(0),
 		map(0),
 		ducked_(false),
-		running_(false),
 		currentNode_(0)
 {
 }
@@ -27,22 +26,27 @@ void SoldierPhysics::update(Time dt)
 	const fixed kDuckVel = fixed(150);
 	const fixed kRunVel  = fixed(350);
 
-	if (input->duck)
-	{
-		ducked_ = true;
-	}
-	else if (ducked_)
+	if (ducked_ && !input->duck)
 	{
 		fixvec2 offset = fixvec2(0, bboxDucked.height() - bboxNormal.height());
-		ducked_ = Collision::resolve(*map, position, position + offset, bboxDucked).node != 0;
+		ducked_ = Collision::resolve(map, position, position + offset, bboxDucked).node != 0;
+	}
+	else
+	{
+		ducked_ = input->duck;
 	}
 
 	fixrect bbox = ducked_ ? bboxDucked : bboxNormal;
 
-	if (input->jump && currentNode_ != 0 && currentNode_->floor)
+	if (input->jump && floor())
 	{
-		velocity.y = kJumpVel;
-		currentNode_ = 0;
+		Collision::Result collision = Collision::resolve(map, position, position + fixvec2(0, -1), bbox);
+
+		if (!collision.node || fpm::fabs(fpm::slope(collision.node->line)) > 1)
+		{
+			velocity.y = kJumpVel;
+			currentNode_ = 0;
+		}
 	}
 
 	acceleration.x = 0;
@@ -51,12 +55,9 @@ void SoldierPhysics::update(Time dt)
 	velocity.x = 0;
 	velocity.y += acceleration.y * dts;
 
-	running_ = false;
-
 	if (input->right || input->left)
 	{
-		running_ = input->run;
-		fixed vel = (ducked_ && floor()) ? kDuckVel : running_ ? kRunVel : kWalkVel;
+		fixed vel = (ducked_ && floor()) ? kDuckVel : input->run ? kRunVel : kWalkVel;
 		velocity.x = input->left ? -vel : vel;
 	}
 
@@ -133,7 +134,7 @@ void SoldierPhysics::update(Time dt)
 
 		if (delta != fixvec2(0, 0))
 		{
-			Collision::Result collision = Collision::resolve(*map, position, position + delta, bbox);
+			Collision::Result collision = Collision::resolve(map, position, position + delta, bbox);
 			position = collision.position;
 
 			if (collision.node)

@@ -25,7 +25,6 @@ public:
 
 private:
 	bool ducked_;
-	bool running_;
 
 	Collision::Hull currentHull_;
 	const Collision::Node *currentNode_;

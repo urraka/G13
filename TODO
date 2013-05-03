@@ -1,5 +1,4 @@
 Game
-  - Add ducking.
   - Consider making components private with methods to access as const.
 
 Debugging
@@ -27,6 +26,8 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Check for room before jumping to avoid insane bouncing.
+  x Add ducking.
   x Sort headers again so Graphics doesn't depend on useless stuff.
   x interpolable<T> with T previous and T current, and methods update(), update(T value) and value(float percent).
   x Move glewInit to system module to remove platform specific code in graphics module.

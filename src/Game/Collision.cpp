@@ -157,7 +157,7 @@ const std::vector<const Collision::Node*> &Collision::Map::retrieve(const fixrec
 	return cache_;
 }
 
-Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
+Collision::Result Collision::resolve(const Collision::Map *map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
 {
 	const fixed epsilon = fixed::from_value(2048); // 1/32
 	const fixed half = fixed::from_value(65536 / 2);
@@ -183,7 +183,7 @@ Collision::Result Collision::resolve(const Collision::Map &map, const fixvec2 &p
 	fixline pathLine(position, dest);
 	fixvec2 udelta = fpm::normalize(delta);
 
-	const std::vector<const Collision::Node*> &nodes = map.retrieve(bounds);
+	const std::vector<const Collision::Node*> &nodes = map->retrieve(bounds);
 
 	for (size_t iNode = 0; iNode < nodes.size(); iNode++)
 	{

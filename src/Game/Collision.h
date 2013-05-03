@@ -50,6 +50,6 @@ public:
 		mutable std::vector<const Collision::Node*> cache_;
 	};
 
-	static Collision::Result resolve(const Collision::Map &map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox);
+	static Collision::Result resolve(const Collision::Map *map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox);
 	static Collision::Hull createHull(const Collision::Node *node, const fixrect &bbox);
 };
