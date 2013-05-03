@@ -2,10 +2,6 @@ Game
   - Consider making components private with methods to access as const.
 
 Debugging
-  - Add global Debugger object which everyone has access to.
-  - Move the debug drawing to Debugger object.
-  - Move all debug outputs to debugger object.
-  - Think of a way to remove Debugger calls on release mode.
 
 System
   - iOS: callbacks for touch/movement events.
@@ -26,6 +22,10 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Move all debug outputs to debugger object.
+  x Add global Debugger object which everyone has access to.
+  x Move the debug drawing to Debugger object.
+  x Think of a way to remove Debugger calls on release mode.
   x Check for room before jumping to avoid insane bouncing.
   x Add ducking.
   x Sort headers again so Graphics doesn't depend on useless stuff.

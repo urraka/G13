@@ -2,12 +2,17 @@
 #include "../Game.h"
 #include "../../System/Keyboard.h"
 #include "../../System/Window.h"
+#include "../Debugger.h"
 
 MainScene::MainScene()
 	:	background_(0),
 		textures_(),
 		sprites_(0)
 {
+	DBG(
+		dbg->map = &map_;
+		dbg->soldier = &soldier_;
+	);
 }
 
 MainScene::~MainScene()
@@ -33,6 +38,8 @@ void MainScene::init()
 	updateBackground(width, height);
 
 	map_.load();
+
+	DBG( dbg->loadCollisionHulls(); );
 
 	soldier_.map(map_.collisionMap());
 	soldier_.reset(fixvec2(150, -500));
@@ -73,6 +80,8 @@ void MainScene::draw(float framePercent)
 	graphics->matrix(camera_.matrix(framePercent));
 
 	map_.draw(graphics);
+
+	DBG( dbg->drawCollisionHulls(); );
 
 	sprites_->clear();
 	sprites_->texture(textures_[TextureGuy]);
@@ -133,6 +142,26 @@ void MainScene::event(const Event &evt)
 					default:
 						break;
 				}
+
+				DBG(
+					switch (evt.keyboard.key)
+					{
+						case Keyboard::H:
+						{
+							DBG( dbg->showCollisionHulls = !dbg->showCollisionHulls; );
+						}
+						break;
+
+						case Keyboard::C:
+						{
+							DBG( dbg->showCollisionData(); );
+						}
+						break;
+
+						default:
+							break;
+					}
+				);
 			}
 
 			break;

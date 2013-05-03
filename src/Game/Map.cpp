@@ -92,65 +92,6 @@ void Map::load()
 		buffer->set(indices.data(), 0, indices.size());
 		buffers_.push_back(buffer);
 	}
-
-	// create a buffer to draw collision hulls
-
-	{
-		const fixrect bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
-		const std::vector<const Collision::Node*> &nodes = collisionMap_.retrieve(fixrect());
-		std::vector<uint16_t> indices;
-
-		vert.resize(0);
-		vert.reserve(nodes.size() * 4);
-		indices.reserve(nodes.size() * 6);
-
-		ColorVertex vertex;
-		vertex.color = u8vec4(255, 255, 0, 255);
-
-		for (size_t i = 0; i < nodes.size(); i++)
-		{
-			Collision::Hull hull = Collision::createHull(nodes[i], bbox);
-
-			uint16_t index = vert.size();
-
-			vertex.position.x = hull.nodes[0].line.p1.x.to_float();
-			vertex.position.y = hull.nodes[0].line.p1.y.to_float();
-			vert.push_back(vertex);
-
-			vertex.position.x = hull.nodes[0].line.p2.x.to_float();
-			vertex.position.y = hull.nodes[0].line.p2.y.to_float();
-			vert.push_back(vertex);
-
-			indices.push_back(index);
-			indices.push_back(index + 1);
-
-			bool prev = hull.nodes[1].line.p1 != hull.nodes[1].line.p2;
-			bool next = hull.nodes[2].line.p1 != hull.nodes[2].line.p2;
-
-			if (prev)
-			{
-				vertex.position.x = hull.nodes[1].line.p1.x.to_float();
-				vertex.position.y = hull.nodes[1].line.p1.y.to_float();
-				vert.push_back(vertex);
-				indices.push_back(index);
-				indices.push_back(index + 2);
-			}
-
-			if (next)
-			{
-				vertex.position.x = hull.nodes[2].line.p2.x.to_float();
-				vertex.position.y = hull.nodes[2].line.p2.y.to_float();
-				vert.push_back(vertex);
-				indices.push_back(index + 1);
-				indices.push_back(index + 2 + (uint16_t)prev);
-			}
-		}
-
-		VBO<ColorVertex> *buffer = graphics->buffer<ColorVertex>(vbo_t::Lines, vbo_t::StaticDraw, vbo_t::StaticDraw, vert.size(), indices.size());
-		buffer->set(vert.data(), 0, vert.size());
-		buffer->set(indices.data(), 0, indices.size());
-		buffers_.push_back(buffer);
-	}
 }
 
 const Collision::Map *Map::collisionMap() const

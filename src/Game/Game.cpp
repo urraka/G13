@@ -6,15 +6,16 @@
 #include "../System/Keyboard.h"
 #include "../System/Application.h"
 #include "../System/Window.h"
+#include "Debugger.h"
 
 #include <iostream>
-
-#define DEBUG_FPS 0
 
 Game *game = 0;
 
 void Game::launch(Application *app)
 {
+	DBG( dbg = new Debugger(); );
+
 	game = new Game();
 	game->init(app);
 }
@@ -68,6 +69,8 @@ void Game::init(Application *app)
 	window->size(size.x, size.y);
 	graphics->viewport(size.x, size.y, window->rotation());
 
+	DBG( dbg->graphics = graphics; );
+
 	scene_ = new MainScene();
 	scene_->init();
 }
@@ -76,9 +79,10 @@ void Game::draw()
 {
 	float percent = (float)(timeAccumulator_ / (double)dt_);
 
-	#ifdef DEBUG
-		if (stepMode_) percent = 1.0f;
-	#endif
+	DBG(
+		if (stepMode_)
+			percent = 1.0f;
+	);
 
 	scene_->draw(percent);
 	fps_++;
@@ -95,7 +99,7 @@ void Game::input()
 		if (event.type == Event::Resize)
 			graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
 
-		#ifdef DEBUG
+		DBG(
 			if (event.type == Event::Keyboard)
 			{
 				if (event.keyboard.pressed)
@@ -114,32 +118,33 @@ void Game::input()
 					}
 				}
 			}
-		#endif
+		);
 	}
 }
 
 void Game::update()
 {
-	#ifdef DEBUG
-		if (stepMode_) return;
-	#endif
+	DBG( if (stepMode_) return; );
 
 	const Time maxFrameTime = Clock::milliseconds(250);
 
 	Time newTime = Clock::time();
 	Time frameTime = newTime - currentTime_;
 
-	#if defined(DEBUG) && DEBUG_FPS
-		fpsTimer_ += frameTime;
-
-		if (fpsTimer_ >= Clock::seconds(1))
+	DBG(
+		if (DEBUG_FPS)
 		{
-			std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
+			fpsTimer_ += frameTime;
 
-			fpsTimer_ -= Clock::seconds(1);
-			fps_ = 0;
+			if (fpsTimer_ >= Clock::seconds(1))
+			{
+				std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
+
+				fpsTimer_ -= Clock::seconds(1);
+				fps_ = 0;
+			}
 		}
-	#endif
+	);
 
 	if (frameTime > maxFrameTime)
 		frameTime = maxFrameTime;

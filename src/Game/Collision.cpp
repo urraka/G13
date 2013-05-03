@@ -1,9 +1,8 @@
 #include "Collision.h"
+#include "Debugger.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-
-#define DEBUG_COLLISION_DATA 0
 
 Collision::Hull::Hull() : nodes() {}
 
@@ -76,75 +75,6 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 
 		iStrip += strip.size() - 1;
 	}
-
-	#if defined(DEBUG) && DEBUG_COLLISION_DATA
-	{
-		std::cout << std::endl;
-		std::cout << "Collision map data: " << std::endl << std::endl;
-		std::stringstream s;
-
-		std::cout << std::setw(4)  << std::left << " ";
-		std::cout << std::setw(12) << std::left << "P1";
-		std::cout << std::setw(12) << std::left << "P2";
-		std::cout << std::setw(16) << std::left << "Normal";
-		std::cout << std::setw(7)  << std::left << "Floor";
-		std::cout << std::setw(12) << std::left << "Hull[0].p1";
-		std::cout << std::setw(12) << std::left << "Hull[0].p2";
-		std::cout << std::endl;
-
-		fixrect bbox = fixrect(fixed(-17), fixed(-66), fixed(17), fixed(0));
-
-		for (size_t i = 0; i < nodes_.size(); i++)
-		{
-			Collision::Hull hull = createHull(&nodes_[i], bbox);
-			fixvec2 normal = fpm::normal(nodes_[i].line);
-
-			s.str(std::string());
-			s.clear();
-			s << "#" << i;
-			std::cout << std::setw(4) << std::left << s.str();
-
-			s.precision(0);
-
-			s.str(std::string());
-			s.clear();
-			s << "(" << nodes_[i].line.p1.x << "," << nodes_[i].line.p1.y << ")";
-			std::cout << std::setw(12) << std::left << s.str();
-
-			s.str(std::string());
-			s.clear();
-			s << "(" << nodes_[i].line.p2.x << "," << nodes_[i].line.p2.y << ")";
-			std::cout << std::setw(12) << std::left << s.str();
-
-			s.str(std::string());
-			s.clear();
-			s.precision(3);
-			s << "(" << normal.x << "," << normal.y << ")";
-			std::cout << std::setw(16) << std::left << s.str();
-
-			s.str(std::string());
-			s.clear();
-			s << (nodes_[i].floor ? "true" : "false");
-			std::cout << std::setw(7) << std::left << s.str();
-
-			s.precision(0);
-
-			s.str(std::string());
-			s.clear();
-			s << "(" << hull.nodes[0].line.p1.x << "," << hull.nodes[0].line.p1.y << ")";
-			std::cout << std::setw(12) << std::left << s.str();
-
-			s.str(std::string());
-			s.clear();
-			s << "(" << hull.nodes[0].line.p2.x << "," << hull.nodes[0].line.p2.y << ")";
-			std::cout << std::setw(12) << std::left << s.str();
-
-			std::cout << std::endl;
-		}
-
-		std::cout << std::endl;
-	}
-	#endif
 }
 
 const std::vector<const Collision::Node*> &Collision::Map::retrieve(const fixrect &rc) const
@@ -234,14 +164,14 @@ Collision::Result Collision::resolve(const Collision::Map *map, const fixvec2 &p
 				result.iHullNode = iHullNode;
 				result.position = intersection - udelta * half; // go back a little...
 
-				#ifdef DEBUG
+				DBG(
 					if (!fpm::intersection(hullLine, fixline(result.position, dest), &intersection))
 					{
 						std::cout << "Error: result.position -> dest doesn't intersect." << std::endl;
 						std::cout << "Angle: " << (fpm::atan2(delta.y, delta.x) * 180 / fixed::pi) << std::endl;
 						std::cout << "udelta: (" << udelta.x << "," << udelta.y << ")" << std::endl;
 					}
-				#endif
+				);
 
 				// ...but not too much
 
