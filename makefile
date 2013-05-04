@@ -65,7 +65,12 @@ endif
 ifeq ($(platform),win32)
   out-dir := bin/win32$(out-dir-suffix)
   out := $(out-dir)/G13.exe
-  lib := -lglew32 -lglfw -lopengl32 -lpng -lz -lfixmath
+  lib := lib/win32/libglew32.a
+  lib += lib/win32/libglfw.a
+  lib += lib/win32/libpng.a
+  lib += lib/win32/libz.a
+  lib += lib/win32/libfixmath.a
+  lib += -lopengl32
   def += -DWIN32 -DGLEW_STATIC
   opt += -static-libgcc -static-libstdc++
   ifeq ($(debug),no)

@@ -147,16 +147,12 @@ void MainScene::event(const Event &evt)
 					switch (evt.keyboard.key)
 					{
 						case Keyboard::H:
-						{
-							DBG( dbg->showCollisionHulls = !dbg->showCollisionHulls; );
-						}
-						break;
+							dbg->showCollisionHulls = !dbg->showCollisionHulls;
+							break;
 
 						case Keyboard::C:
-						{
-							DBG( dbg->showCollisionData(); );
-						}
-						break;
+							dbg->showCollisionData();
+							break;
 
 						default:
 							break;

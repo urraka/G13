@@ -1,7 +1,6 @@
 Game
+  - Fix replay crashing game on release.
   - Consider making components private with methods to access as const.
-
-Debugging
 
 System
   - iOS: callbacks for touch/movement events.

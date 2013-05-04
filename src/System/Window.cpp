@@ -9,6 +9,7 @@
 #endif
 
 #include <iostream>
+#include <cmath>
 
 namespace { namespace callbacks {
 
@@ -164,7 +165,7 @@ void Window::size(int &width, int &height)
 		#define get_size glfwGetWindowSize
 	#endif
 
-	if (abs(rotation()) == 90)
+	if (std::abs(rotation()) == 90)
 		get_size(&height, &width);
 	else
 		get_size(&width, &height);

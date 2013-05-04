@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Entities/Soldier.h"
 #include "Replay.h"
+#include "Debugger.h"
 
 #include <iostream>
 #include <sstream>
@@ -19,9 +20,7 @@ void Replay::play(const char *filename, Soldier *soldier)
 	index_ = 0;
 	state_ = Playing;
 
-	#ifdef DEBUG
-		std::cout << "[" << game->tick() << "] Replay started." << std::endl;
-	#endif
+	DBG( std::cout << "[" << game->tick() << "] Replay started." << std::endl; );
 }
 
 void Replay::stop()
@@ -30,9 +29,7 @@ void Replay::stop()
 
 	state_ = Idle;
 
-	#ifdef DEBUG
-		std::cout << "Replay ended." << std::endl;
-	#endif
+	DBG( std::cout << "Replay ended." << std::endl; );
 }
 
 void Replay::startRecording(Soldier *soldier)
@@ -45,9 +42,7 @@ void Replay::startRecording(Soldier *soldier)
 	startTick_ = game->tick();
 	state_ = Recording;
 
-	#ifdef DEBUG
-		std::cout << "Recording started." << std::endl;
-	#endif
+	DBG( std::cout << "Recording started." << std::endl; );
 }
 
 void Replay::stopRecording(const char *filename)
@@ -57,9 +52,7 @@ void Replay::stopRecording(const char *filename)
 	save(filename);
 	state_ = Idle;
 
-	#ifdef DEBUG
-		std::cout << "Recording ended." << std::endl;
-	#endif
+	DBG( std::cout << "Recording ended." << std::endl; );
 }
 
 Replay::State Replay::state() const
@@ -130,11 +123,16 @@ void Replay::load(const char *filename)
 		return;
 
 	size_t size = file.tellg();
-	size -= sizeof(data_.startPosition);
-	data_.inputs.resize(size / sizeof(InputData));
 
-	if (size > 0)
+	if (size > sizeof(data_.startPosition))
 	{
+		size -= sizeof(data_.startPosition);
+
+		if (size % sizeof(InputData) != 0)
+			return;
+
+		data_.inputs.resize(size / sizeof(InputData));
+
 		file.seekg(0, std::ifstream::beg);
 		file.read(reinterpret_cast<char*>(&data_.startPosition), sizeof(data_.startPosition));
 		file.read(reinterpret_cast<char*>(&data_.inputs[0]), size);
@@ -143,13 +141,17 @@ void Replay::load(const char *filename)
 
 void Replay::save(const char *filename)
 {
+	if (data_.inputs.size() == 0)
+		return;
+
 	std::ofstream file(filename, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 
 	if (!file.is_open())
 		return;
 
-	file.write(reinterpret_cast<const char*>(&data_.startPosition), sizeof(data_.startPosition));
-	file.write(reinterpret_cast<const char*>(data_.inputs.data()), data_.inputs.size() * sizeof(InputData));
+	file.write((const char*)(&data_.startPosition), sizeof(data_.startPosition));
+	file.write((const char*)(&data_.inputs[0]), data_.inputs.size() * sizeof(InputData));
+	file.close();
 }
 
 void Replay::Log::update(Replay *replay, Soldier *soldier)
