@@ -61,7 +61,7 @@ namespace fpm
 std::ostream& operator<<(std::ostream & stream, fpm::fixed const & n)
 {
 	char buf[13];
-	fix16_to_str(n.value_, buf, std::min(5, stream.precision()));
+	fix16_to_str(n.value_, buf, std::min(5, (int)stream.precision()));
 	stream << buf;
 	return stream;
 }
