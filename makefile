@@ -52,14 +52,14 @@ endif
 # configuration
 
 cxx := g++
-opt := -Wall
+opt := -Wall -fno-exceptions -fno-rtti
 
 ifeq ($(debug),yes)
   opt += -g
   def += -DDEBUG
   out-dir-suffix := -d
 else
-  opt += -O2
+  opt += -O2 -s
 endif
 
 ifeq ($(platform),win32)
