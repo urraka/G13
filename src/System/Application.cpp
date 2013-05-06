@@ -12,26 +12,17 @@
 
 namespace
 {
-	Application *app = 0;
-
-	namespace callbacks
-	{
-		Application::LaunchedCallback launchedCallback = 0;
-		Application::TerminateCallback terminateCallback = 0;
-
-		#if defined(IOS)
-			void ios_launched() { launchedCallback(app); }
-			void ios_terminate() { terminateCallback(); }
-		#endif
-	}
+	Application *self = 0;
 }
 
 Application::Application(int argc, char *argv[])
 	:	argc_(argc),
 		argv_(argv),
-		window_(0)
+		window_(0),
+		launchCallback_(0),
+		terminateCallback_(0)
 {
-	app = this;
+	self = this;
 }
 
 Application::~Application()
@@ -40,22 +31,14 @@ Application::~Application()
 		delete window_;
 }
 
-void Application::launched(LaunchedCallback callback)
+void Application::launchCallback(LaunchCallback callback)
 {
-	callbacks::launchedCallback = callback;
-
-	#if defined(IOS)
-		iosSetAppLaunchedCallback(callbacks::ios_launched);
-	#endif
+	launchCallback_ = callback;
 }
 
-void Application::terminate(TerminateCallback callback)
+void Application::terminateCallback(TerminateCallback callback)
 {
-	callbacks::terminateCallback = callback;
-
-	#if defined(IOS)
-		iosSetTerminateCallback(callbacks::ios_terminate);
-	#endif
+	terminateCallback_ = callback;
 }
 
 Window *Application::window(bool fullscreen, int fsaa)
@@ -70,22 +53,40 @@ Window *Application::window(bool fullscreen, int fsaa)
 
 int Application::run()
 {
+	assert(launchCallback_ != 0 && terminateCallback_ != 0);
+
 	#if defined(IOS)
+		iosSetAppLaunchedCallback(Application::iosLaunched);
+		iosSetTerminateCallback(Application::iosTerminate);
+
 		return iosRun(argc_, argv_);
 	#else
-		callbacks::launchedCallback(app);
+		launchCallback_(this);
+
 		assert(window_ != 0);
 
 		while (glfwGetWindowParam(GLFW_OPENED) == GL_TRUE)
 			window_->events();
 
-		if (callbacks::terminateCallback != 0)
-			callbacks::terminateCallback();
+		terminateCallback_();
 
 		delete window_;
 		window_ = 0;
+
 		glfwTerminate();
 
 		return 0;
 	#endif
 }
+
+#if defined(IOS)
+	void Application::iosLaunch()
+	{
+		self->launchCallback_(self);
+	}
+
+	void Application::iosTerminate()
+	{
+		self->terminateCallback_();
+	}
+#endif

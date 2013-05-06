@@ -41,8 +41,7 @@ Game::Game()
 		dt_(0),
 		fpsTimer_(0),
 		fps_(0),
-		tick_(0),
-		stepMode_(false)
+		tick_(0)
 {
 }
 
@@ -80,7 +79,7 @@ void Game::draw()
 	float percent = (float)(timeAccumulator_ / (double)dt_);
 
 	DBG(
-		if (stepMode_)
+		if (dbg->stepMode)
 			percent = 1.0f;
 	);
 
@@ -104,13 +103,18 @@ void Game::input()
 			{
 				if (event.keyboard.pressed)
 				{
+					if (event.keyboard.key == Keyboard::F6)
+						dbg->showFPS = !dbg->showFPS;
+
 					if (event.keyboard.key == Keyboard::F5)
 					{
-						stepMode_ = !stepMode_;
-						currentTime_ = Clock::time();
+						dbg->stepMode = !dbg->stepMode;
+
+						if (!dbg->stepMode)
+							timeAccumulator_ = 0;
 					}
 
-					if (stepMode_ && event.keyboard.key == Keyboard::F10)
+					if (dbg->stepMode && event.keyboard.key == Keyboard::F10)
 					{
 						std::cout << "tick: " << tick_ << std::endl;
 						scene_->update(dt_);
@@ -124,25 +128,21 @@ void Game::input()
 
 void Game::update()
 {
-	DBG( if (stepMode_) return; );
-
 	const Time maxFrameTime = Clock::milliseconds(250);
 
 	Time newTime = Clock::time();
 	Time frameTime = newTime - currentTime_;
 
 	DBG(
-		if (DEBUG_FPS)
-		{
-			fpsTimer_ += frameTime;
+		fpsTimer_ += frameTime;
 
-			if (fpsTimer_ >= Clock::seconds(1))
-			{
+		if (fpsTimer_ >= Clock::seconds(1))
+		{
+			if (dbg->showFPS)
 				std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
 
-				fpsTimer_ -= Clock::seconds(1);
-				fps_ = 0;
-			}
+			fpsTimer_ -= Clock::seconds(1);
+			fps_ = 0;
 		}
 	);
 
@@ -151,6 +151,8 @@ void Game::update()
 
 	currentTime_ = newTime;
 	timeAccumulator_ += frameTime;
+
+	DBG( if (dbg->stepMode) return; );
 
 	while (timeAccumulator_ >= dt_)
 	{

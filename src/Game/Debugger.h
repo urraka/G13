@@ -6,9 +6,6 @@
 	#define DBG(x)
 #endif
 
-#define DEBUG_FPS 0
-#define DEBUG_COLLISION_DATA 0
-
 #ifdef DEBUG
 
 template<class T> class VBO;
@@ -32,6 +29,8 @@ public:
 	Graphics *graphics;
 
 	bool showCollisionHulls;
+	bool showFPS;
+	bool stepMode;
 
 private:
 	VBO<ColorVertex> *collisionHulls[2];

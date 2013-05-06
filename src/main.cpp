@@ -5,8 +5,8 @@ int main(int argc, char *argv[])
 {
 	Application app(argc, argv);
 
-	app.launched(Game::launch);
-	app.terminate(Game::terminate);
+	app.launchCallback(Game::launch);
+	app.terminateCallback(Game::terminate);
 
 	return app.run();
 }

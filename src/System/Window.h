@@ -8,7 +8,6 @@
 class Window
 {
 public:
-	Window();
 	~Window();
 
 	typedef void (*DisplayCallback)();
@@ -24,6 +23,7 @@ public:
 	int rotation();
 
 private:
+	Window();
 	void events();
 
 	std::vector<Event> events_;

@@ -1,3 +1,5 @@
+#ifdef DEBUG
+
 #include "Debugger.h"
 #include "../Graphics/Graphics.h"
 #include "Game.h"
@@ -10,7 +12,6 @@
 #include <sstream>
 #include <iomanip>
 
-#ifdef DEBUG
 
 Debugger *dbg = 0;
 
@@ -19,6 +20,8 @@ Debugger::Debugger()
 		soldier(0),
 		graphics(0),
 		showCollisionHulls(false),
+		showFPS(false),
+		stepMode(false),
 		collisionHulls()
 {
 }
