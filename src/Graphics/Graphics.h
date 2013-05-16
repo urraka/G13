@@ -33,6 +33,7 @@ public:
 
 	void clear();
 	void bgcolor(float r, float g, float b, float a = 1.0f);
+	void wireframe(bool active);
 	void draw(SpriteBatch *spriteBatch);
 	void draw(SpriteBatch *spriteBatch, size_t offset, size_t count);
 	template<class VertexT> void draw(VBO<VertexT> *vbo);

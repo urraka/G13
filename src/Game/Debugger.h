@@ -31,6 +31,7 @@ public:
 	bool showCollisionHulls;
 	bool showFPS;
 	bool stepMode;
+	bool wireframe;
 
 private:
 	VBO<ColorVertex> *collisionHulls[2];

@@ -22,6 +22,7 @@ Debugger::Debugger()
 		showCollisionHulls(false),
 		showFPS(false),
 		stepMode(false),
+		wireframe(false),
 		collisionHulls()
 {
 }

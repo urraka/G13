@@ -1,5 +1,6 @@
 #include "Map.h"
 #include "Game.h"
+#include "Debugger.h"
 
 #include <set>
 
@@ -103,8 +104,12 @@ void Map::draw(Graphics *graphics)
 {
 	graphics->bind(Graphics::ColorShader);
 
+	DBG(graphics->wireframe(dbg->wireframe));
+
 	for (size_t i = 0; i < buffers_.size(); i++)
 		graphics->draw(buffers_[i]);
+
+	DBG(graphics->wireframe(false));
 }
 
 namespace

@@ -6,6 +6,8 @@
 	template VBO<VertexT> *Graphics::buffer<VertexT>(vbo_t::Mode mode, vbo_t::Usage usage, size_t size); \
 	template void Graphics::bind<VertexT>(VBO<VertexT> *vbo, vbo_t::Type type)
 
+#include "../System/platform.h"
+
 #include "Graphics.h"
 #include "Shader.h"
 #include "shaders.h"
@@ -130,6 +132,13 @@ void Graphics::clear()
 void Graphics::bgcolor(float r, float g, float b, float a)
 {
 	glClearColor(r, g, b, a);
+}
+
+void Graphics::wireframe(bool active)
+{
+	#if !defined(IOS)
+		glPolygonMode(GL_FRONT_AND_BACK, active ? GL_LINE : GL_FILL);
+	#endif
 }
 
 template<class VertexT> void Graphics::draw(VBO<VertexT> *vbo)
