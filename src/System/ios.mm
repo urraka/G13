@@ -14,9 +14,9 @@
 // -----------------------------------------------------------------------------
 
 @interface GLView : UIView {
-	CAEAGLLayer* layer_;
-	EAGLContext* context_;
-}
+		CAEAGLLayer* layer_;
+		EAGLContext* context_;
+	}
 @end
 
 // -----------------------------------------------------------------------------
@@ -24,10 +24,11 @@
 // -----------------------------------------------------------------------------
 
 @interface AppDelegate : NSObject<UIApplicationDelegate> {
-	UIWindow *window_;
-	GLView *view_;
-}
-- (void)createWindow;
+		UIWindow *window_;
+		GLView *view_;
+	}
+
+	- (void)createWindow;
 @end
 
 // -----------------------------------------------------------------------------
@@ -85,68 +86,66 @@ namespace
 // -----------------------------------------------------------------------------
 
 @implementation GLView
-
-+ (Class)layerClass
-{
-	return [CAEAGLLayer class];
-}
-
-- (id)initWithFrame:(CGRect)frame
-{
-	self = [super initWithFrame:frame];
-
-	if (!self)
-		return nil;
-
-	layer_ = (CAEAGLLayer*)self.layer;
-	layer_.opaque = YES;
-
-	EAGLRenderingAPI api = kEAGLRenderingAPIOpenGLES2;
-	context_ = [[EAGLContext alloc] initWithAPI:api];
-
-	if (!context_) {
-		NSLog(@"Failed to initialize OpenGLES 2.0 context.");
-		exit(1);
+	+ (Class)layerClass
+	{
+		return [CAEAGLLayer class];
 	}
 
-	if (![EAGLContext setCurrentContext:context_]) {
-		NSLog(@"Failed to set current OpenGL context.");
-		exit(1);
+	- (id)initWithFrame:(CGRect)frame
+	{
+		self = [super initWithFrame:frame];
+
+		if (!self)
+			return nil;
+
+		layer_ = (CAEAGLLayer*)self.layer;
+		layer_.opaque = YES;
+
+		EAGLRenderingAPI api = kEAGLRenderingAPIOpenGLES2;
+		context_ = [[EAGLContext alloc] initWithAPI:api];
+
+		if (!context_) {
+			NSLog(@"Failed to initialize OpenGLES 2.0 context.");
+			exit(1);
+		}
+
+		if (![EAGLContext setCurrentContext:context_]) {
+			NSLog(@"Failed to set current OpenGL context.");
+			exit(1);
+		}
+
+		GLuint renderBuffer;
+		glGenRenderbuffers(1, &renderBuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+		[context_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:layer_];
+
+		GLuint framebuffer;
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
+
+		CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(display:)];
+		[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+
+		return self;
 	}
 
-	GLuint renderBuffer;
-	glGenRenderbuffers(1, &renderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-	[context_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:layer_];
+	- (void)dealloc
+	{
+		if (terminateCallback != 0)
+			terminateCallback();
 
-	GLuint framebuffer;
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
+		[context_ release];
+		context_ = nil;
+		[super dealloc];
+	}
 
-	CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(display:)];
-	[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+	- (void)display:(CADisplayLink*)displayLink
+	{
+		displayCallback();
 
-	return self;
-}
-
-- (void)dealloc
-{
-	if (terminateCallback != 0)
-		terminateCallback();
-
-	[context_ release];
-	context_ = nil;
-	[super dealloc];
-}
-
-- (void)display:(CADisplayLink*)displayLink
-{
-	displayCallback();
-
-	[context_ presentRenderbuffer:GL_RENDERBUFFER];
-}
-
+		[context_ presentRenderbuffer:GL_RENDERBUFFER];
+	}
 @end
 
 // -----------------------------------------------------------------------------
@@ -154,63 +153,61 @@ namespace
 // -----------------------------------------------------------------------------
 
 @implementation AppDelegate
+	- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+	{
+		app = self;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-	app = self;
+		[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
+		[[UIApplication sharedApplication] setStatusBarHidden:true];
+		[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
 
-	[[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]];
-	[[UIApplication sharedApplication] setStatusBarHidden:true];
-	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
+		updateOrientation();
+		appLaunchedCallback();
 
-	updateOrientation();
-	appLaunchedCallback();
+		assert(displayCallback != 0);
 
-	assert(displayCallback != 0);
+		return YES;
+	}
 
-	return YES;
-}
+	- (void)dealloc
+	{
+		[view_ release];
+		[window_ release];
+		[super dealloc];
+	}
 
-- (void)dealloc
-{
-	[view_ release];
-	[window_ release];
-	[super dealloc];
-}
+	- (void)applicationWillResignActive:(UIApplication *)application {}
+	- (void)applicationDidEnterBackground:(UIApplication *)application {}
+	- (void)applicationWillEnterForeground:(UIApplication *)application {}
+	- (void)applicationDidBecomeActive:(UIApplication *)application {}
 
-- (void)applicationWillResignActive:(UIApplication *)application {}
-- (void)applicationDidEnterBackground:(UIApplication *)application {}
-- (void)applicationWillEnterForeground:(UIApplication *)application {}
-- (void)applicationDidBecomeActive:(UIApplication *)application {}
+	- (void)applicationWillTerminate:(UIApplication *)application
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self];
+		[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+	}
 
-- (void)applicationWillTerminate:(UIApplication *)application
-{
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-}
+	- (void)orientationChanged: (NSNotification*) notice
+	{
+		updateOrientation();
 
-- (void)orientationChanged: (NSNotification*) notice
-{
-	updateOrientation();
+		if (orientationCallback)
+			orientationCallback();
+	}
 
-	if (orientationCallback)
-		orientationCallback();
-}
-
-- (void)createWindow
-{
-	CGRect screen = [[UIScreen mainScreen] bounds];
-	window_ = [[UIWindow alloc] initWithFrame: screen];
-	view = view_ = [[GLView alloc] initWithFrame: screen];
-	[window_ addSubview: view_];
-	[window_ makeKeyAndVisible];
-}
-
+	- (void)createWindow
+	{
+		CGRect screen = [[UIScreen mainScreen] bounds];
+		window_ = [[UIWindow alloc] initWithFrame: screen];
+		view = view_ = [[GLView alloc] initWithFrame: screen];
+		[window_ addSubview: view_];
+		[window_ makeKeyAndVisible];
+	}
 @end
 
 // -----------------------------------------------------------------------------
-// C bindings
+// C-like bindings
 // -----------------------------------------------------------------------------
 
 void iosSetAppLaunchedCallback(IOSAppLaunchedFun callback)
