@@ -49,7 +49,7 @@ ifeq ($(patsubst %-d,-d,$(MAKECMDGOALS)),-d)
   debug := yes
 endif
 
-# configuration
+# configuration (vars: cxx, opt, lib, def, out-dir, out-dir-suffix, out)
 
 cxx := g++
 opt := -Wall -fno-exceptions -fno-rtti
@@ -70,7 +70,8 @@ ifeq ($(platform),win32)
   lib += lib/win32/libpng.a
   lib += lib/win32/libz.a
   lib += lib/win32/libfixmath.a
-  lib += -lopengl32
+  lib += lib/win32/libenet.a
+  lib += -lopengl32 -lws2_32 -lwinmm
   def += -DWIN32 -DGLEW_STATIC
   opt += -static-libgcc -static-libstdc++
   ifeq ($(debug),no)
@@ -81,14 +82,14 @@ endif
 ifeq ($(platform),unix)
   out-dir := bin/unix$(out-dir-suffix)
   out := $(out-dir)/G13
-  lib := -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -lfixmath
+  lib += -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -lfixmath
   def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
 endif
 
 ifeq ($(platform),osx)
   out-dir := bin/osx$(out-dir-suffix)
   out := $(out-dir)/G13
-  lib := -lGLEW -lglfw -framework OpenGL -lpng -lz -lfixmath
+  lib += -lGLEW -lglfw -framework OpenGL -lpng -lz -lfixmath
   def += -DOSX
 endif
 
