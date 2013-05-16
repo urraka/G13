@@ -1,13 +1,14 @@
 #pragma once
 
+#include "Network/Server.h"
 #include "../System/Clock.h"
+#include "States/State.h"
 
 #include <stdint.h>
 
 class Application;
 class Window;
 class Graphics;
-class Scene;
 
 class Game {
 public:
@@ -24,11 +25,14 @@ public:
 	void update();
 	uint64_t tick() const;
 
+	void quit();
+	void state(stt::State *state);
+
 	Window *window;
 	Graphics *graphics;
 
 private:
-	Scene *scene_;
+	stt::State *state_;
 
 	Time currentTime_;
 	Time timeAccumulator_;
@@ -36,6 +40,9 @@ private:
 	Time fpsTimer_;
 	int fps_;
 	uint64_t tick_;
+	bool quit_;
+
+	Server server_;
 };
 
 extern Game *game;

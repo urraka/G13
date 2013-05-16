@@ -1,5 +1,20 @@
+General
+  - Add all external includes to project and all libs compiled for the different systems.
+  - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
+
+Networking
+  - Decide how to handle server (standalone, along with client, use another thread, etc).
+  - Decide what object will keep all the game state (players, bullets, etc).
+  - Decide if server updates only when receiving data.
+  / Read about networking and decide what to do first.
+
 Game
-  - Fix replay crashing game on release.
+  - Consider removing init() from Scene and initialize on constructor, assuming it's always created on the heap with new.
+  - Find collision bug and fix it, I FUCKING SAW IT.
+  - Auto-record every fucking gameplay and store in new files with dates and shit.
+  - Rename Scene to State.
+  - Use namespaces for states, entities and components (stt, ent, cmp).
+  - Add some method to switch Game state.
   - Consider making components private with methods to access as const.
 
 System
@@ -21,6 +36,7 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Fix replay crashing game on release.
   x Move all debug outputs to debugger object.
   x Add global Debugger object which everyone has access to.
   x Move the debug drawing to Debugger object.

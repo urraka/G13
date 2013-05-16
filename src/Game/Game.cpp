@@ -1,12 +1,15 @@
 #include "Game.h"
-#include "Scene.h"
-#include "Scenes/MainScene.h"
+#include "States/Connecting.h"
+#include "States/Testing.h"
+#include "Debugger.h"
+
 #include "../Graphics/Graphics.h"
 #include "../System/Event.h"
 #include "../System/Keyboard.h"
 #include "../System/Application.h"
 #include "../System/Window.h"
-#include "Debugger.h"
+
+#include <enet/enet.h>
 
 #include <iostream>
 
@@ -35,24 +38,32 @@ void Game::terminate()
 Game::Game()
 	:	window(0),
 		graphics(0),
-		scene_(0),
+		state_(0),
 		currentTime_(0),
 		timeAccumulator_(0),
 		dt_(0),
 		fpsTimer_(0),
 		fps_(0),
-		tick_(0)
+		tick_(0),
+		quit_(false)
 {
 }
 
 Game::~Game()
 {
-	delete scene_;
+	delete state_;
 	delete graphics;
+
+	enet_deinitialize();
 }
 
 void Game::init(Application *app)
 {
+	if (enet_initialize() != 0)
+		std::cerr << "Failed to initialize enet." << std::endl;
+
+	server_.start(2345);
+
 	currentTime_ = Clock::time();
 	dt_ = Clock::milliseconds(30);
 
@@ -70,12 +81,14 @@ void Game::init(Application *app)
 
 	DBG( dbg->graphics = graphics; );
 
-	scene_ = new MainScene();
-	scene_->init();
+	state_ = new stt::Testing();
+	// state_ = new stt::Connecting();
 }
 
 void Game::draw()
 {
+	if (quit_) return;
+
 	float percent = (float)(timeAccumulator_ / (double)dt_);
 
 	DBG(
@@ -83,7 +96,7 @@ void Game::draw()
 			percent = 1.0f;
 	);
 
-	scene_->draw(percent);
+	state_->draw(percent);
 	fps_++;
 }
 
@@ -93,7 +106,7 @@ void Game::input()
 
 	while (window->poll(&event))
 	{
-		scene_->event(event);
+		state_->event(event);
 
 		if (event.type == Event::Resize)
 			graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
@@ -117,17 +130,23 @@ void Game::input()
 					if (dbg->stepMode && event.keyboard.key == Keyboard::F10)
 					{
 						std::cout << "tick: " << tick_ << std::endl;
-						scene_->update(dt_);
+						state_->update(dt_);
 						tick_++;
 					}
 				}
 			}
 		);
+
+		if (quit_) break;
 	}
 }
 
 void Game::update()
 {
+	server_.update();
+
+	if (quit_) return;
+
 	const Time maxFrameTime = Clock::milliseconds(250);
 
 	Time newTime = Clock::time();
@@ -156,7 +175,7 @@ void Game::update()
 
 	while (timeAccumulator_ >= dt_)
 	{
-		scene_->update(dt_);
+		state_->update(dt_);
 		timeAccumulator_ -= dt_;
 		tick_++;
 	}
@@ -165,4 +184,15 @@ void Game::update()
 uint64_t Game::tick() const
 {
 	return tick_;
+}
+
+void Game::quit()
+{
+	quit_ = true;
+	window->close();
+}
+
+void Game::state(stt::State *state)
+{
+	state_ = state;
 }
