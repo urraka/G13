@@ -65,7 +65,7 @@ uint32_t Replay::tick() const
 	return state_ == Idle ? 0 : game->tick() - startTick_;
 }
 
-void Replay::input(const SoldierInput *input)
+void Replay::input(const cmp::SoldierInput *input)
 {
 	if (state_ != Recording)
 		return;
@@ -88,11 +88,11 @@ void Replay::input(const SoldierInput *input)
 	}
 }
 
-SoldierInput Replay::input()
+cmp::SoldierInput Replay::input()
 {
 	assert(state_ == Playing);
 
-	SoldierInput result;
+	cmp::SoldierInput result;
 
 	if (index_ == data_.inputs.size())
 	{

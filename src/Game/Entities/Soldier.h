@@ -20,8 +20,8 @@ namespace ent
 		void reset(fixvec2 pos);
 		void map(const Collision::Map *map);
 
-		SoldierInput input;
-		SoldierPhysics physics;
-		SoldierGraphics graphics;
+		cmp::SoldierInput input;
+		cmp::SoldierPhysics physics;
+		cmp::SoldierGraphics graphics;
 	};
 }

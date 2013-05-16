@@ -30,8 +30,8 @@ public:
 	void stop();
 	void startRecording(ent::Soldier *soldier);
 	void stopRecording(const char *filename);
-	void input(const SoldierInput *input);
-	SoldierInput input();
+	void input(const cmp::SoldierInput *input);
+	cmp::SoldierInput input();
 	State state() const;
 	uint32_t tick() const;
 

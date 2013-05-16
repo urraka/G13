@@ -4,18 +4,21 @@
 
 class Replay;
 
-class SoldierInput
+namespace cmp
 {
-public:
-	SoldierInput();
-	void update(Replay *replay);
-	void reset();
-	uint8_t serialize() const;
-	void unserialize(uint8_t data);
+	class SoldierInput
+	{
+	public:
+		SoldierInput();
+		void update(Replay *replay);
+		void reset();
+		uint8_t serialize() const;
+		void unserialize(uint8_t data);
 
-	bool left;
-	bool right;
-	bool jump;
-	bool run;
-	bool duck;
-};
+		bool left;
+		bool right;
+		bool jump;
+		bool run;
+		bool duck;
+	};
+}
