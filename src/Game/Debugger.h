@@ -12,8 +12,11 @@ template<class T> class VBO;
 
 class Graphics;
 class ColorVertex;
-class Soldier;
 class Map;
+
+namespace ent {
+	class Soldier;
+}
 
 class Debugger
 {
@@ -25,7 +28,7 @@ public:
 	void showCollisionData();
 
 	Map *map;
-	Soldier *soldier;
+	ent::Soldier *soldier;
 	Graphics *graphics;
 
 	bool showCollisionHulls;

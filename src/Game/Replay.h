@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Math/math.h"
+#include "Entities/Soldier.h"
 #include "Components/SoldierInput.h"
 
 #include <stdint.h>
@@ -8,15 +9,13 @@
 #include <vector>
 #include <string>
 
-class Soldier;
-
 class Replay
 {
 public:
 	class Log
 	{
 	public:
-		void update(Replay *replay, Soldier *soldier);
+		void update(Replay *replay, ent::Soldier *soldier);
 		void save(const char *filename);
 	protected:
 		std::string data_;
@@ -27,9 +26,9 @@ public:
 
 	Replay();
 
-	void play(const char *filename, Soldier *soldier);
+	void play(const char *filename, ent::Soldier *soldier);
 	void stop();
-	void startRecording(Soldier *soldier);
+	void startRecording(ent::Soldier *soldier);
 	void stopRecording(const char *filename);
 	void input(const SoldierInput *input);
 	SoldierInput input();

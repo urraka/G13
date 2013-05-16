@@ -9,16 +9,19 @@
 
 class Replay;
 
-class Soldier
+namespace ent
 {
-public:
-	Soldier();
+	class Soldier
+	{
+	public:
+		Soldier();
 
-	void update(Time dt, Replay *replay);
-	void reset(fixvec2 pos);
-	void map(const Collision::Map *map);
+		void update(Time dt, Replay *replay);
+		void reset(fixvec2 pos);
+		void map(const Collision::Map *map);
 
-	SoldierInput input;
-	SoldierPhysics physics;
-	SoldierGraphics graphics;
-};
+		SoldierInput input;
+		SoldierPhysics physics;
+		SoldierGraphics graphics;
+	};
+}

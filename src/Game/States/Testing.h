@@ -35,8 +35,8 @@ namespace stt
 		Replay replay_;
 		Replay::Log replayLog_;
 		Map map_;
-		Camera camera_;
-		Soldier soldier_;
+		ent::Camera camera_;
+		ent::Soldier soldier_;
 		Sprite tree_;
 		VBO<ColorVertex> *background_;
 		Texture *textures_[TextureCount];

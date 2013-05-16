@@ -55,10 +55,10 @@ namespace stt
 		replayLog_.update(&replay_, &soldier_);
 
 		if (Keyboard::pressed(Keyboard::NumpadAdd))
-			camera_.zoom(Camera::ZoomIn);
+			camera_.zoom(ent::Camera::ZoomIn);
 
 		if (Keyboard::pressed(Keyboard::NumpadSubtract))
-			camera_.zoom(Camera::ZoomOut);
+			camera_.zoom(ent::Camera::ZoomOut);
 
 		soldier_.update(dt, &replay_);
 		camera_.update(dt);

@@ -9,7 +9,7 @@
 
 Replay::Replay() : state_(Idle) {}
 
-void Replay::play(const char *filename, Soldier *soldier)
+void Replay::play(const char *filename, ent::Soldier *soldier)
 {
 	assert(state_ == Idle);
 
@@ -32,7 +32,7 @@ void Replay::stop()
 	DBG( std::cout << "Replay ended." << std::endl; );
 }
 
-void Replay::startRecording(Soldier *soldier)
+void Replay::startRecording(ent::Soldier *soldier)
 {
 	assert(state_ == Idle);
 
@@ -154,7 +154,7 @@ void Replay::save(const char *filename)
 	file.close();
 }
 
-void Replay::Log::update(Replay *replay, Soldier *soldier)
+void Replay::Log::update(Replay *replay, ent::Soldier *soldier)
 {
 	if (replay->state() == Replay::Playing)
 	{
