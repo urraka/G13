@@ -1,20 +1,24 @@
 General
+  - Consider making each module a library to include into the game.
+  - Move platform.h away from system.
+  - Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
   - Add all external includes to project and all libs compiled for the different systems.
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 Networking
-  - Decide how to handle server (standalone, along with client, use another thread, etc).
-  - Decide what object will keep all the game state (players, bullets, etc).
+  - Add some SoldierState and embed it inside PlayerInfo
   - Decide if server updates only when receiving data.
-  / Read about networking and decide what to do first.
+  / Design packet structures/format.
+  / Self-contained loop with time measuring and crap in Server class.
+  / Decide how to handle server (standalone, along with client, use another thread, etc).
+    * Standalone, then find its way into the client.
+  / Decide what object will keep all the game state (players, bullets, etc).
+    * Server class will be main container (for now).
 
 Game
-  - Consider removing init() from Scene and initialize on constructor, assuming it's always created on the heap with new.
+  - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
-  - Rename Scene to State.
-  - Use namespaces for states, entities and components (stt, ent, cmp).
-  - Add some method to switch Game state.
   - Consider making components private with methods to access as const.
 
 System
@@ -23,6 +27,8 @@ System
   - Revisit keyboard/char input stuff.
 
 Graphics
+  - Remove unnecesary includes from Graphics.h and add gfx.h as the general file to include.
+  - Remove dependency with Math and System.
   - Test buffer state keeping.
   - Add Image class which loads PNG into a memory buffer.
   - Make texture class use Image class and add ability to load from buffer.
@@ -32,10 +38,20 @@ Graphics
   - Add lineWidth method to Graphics.
 
 Math
+  - Replace using directives with typedefs.
   - Add some overflow checks in fpm functions (example: in length(), if (x.x or x.y > 175 warning! 175*175 = 30625))
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Add all messages in a Message directory and divide them in h/cpp.
+  x Simplify Packet so it contains only one Message.
+  x Add DataReader/DataWriter to access binary data in a network friendly way.
+  x Player should be a more dedicated class. Share it between client and server?
+  x Read about networking and decide what to do first.
+  x Consider removing init() from Scene and initialize on constructor, assuming it's always created on the heap with new.
+  x Rename Scene to State.
+  x Use namespaces for states, entities and components (stt, ent, cmp).
+  x Add some method to switch Game state.
   x Fix replay crashing game on release.
   x Move all debug outputs to debugger object.
   x Add global Debugger object which everyone has access to.

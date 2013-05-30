@@ -1,115 +1,253 @@
 #include "Server.h"
+#include "Messages/NickMessage.h"
+#include "Messages/StartMessage.h"
 #include "../Debugger.h"
 
+#include "../../Math/Math.h"
+
 #include <iostream>
+#include <algorithm>
 #include <assert.h>
 
-Server::Server()
-	:	state_(Stopped),
-		server_(0),
-		peers_(),
-		peerCount_(0),
-		stopTimeout_(Clock::milliseconds(5000))
+namespace net
 {
-}
+	Server *server = 0;
 
-Server::~Server()
-{
-	if (server_ != 0)
-		enet_host_destroy(server_);
-}
-
-bool Server::start(int port)
-{
-	assert(state_ == Stopped);
-
-	ENetAddress address;
-	address.host = ENET_HOST_ANY;
-	address.port = port;
-
-	server_ = enet_host_create(&address, MaxPeers, 2, 0, 0);
-
-	if (server_ == 0)
+	Server::Server()
+		:	state_(Stopped),
+			server_(0),
+			tick_(0),
+			dt_(Clock::milliseconds(30)),
+			stopTimeout_(Clock::milliseconds(5000)),
+			collisionMap_(0)
 	{
-		std::cerr << "Server: failed to start connection." << std::endl;
-		return false;
+		server = this;
+		players_.reserve(MaxPeers);
 	}
 
-	peerCount_ = 0;
-	memset(peers_, 0, sizeof(peers_));
-
-	state_ = Running;
-
-	return true;
-}
-
-void Server::stop()
-{
-	state_ = Stopping;
-
-	for (int i = 0; i < peerCount_; i++)
-		enet_peer_disconnect(peers_[i], 0);
-
-	stopTime_ = Clock::time();
-}
-
-void Server::update()
-{
-	ENetEvent event;
-
-	while (enet_host_service(server_, &event, 0) > 0)
+	Server::~Server()
 	{
-		switch (event.type)
+		if (server_ != 0)
+			enet_host_destroy(server_);
+	}
+
+	void Server::start(int port)
+	{
+		assert(state_ == Stopped);
+
+		ENetAddress address;
+		address.host = ENET_HOST_ANY;
+		address.port = port;
+
+		server_ = enet_host_create(&address, MaxPeers, 2, 0, 0);
+
+		if (server_ == 0)
+			std::cerr << "Server: failed to start connection." << std::endl;
+
+		players_.clear();
+
+		for (int i = 0; i < MaxPeers; i++)
+			playersBuffer_[i].id = i;
+
+		map_.load();
+		collisionMap_ = map_.collisionMap();
+
+		tick_ = 0;
+		time_ = Clock::time();
+		state_ = Running;
+	}
+
+	void Server::stop(bool gracefully)
+	{
+		assert(state_ == Running);
+
+		if (gracefully)
 		{
-			case ENET_EVENT_TYPE_CONNECT:
-			{
-				DBG( std::cout << "Server: incoming connection." << std::endl );
+			state_ = Stopping;
 
-				int index = peerCount_;
-				peers_[index] = event.peer;
+			for (size_t i = 0; i < players_.size(); i++)
+				players_[i]->disconnect();
 
-				peerCount_++;
-			}
-			break;
+			stopTime_ = Clock::time();
+		}
+		else
+		{
+			enet_host_destroy(server_);
 
-			case ENET_EVENT_TYPE_DISCONNECT:
-			{
-				std::cout << "Server: client disconnected." << std::endl;
+			server_ = 0;
+			state_ = Stopped;
 
-				int iPeer = -1;
-
-				while (iPeer < (peerCount_ - 1) && peers_[++iPeer] != event.peer)
-					;
-
-				// TODO: do whatever's necessary when a peer disconnects
-
-				for (int i = iPeer; i < peerCount_ - 1; i++)
-					peers_[i] = peers_[i + 1];
-
-				peers_[--peerCount_] = 0;
-			}
-			break;
-
-			case ENET_EVENT_TYPE_RECEIVE:
-			{
-				// queue inputs received here, order them if necessary and ignore those behind current time
-
-				enet_packet_destroy(event.packet);
-			}
-			break;
-
-			default: break;
+			for (size_t i = 0; i < players_.size(); i++)
+				players_[i]->onDisconnect();
 		}
 	}
 
-	if (state_ == Stopping && (peerCount_ == 0 || Clock::time() - stopTime_ > stopTimeout_))
+	void Server::update()
 	{
-		for (int i = 0; i < peerCount_; i++)
-			enet_peer_reset(peers_[i]);
+		assert(state_ != Stopped);
 
-		enet_host_destroy(server_);
+		Time t = Clock::time();
 
-		server_ = 0;
-		state_ = Stopped;
+		if (t - time_ < dt_)
+			return;
+
+		time_ = t;
+
+		ENetEvent event;
+
+		while (enet_host_service(server_, &event, 0) > 0)
+		{
+			switch (event.type)
+			{
+				case ENET_EVENT_TYPE_CONNECT:
+					DBG( std::cout << "Server: peer connected." << std::endl );
+					onPeerConnect(event.peer);
+					break;
+
+				case ENET_EVENT_TYPE_DISCONNECT:
+					DBG( std::cout << "Server: peer disconnected." << std::endl );
+					onPeerDisconnect(event.peer);
+					break;
+
+				case ENET_EVENT_TYPE_RECEIVE:
+					onPacketReceived(event.peer, event.packet);
+					enet_packet_destroy(event.packet);
+					break;
+
+				default: break;
+			}
+		}
+
+		if (state_ == Stopping && (players_.size() == 0 || Clock::time() - stopTime_ > stopTimeout_))
+		{
+			stop(false);
+		}
+		else
+		{
+			std::vector<Player*>::iterator it;
+
+			for (it = players_.begin(); it != players_.end();)
+			{
+				Player *player = *it;
+
+				player->update(dt_);
+
+				if (!player->connected())
+					it = players_.erase(it);
+				else
+					++it;
+			}
+		}
+
+		tick_++;
+	}
+
+	bool Server::running() const
+	{
+		return state_ == Running;
+	}
+
+	uint32_t Server::tick() const
+	{
+		return tick_;
+	}
+
+	void Server::send(Message::Type messageType, Player *player)
+	{
+		assert(player != 0);
+
+		switch (messageType)
+		{
+			case Message::Start:
+			{
+				Message msg;
+				StartMessage startMessage;
+
+				startMessage.playersCount = 0;
+
+				for (size_t i = 0; i < players_.size(); i++)
+				{
+					if (players_[i] != player && players_[i]->state() != Player::Joining && players_[i]->state() != Player::Disconnected)
+						player->info(&startMessage.players[startMessage.playersCount++]);
+				}
+
+				startMessage.serialize(&msg);
+
+				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
+				enet_peer_send(player->peer(), 0, packet);
+			}
+			break;
+
+			default:
+			{
+				assert(false);
+			}
+			break;
+		}
+	}
+
+	void Server::broadcast(Message::Type messageType, Player *player)
+	{
+		switch (messageType)
+		{
+			case Message::PlayerJoin:
+			{
+				assert(player != 0);
+			}
+			break;
+
+			default:
+			{
+				assert(false);
+			}
+			break;
+		}
+	}
+
+	void Server::onPeerConnect(ENetPeer *peer)
+	{
+		if (Player *player = findDisconnectedPlayer())
+		{
+			peer->data = player;
+			player->onConnect(peer);
+			players_.push_back(player);
+		}
+	}
+
+	void Server::onPeerDisconnect(ENetPeer *peer)
+	{
+		Player *player = (Player*)peer->data;
+		player->onDisconnect();
+
+		std::vector<Player*>::iterator it = std::find(players_.begin(), players_.end(), player);
+		players_.erase(it);
+
+		// TODO: broadcast player disconnect
+	}
+
+	void Server::onPacketReceived(ENetPeer *peer, ENetPacket *packet)
+	{
+		Player *player = (Player*)peer->data;
+
+		Message msg(packet->data, packet->dataLength);
+
+		if (msg.validate())
+			player->onMessage(&msg);
+
+		// Packet packet(enetPacket->data, enetPacket->dataLength);
+
+		// while (packet.hasMessages())
+		// 	player->onMessage(packet.getMessage());
+	}
+
+	Player *Server::findDisconnectedPlayer()
+	{
+		for (int i = 0; i < MaxPeers; i++)
+		{
+			if (!playersBuffer_[i].connected())
+				return &playersBuffer_[i];
+		}
+
+		return 0;
 	}
 }

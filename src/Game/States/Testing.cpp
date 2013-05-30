@@ -1,6 +1,7 @@
 #include "Testing.h"
 
 #include "../Game.h"
+#include "../Network/Client.h"
 #include "../../System/Keyboard.h"
 #include "../../System/Window.h"
 #include "../Debugger.h"
@@ -9,10 +10,11 @@ namespace stt
 {
 	stt_name(Testing);
 
-	Testing::Testing()
+	Testing::Testing(net::Client *client)
 		:	background_(0),
 			textures_(),
-			sprites_(0)
+			sprites_(0),
+			client_(client)
 	{
 		DBG(
 			dbg->map = &map_;
@@ -43,6 +45,9 @@ namespace stt
 
 	Testing::~Testing()
 	{
+		if (client_)
+			delete client_;
+
 		delete background_;
 		delete sprites_;
 
@@ -52,6 +57,9 @@ namespace stt
 
 	void Testing::update(Time dt)
 	{
+		if (client_)
+			client_->update();
+
 		replayLog_.update(&replay_, &soldier_);
 
 		if (Keyboard::pressed(Keyboard::NumpadAdd))

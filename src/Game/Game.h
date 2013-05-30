@@ -42,7 +42,7 @@ private:
 	uint64_t tick_;
 	bool quit_;
 
-	Server server_;
+	net::Server server_;
 };
 
 extern Game *game;

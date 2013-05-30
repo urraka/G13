@@ -1,4 +1,5 @@
 #include "Connecting.h"
+#include "Testing.h"
 
 #include "../Game.h"
 #include "../Network/Client.h"
@@ -11,7 +12,7 @@ namespace stt
 
 	Connecting::Connecting()
 	{
-		client_ = new Client();
+		client_ = new net::Client();
 		client_->connect("localhost", 2345);
 	}
 
@@ -27,8 +28,8 @@ namespace stt
 		{
 			// TODO: retrieve initial data and switch state
 
-			delete client_; // TODO: remove this, should be passed to next state
-			game->quit();
+			game->state(new stt::Testing(client_));
+			delete this;
 		}
 		else if (!client_->connecting())
 		{

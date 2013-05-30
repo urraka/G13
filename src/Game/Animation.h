@@ -51,6 +51,11 @@ public:
 		return frame_ != -1 ? &frames_[frame_] : 0;
 	}
 
+	int frameIndex() const
+	{
+		return frame_;
+	}
+
 	void set(int id, int frame = -1)
 	{
 		id_ = id;

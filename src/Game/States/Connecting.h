@@ -2,7 +2,7 @@
 
 #include "State.h"
 
-class Client;
+namespace net{ class Client; }
 
 namespace stt
 {
@@ -19,6 +19,6 @@ namespace stt
 		stt_name_decl();
 
 	private:
-		Client *client_;
+		net::Client *client_;
 	};
 }

@@ -59,11 +59,6 @@ Game::~Game()
 
 void Game::init(Application *app)
 {
-	if (enet_initialize() != 0)
-		std::cerr << "Failed to initialize enet." << std::endl;
-
-	server_.start(2345);
-
 	currentTime_ = Clock::time();
 	dt_ = Clock::milliseconds(30);
 
@@ -81,8 +76,13 @@ void Game::init(Application *app)
 
 	DBG( dbg->graphics = graphics; );
 
-	state_ = new stt::Testing();
-	// state_ = new stt::Connecting();
+	if (enet_initialize() != 0)
+		std::cerr << "Failed to initialize enet." << std::endl;
+
+	server_.start(2345);
+
+	// state_ = new stt::Testing();
+	state_ = new stt::Connecting();
 }
 
 void Game::draw()

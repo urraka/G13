@@ -10,12 +10,14 @@
 #include "../Map.h"
 #include "../Replay.h"
 
+namespace net { class Client; }
+
 namespace stt
 {
 	class Testing : public State
 	{
 	public:
-		Testing();
+		Testing(net::Client *client = 0);
 		~Testing();
 
 		void update(Time dt);
@@ -41,6 +43,7 @@ namespace stt
 		VBO<ColorVertex> *background_;
 		Texture *textures_[TextureCount];
 		SpriteBatch *sprites_;
+		net::Client *client_;
 
 		void updateBackground(int width, int height);
 	};
