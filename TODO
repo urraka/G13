@@ -6,6 +6,8 @@ General
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 Networking
+  - Add tick to every message so unordered packets can be used.
+  - Add own allocation for enet.
   - Add some SoldierState and embed it inside PlayerInfo
   - Decide if server updates only when receiving data.
   / Design packet structures/format.

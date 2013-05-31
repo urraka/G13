@@ -6,6 +6,12 @@
 
 namespace net
 {
+	bool StartMessage::validate(const Message *msg)
+	{
+		assert(false);
+		return false;
+	}
+
 	void StartMessage::serialize(Message *msg)
 	{
 		DataWriter writer(data_, sizeof(data_));
@@ -14,7 +20,7 @@ namespace net
 
 		for (int i = 0; i < playersCount; i++)
 		{
-			Player::Info *info = &players[i];
+			Player::Info *info = &playersInfo[i];
 
 			uint8_t idAndState = (info->state & 0xF) | ((info->id << 4) & 0xF0);
 			uint8_t spriteState = (info->flipped ? (1 << 7) : 0) | (info->frame & 0x7F);
@@ -47,7 +53,7 @@ namespace net
 
 		while (reader.tell() < msg->length)
 		{
-			Player::Info *info = &players[playersCount++];
+			Player::Info *info = &playersInfo[playersCount++];
 
 			uint8_t idAndState, spriteState;
 			int32_t px, py, vx, vy;
@@ -69,10 +75,5 @@ namespace net
 			info->flipped = spriteState & 0x80;
 			info->frame = spriteState & 0x7F;
 		}
-	}
-
-	bool StartMessage::validate(const Message *msg)
-	{
-		return false;
 	}
 }

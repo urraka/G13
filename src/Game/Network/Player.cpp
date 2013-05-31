@@ -92,17 +92,26 @@ namespace net
 		return state_;
 	}
 
-	void Player::info(Info *info)
+	Player::Info Player::info() const
 	{
-		info->id = id;
-		info->state = state_;
-		info->flipped = soldier_.graphics.sprite.scale.x == -1.f;
-		info->frame = soldier_.graphics.animation.frameIndex();
-		info->position = soldier_.physics.position;
-		info->velocity = soldier_.physics.velocity;
+		Player::Info result;
 
-		strncpy(info->nickname, name_.c_str(), sizeof(info->nickname));
-		info->nickname[sizeof(info->nickname) - 1] = 0;
+		result.id = id;
+		result.state = state_;
+		result.flipped = soldier_.graphics.sprite.scale.x == -1.f;
+		result.frame = soldier_.graphics.animation.frameIndex();
+		result.position = soldier_.physics.position;
+		result.velocity = soldier_.physics.velocity;
+
+		strncpy(result.nickname, name_.c_str(), sizeof(result.nickname));
+		result.nickname[sizeof(result.nickname) - 1] = 0;
+
+		return result;
+	}
+
+	const char *Player::nickname() const
+	{
+		return name_.c_str();
 	}
 
 	void Player::reset()

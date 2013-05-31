@@ -16,10 +16,10 @@ namespace net
 		void serialize(Message *msg);
 		void unserialize(const Message *msg);
 
-		Player::Info players[Server::MaxPeers];
+		Player::Info playersInfo[Server::MaxPeers];
 		int playersCount;
 
 	private:
-		uint8_t data_[1 + Player::Info::MaxSize * Server::MaxPeers];
+		uint8_t data_[1 + Player::Info::MaxSize * Server::MaxPeers]; // msg type + array of player info (see Player::Info)
 	};
 }

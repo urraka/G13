@@ -30,7 +30,7 @@ namespace net
 		struct Info
 		{
 			static const uint16_t MaxNickBytes = 32;
-			static const uint16_t MaxSize = 1 + (MaxNickBytes + 1) + 2*4 + 2*4 + 1;
+			static const uint16_t MaxSize = 1 + (MaxNickBytes + 1) + 2*4 + 2*4 + 1; // id & state + null terminated nick + position + velocity + flipped & frame
 
 			int id;
 			State state;
@@ -50,9 +50,8 @@ namespace net
 
 		ENetPeer *peer() const;
 		State state() const;
-
-		size_t serialize(uint8_t *buffer) const;
-		void info(Info *info);
+		Info info() const;
+		const char *nickname() const;
 
 		int id;
 

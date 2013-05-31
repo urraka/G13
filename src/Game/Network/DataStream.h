@@ -14,26 +14,15 @@ namespace net
 
 		enum SeekMode { Begin, Current, End };
 
-		size_t tell() const
-		{
-			return index_;
-		}
+		size_t tell() const { return index_; }
 
 		void seek(size_t position, SeekMode mode = Current)
 		{
 			switch (mode)
 			{
-				case Begin:
-					index_ = position;
-					break;
-
-				case Current:
-					index_ += position;
-					break;
-
-				case End:
-					index_ = size_ - position;
-					break;
+				case Begin:   index_ = position;         break;
+				case Current: index_ += position;        break;
+				case End:     index_ = size_ - position; break;
 			}
 		}
 
@@ -116,13 +105,14 @@ namespace net
 		DataWriter& operator<<(uint32_t x) { write(x); return *this; }
 		DataWriter& operator<<(uint64_t x) { write(x); return *this; }
 
-		DataWriter& operator<<(const std::string &str)
+		DataWriter& operator<<(const std::string &str) { return *this << str.c_str(); }
+
+		DataWriter& operator<<(const char *str)
 		{
 			int i = 0;
-			const char *s = str.c_str();
 
-			while (index_ < size_ && s[i] != 0)
-				data_[index_++] = *(uint8_t*)&s[i++];
+			while (index_ < size_ && str[i] != 0)
+				data_[index_++] = *(uint8_t*)&str[i++];
 
 			if (index_ < size_)
 				data_[index_++] = 0;

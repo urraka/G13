@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "Messages/NickMessage.h"
 #include "Messages/StartMessage.h"
+#include "Messages/PlayerJoinMessage.h"
 #include "../Debugger.h"
 
 #include "../../Math/Math.h"
@@ -168,7 +169,10 @@ namespace net
 				for (size_t i = 0; i < players_.size(); i++)
 				{
 					if (players_[i] != player && players_[i]->state() != Player::Joining && players_[i]->state() != Player::Disconnected)
-						player->info(&startMessage.players[startMessage.playersCount++]);
+					{
+						startMessage.playersInfo[startMessage.playersCount] = players_[i]->info();
+						startMessage.playersCount++;
+					}
 				}
 
 				startMessage.serialize(&msg);
@@ -179,10 +183,8 @@ namespace net
 			break;
 
 			default:
-			{
 				assert(false);
-			}
-			break;
+				break;
 		}
 	}
 
@@ -193,14 +195,23 @@ namespace net
 			case Message::PlayerJoin:
 			{
 				assert(player != 0);
+
+				Message msg;
+				PlayerJoinMessage joinMessage;
+
+				joinMessage.id = player->id;
+				strncpy(joinMessage.nickname, player->nickname(), sizeof(joinMessage.nickname));
+
+				joinMessage.serialize(&msg);
+
+				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
+				enet_host_broadcast(server_, 0, packet);
 			}
 			break;
 
 			default:
-			{
 				assert(false);
-			}
-			break;
+				break;
 		}
 	}
 
@@ -233,11 +244,6 @@ namespace net
 
 		if (msg.validate())
 			player->onMessage(&msg);
-
-		// Packet packet(enetPacket->data, enetPacket->dataLength);
-
-		// while (packet.hasMessages())
-		// 	player->onMessage(packet.getMessage());
 	}
 
 	Player *Server::findDisconnectedPlayer()
