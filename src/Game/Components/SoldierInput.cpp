@@ -13,24 +13,17 @@ namespace cmp
 	{
 	}
 
-	void SoldierInput::update(Replay *replay)
+	void SoldierInput::update()
 	{
-		if (replay->state() == Replay::Playing)
-		{
-			*this = replay->input();
-		}
-		else
-		{
-			reset();
+		reset();
 
-			left  = Keyboard::pressed(Keyboard::Left);
-			right = Keyboard::pressed(Keyboard::Right);
-			jump  = Keyboard::pressed(Keyboard::Up);
-			run   = Keyboard::pressed(Keyboard::LShift);
-			duck  = Keyboard::pressed(Keyboard::Down);
+		left  = Keyboard::pressed(Keyboard::Left);
+		right = Keyboard::pressed(Keyboard::Right);
+		jump  = Keyboard::pressed(Keyboard::Up);
+		run   = Keyboard::pressed(Keyboard::LShift);
+		duck  = Keyboard::pressed(Keyboard::Down);
 
-			if (left && right) left = right = false;
-		}
+		if (left && right) left = right = false;
 	}
 
 	void SoldierInput::reset()

@@ -8,8 +8,56 @@ namespace net
 {
 	bool StartMessage::validate(const Message *msg)
 	{
-		assert(false);
-		return false;
+		assert(msg->type() == Message::Start);
+
+		if (msg->length == 1) // no players on the list, could happen if you join first
+			return true;
+
+		if (msg->length > sizeof(StartMessage::data_))
+			return false;
+
+		DataReader reader(msg->data, msg->length);
+		reader.seek(1, DataStream::Begin);
+
+		while (reader.tell() < msg->length)
+		{
+			uint8_t idAndState;
+			reader >> idAndState;
+
+			if ((idAndState >> 4) >= Server::MaxPeers) // validate id
+				return false;
+
+			if ((idAndState & 0xF) >= Player::StateCount) // validate state
+				return false;
+
+			if (reader.tell() >= msg->length) // no more bytes? bad
+				return false;
+
+			char str[Player::Info::MaxNickBytes + 1]; // null terminated
+
+			for (int i = 0; i < Player::Info::MaxNickBytes + 1; i++)
+			{
+				reader >> str[i];
+
+				if (reader.tell() >= msg->length) // no more bytes?
+					return false;
+
+				if (i == 0 && str[i] == 0) // nickname with zero length
+					return false;
+
+				if (str[i] == 0) // end of string
+					break;
+			}
+
+			// TODO: check if str is valid UTF-8
+
+			if (reader.tell() + Player::SoldierState::Size > msg->length) // must fit
+				return false;
+
+			reader.seek(Player::SoldierState::Size, DataStream::Current);
+		}
+
+		return true;
 	}
 
 	void StartMessage::serialize(Message *msg)
@@ -18,22 +66,17 @@ namespace net
 
 		writer << (uint8_t)Message::Start;
 
-		for (int i = 0; i < playersCount; i++)
+		for (int i = 0; i < nPlayers; i++)
 		{
 			Player::Info *info = &playersInfo[i];
 
 			uint8_t idAndState = (info->state & 0xF) | ((info->id << 4) & 0xF0);
-			uint8_t spriteState = (info->flipped ? (1 << 7) : 0) | (info->frame & 0x7F);
 
 			info->nickname[sizeof(info->nickname) - 1] = 0;
 
 			writer << idAndState;
 			writer << info->nickname;
-			writer << info->position.x.value();
-			writer << info->position.y.value();
-			writer << info->velocity.x.value();
-			writer << info->velocity.y.value();
-			writer << spriteState;
+			writer << info->soldierState;
 		}
 
 		msg->data = data_;
@@ -49,31 +92,20 @@ namespace net
 		DataReader reader(msg->data, msg->length);
 		reader.seek(1, DataStream::Begin);
 
-		playersCount = 0;
+		nPlayers = 0;
 
 		while (reader.tell() < msg->length)
 		{
-			Player::Info *info = &playersInfo[playersCount++];
+			Player::Info *info = &playersInfo[nPlayers++];
 
-			uint8_t idAndState, spriteState;
-			int32_t px, py, vx, vy;
+			uint8_t idAndState;
 
 			reader >> idAndState;
 			reader >> info->nickname;
-			reader >> px;
-			reader >> py;
-			reader >> vx;
-			reader >> vy;
-			reader >> spriteState;
+			reader >> info->soldierState;
 
 			info->id = idAndState >> 4;
 			info->state = (Player::State)(idAndState & 0xF);
-			info->position.x = fixed::from_value(px);
-			info->position.y = fixed::from_value(py);
-			info->velocity.x = fixed::from_value(vx);
-			info->velocity.y = fixed::from_value(vy);
-			info->flipped = spriteState & 0x80;
-			info->frame = spriteState & 0x7F;
 		}
 	}
 }

@@ -34,6 +34,7 @@ Time Clock::time()
 
 		SetThreadAffinityMask(currentThread, previousMask);
 
+		// TODO: (time / freq) * 1e9 + ((time % freq) * 1e9) / freq
 		return 1000000 * time.QuadPart / frequency.QuadPart;
 	#elif defined(APPLE)
 		static mach_timebase_info_data_t frequency = {0, 0};

@@ -36,6 +36,7 @@ namespace net
 	public:
 		DataReader(const uint8_t *data, size_t size) : DataStream(size), data_(data) {}
 
+		DataReader& operator>>(char     &x) { read((uint8_t *)&x); return *this; }
 		DataReader& operator>>(int8_t   &x) { read((uint8_t *)&x); return *this; }
 		DataReader& operator>>(int16_t  &x) { read((uint16_t*)&x); return *this; }
 		DataReader& operator>>(int32_t  &x) { read((uint32_t*)&x); return *this; }
@@ -95,6 +96,7 @@ namespace net
 	public:
 		DataWriter(uint8_t *data, size_t size) : DataStream(size), data_(data) {}
 
+		DataWriter& operator<<(char     x) { write(*(uint8_t *)&x); return *this; }
 		DataWriter& operator<<(int8_t   x) { write(*(uint8_t *)&x); return *this; }
 		DataWriter& operator<<(int16_t  x) { write(*(uint16_t*)&x); return *this; }
 		DataWriter& operator<<(int32_t  x) { write(*(uint32_t*)&x); return *this; }

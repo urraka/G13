@@ -2,11 +2,13 @@
 #include "Server.h"
 #include "Messages/NickMessage.h"
 #include "Messages/StartMessage.h"
+#include "Messages/InputMessage.h"
 
 namespace net
 {
 	Player::Player() : state_(Disconnected)
 	{
+		inputs_.reserve(10);
 		name_.reserve(Info::MaxNickBytes);
 		reset();
 	}
@@ -18,11 +20,31 @@ namespace net
 
 	void Player::update(Time dt)
 	{
-		if (state_ == Joining && (server->tick() - joinTick_) * dt >= Clock::milliseconds(5000))
+		switch (state_)
 		{
-			reset();
-			return;
+			case Joining:
+			{
+				if ((server->tick() - joinTick_) * dt >= Clock::milliseconds(5000))
+					reset();
+			}
+			break;
+
+			case Alive:
+			{
+				for (size_t i = 0; i < inputs_.size(); i++)
+				{
+					cmp::SoldierInput input;
+					input.unserialize(inputs_[i]);
+					soldier_.update(dt, &input);
+					lastTick_++;
+				}
+			}
+			break;
+
+			default: break;
 		}
+
+		inputs_.clear();
 	}
 
 	void Player::disconnect()
@@ -73,10 +95,27 @@ namespace net
 			break;
 
 			case Message::SpawnRequest:
-				break;
+			{
+				if (state_ == Dead)
+				{
+					soldier_.reset(fixvec2(0, 0)); // TODO: retrieve spawn point
+					state_ = Alive;
+					lastTick_ = server->tick();
+
+					server->broadcast(Message::Spawn, this);
+				}
+			}
+			break;
 
 			case Message::Input:
-				break;
+			{
+				InputMessage inputMessage;
+				inputMessage.unserialize(msg);
+
+				if (state_ == Alive && inputMessage.tick > lastTick_ && inputMessage.tick <= server->tick())
+					inputs_.push_back(inputMessage.input);
+			}
+			break;
 
 			default: break;
 		};
@@ -98,13 +137,22 @@ namespace net
 
 		result.id = id;
 		result.state = state_;
-		result.flipped = soldier_.graphics.sprite.scale.x == -1.f;
-		result.frame = soldier_.graphics.animation.frameIndex();
-		result.position = soldier_.physics.position;
-		result.velocity = soldier_.physics.velocity;
-
 		strncpy(result.nickname, name_.c_str(), sizeof(result.nickname));
 		result.nickname[sizeof(result.nickname) - 1] = 0;
+		result.soldierState = soldierState();
+
+		return result;
+	}
+
+	Player::SoldierState Player::soldierState() const
+	{
+		SoldierState result;
+
+		result.position  = soldier_.physics.position;
+		result.velocity  = soldier_.physics.velocity;
+		result.animation = soldier_.graphics.animation.id();
+		result.frame     = soldier_.graphics.animation.frameIndex();
+		result.flipped   = soldier_.graphics.sprite.scale.x == -1.f;
 
 		return result;
 	}
@@ -112,6 +160,11 @@ namespace net
 	const char *Player::nickname() const
 	{
 		return name_.c_str();
+	}
+
+	fixvec2 Player::position() const
+	{
+		return soldier_.physics.position;
 	}
 
 	void Player::reset()
@@ -123,7 +176,46 @@ namespace net
 		state_ = Disconnected;
 		name_.empty();
 		joinTick_ = 0;
-		baseTick_ = 0;
+		lastTick_ = 0;
 		soldier_.reset(fixvec2(0, 0));
 	}
+}
+
+net::DataWriter& operator<<(net::DataWriter & s, net::Player::SoldierState const & state)
+{
+	uint16_t graphics = 0;
+
+	graphics |= state.flipped ? (1 << 15) : 0;
+	graphics |= (state.frame & 0x7F) << 8;
+	graphics |= state.animation & 0xFF;
+
+	s << state.position.x.value();
+	s << state.position.y.value();
+	s << state.velocity.x.value();
+	s << state.velocity.y.value();
+	s << graphics;
+
+	return s;
+}
+
+net::DataReader& operator>>(net::DataReader & s, net::Player::SoldierState & state)
+{
+	int32_t px, py, vx, vy;
+	uint16_t graphics;
+
+	s >> px;
+	s >> py;
+	s >> vx;
+	s >> vy;
+	s >> graphics;
+
+	state.position.x = fixed::from_value(px);
+	state.position.y = fixed::from_value(py);
+	state.velocity.x = fixed::from_value(vx);
+	state.velocity.y = fixed::from_value(vy);
+	state.flipped    = graphics & 0x8000;
+	state.frame      = (graphics >> 8) & 0x7F;
+	state.animation  = graphics & 0xFF;
+
+	return s;
 }

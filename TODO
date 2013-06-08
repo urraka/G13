@@ -6,6 +6,7 @@ General
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 Networking
+  - Soldier state needs animation id.
   - Add tick to every message so unordered packets can be used.
   - Add own allocation for enet.
   - Add some SoldierState and embed it inside PlayerInfo
@@ -24,6 +25,7 @@ Game
   - Consider making components private with methods to access as const.
 
 System
+  - Try that clock formula.
   - iOS: callbacks for touch/movement events.
   - Switch to GLFW3 (when ready).
   - Revisit keyboard/char input stuff.

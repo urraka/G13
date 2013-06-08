@@ -10,7 +10,7 @@ namespace cmp
 	{
 	public:
 		SoldierInput();
-		void update(Replay *replay);
+		void update();
 		void reset();
 		uint8_t serialize() const;
 		void unserialize(uint8_t data);

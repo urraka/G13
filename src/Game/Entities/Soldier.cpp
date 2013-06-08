@@ -10,9 +10,13 @@ namespace ent
 		graphics.physics = &physics;
 	}
 
-	void Soldier::update(Time dt, Replay *replay)
+	void Soldier::update(Time dt, cmp::SoldierInput *inpt)
 	{
-		input.update(replay);
+		if (inpt != 0)
+			input = *inpt;
+		else
+			input.update();
+
 		physics.update(dt);
 		graphics.update(dt);
 	}

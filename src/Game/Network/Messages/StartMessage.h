@@ -17,7 +17,7 @@ namespace net
 		void unserialize(const Message *msg);
 
 		Player::Info playersInfo[Server::MaxPeers];
-		int playersCount;
+		int nPlayers;
 
 	private:
 		uint8_t data_[1 + Player::Info::MaxSize * Server::MaxPeers]; // msg type + array of player info (see Player::Info)

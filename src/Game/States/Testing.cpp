@@ -68,7 +68,16 @@ namespace stt
 		if (Keyboard::pressed(Keyboard::NumpadSubtract))
 			camera_.zoom(ent::Camera::ZoomOut);
 
-		soldier_.update(dt, &replay_);
+		if (replay_.state() == Replay::Playing)
+		{
+			cmp::SoldierInput input = replay_.input();
+			soldier_.update(dt, &input);
+		}
+		else
+		{
+			soldier_.update(dt);
+		}
+
 		camera_.update(dt);
 
 		if (replay_.state() == Replay::Recording)

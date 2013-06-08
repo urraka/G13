@@ -9,7 +9,7 @@ namespace net
 	{
 		assert(msg->type() == Message::Nick);
 
-		if (msg->length < 2 || msg->length > Player::Info::MaxNickBytes + 1) // at least one byte of nickname, please
+		if (msg->length < 2 || msg->length > sizeof(NickMessage::data_)) // at least one byte of nickname, please
 			return false;
 
 		// TODO: check if the string is valid UTF-8

@@ -16,7 +16,7 @@ namespace ent
 	public:
 		Soldier();
 
-		void update(Time dt, Replay *replay);
+		void update(Time dt, cmp::SoldierInput *inpt = 0);
 		void reset(fixvec2 pos);
 		void map(const Collision::Map *map);
 

@@ -2,6 +2,7 @@
 #include "Messages/NickMessage.h"
 #include "Messages/StartMessage.h"
 #include "Messages/PlayerJoinMessage.h"
+#include "Messages/SpawnMessage.h"
 #include "../Debugger.h"
 
 #include "../../Math/Math.h"
@@ -164,14 +165,14 @@ namespace net
 				Message msg;
 				StartMessage startMessage;
 
-				startMessage.playersCount = 0;
+				startMessage.nPlayers = 0;
 
 				for (size_t i = 0; i < players_.size(); i++)
 				{
 					if (players_[i] != player && players_[i]->state() != Player::Joining && players_[i]->state() != Player::Disconnected)
 					{
-						startMessage.playersInfo[startMessage.playersCount] = players_[i]->info();
-						startMessage.playersCount++;
+						startMessage.playersInfo[startMessage.nPlayers] = players_[i]->info();
+						startMessage.nPlayers++;
 					}
 				}
 
@@ -203,6 +204,24 @@ namespace net
 				strncpy(joinMessage.nickname, player->nickname(), sizeof(joinMessage.nickname));
 
 				joinMessage.serialize(&msg);
+
+				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
+				enet_host_broadcast(server_, 0, packet);
+			}
+			break;
+
+			case Message::Spawn:
+			{
+				assert(player != 0);
+
+				Message msg;
+				SpawnMessage spawnMessage;
+
+				spawnMessage.id = player->id;
+				spawnMessage.tick = tick_;
+				spawnMessage.position = player->position();
+
+				spawnMessage.serialize(&msg);
 
 				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
 				enet_host_broadcast(server_, 0, packet);
