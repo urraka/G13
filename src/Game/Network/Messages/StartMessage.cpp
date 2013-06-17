@@ -62,6 +62,8 @@ namespace net
 
 	void StartMessage::serialize(Message *msg)
 	{
+		assert(nPlayers < Server::MaxPeers);
+
 		DataWriter writer(data_, sizeof(data_));
 
 		writer << (uint8_t)Message::Start;

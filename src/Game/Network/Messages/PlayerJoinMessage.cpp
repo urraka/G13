@@ -8,7 +8,7 @@ namespace net
 {
 	bool PlayerJoinMessage::validate(const Message *msg)
 	{
-		assert(msg->type() == Message::Nick);
+		assert(msg->type() == Message::PlayerJoin);
 
 		if (msg->length < 3 || msg->length > Player::Info::MaxNickBytes + 2) // at least one byte of nickname, please
 			return false;

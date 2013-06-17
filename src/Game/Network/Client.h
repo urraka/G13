@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Player.h"
 #include <enet/enet.h>
 
 namespace net
@@ -28,5 +29,9 @@ namespace net
 		};
 
 		State state_;
+
+		Player::State playerState_;
+
+		void onPacketReceived(ENetPacket *packet);
 	};
 }

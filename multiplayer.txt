@@ -1,0 +1,75 @@
+CLIENT
+  - main player
+    - how is it different form others? input/simulation (client prediction)
+  - list of other players
+    - state buffer
+    - interpolation
+    - 100ms behind
+    - player name
+    - state (dead, alive, etc)
+  - current map
+  - rendering
+
+SERVER
+  - map
+  - players
+    - simulation
+    - name
+    - state
+    - input buffer
+
+PLAYER (shared between client/server)
+  - should have some way to inject input, either from local input or network
+  - update logic should simulate or interpolate
+  - nickname
+
+
+* client owns the game state, or the game state owns the client? or is the client a game state?
+* let the client and server handle ALL message stuff?
+* each player has his own tick?
+* soldier could make the interpolation, give it some target state and let it do the work
+* soldier state should be in soldier
+* datastream stuff should work on bits, not bytes
+* make client/server interact with a game state which holds the players
+* make some players list wrapper to get by id, add, remove, etc
+* make player have id and some index to keep track of both player arrays
+* for later on.. retrieve server info before starting all the client/server stuff
+* separate player info from game state stuff and make client request each player info
+* add some key to start/stop server, and some state when not connected
+* all net messages into net::msg namespace, and simplify stuff somehow (msg->send(peer*), msg->broadcast(host*))
+
+msg::Message
+|- create(packet*)  # static, big switch with pools
+|- send(peer*)      # calls serialize()
+|- broadcast(host*) # calls serialize()
+|- data[1400]       # private
+|- length           # private, defaults to 0
+|- serialize()      # private, virtual
+
+msg::SpecificMessage
+|- public friendly fields
+|- readPacket(packet*)     # private
+|- serialize()             # private
+
+net::Multiplayer
+|- mode (Client, Server)
+|- net::Players
+|- Map
+|- tick
+|- ENetHost*
+|
+|> net::Server : net::Multiplayer
+|  |- state (Running, Stopping, Stopped)
+|
+|> net::Client : net::Multiplayer
+   |- state (Connected, Connecting Disconnected)
+   |- localPlayerId
+   |- ENetPeer*
+
+net::Player
+|- onInput()
+|- onGameState()
+
+stt::Multiplayer # can have client, server or both
+|- net::Server
+|- net::Client

@@ -2,7 +2,9 @@
 #include "Messages/NickMessage.h"
 #include "Messages/StartMessage.h"
 #include "Messages/PlayerJoinMessage.h"
+#include "Messages/PlayerLeaveMessage.h"
 #include "Messages/SpawnMessage.h"
+#include "Messages/GameStateMessage.h"
 #include "../Debugger.h"
 
 #include "../../Math/Math.h"
@@ -102,12 +104,12 @@ namespace net
 			switch (event.type)
 			{
 				case ENET_EVENT_TYPE_CONNECT:
-					DBG( std::cout << "Server: peer connected." << std::endl );
+					DBG( std::cout << "[Server] Peer connected." << std::endl );
 					onPeerConnect(event.peer);
 					break;
 
 				case ENET_EVENT_TYPE_DISCONNECT:
-					DBG( std::cout << "Server: peer disconnected." << std::endl );
+					DBG( std::cout << "[Server] Peer disconnected." << std::endl );
 					onPeerDisconnect(event.peer);
 					break;
 
@@ -140,6 +142,8 @@ namespace net
 					++it;
 			}
 		}
+
+		broadcast(Message::GameState, 0);
 
 		tick_++;
 	}
@@ -180,6 +184,8 @@ namespace net
 
 				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
 				enet_peer_send(player->peer(), 0, packet);
+
+				DBG( std::cout << "[Server] Sent StartMessage to player #" << player->id << "." << std::endl; );
 			}
 			break;
 
@@ -207,6 +213,26 @@ namespace net
 
 				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
 				enet_host_broadcast(server_, 0, packet);
+
+				DBG( std::cout << "[Server] Broadcasting PlayerJoinMessage." << std::endl; );
+			}
+			break;
+
+			case Message::PlayerLeave:
+			{
+				assert(player != 0);
+
+				Message msg;
+				PlayerLeaveMessage leaveMessage;
+
+				leaveMessage.id = player->id;
+
+				leaveMessage.serialize(&msg);
+
+				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
+				enet_host_broadcast(server_, 0, packet);
+
+				DBG( std::cout << "[Server] Broadcasting PlayerLeaveMessage." << std::endl; );
 			}
 			break;
 
@@ -225,6 +251,33 @@ namespace net
 
 				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
 				enet_host_broadcast(server_, 0, packet);
+			}
+			break;
+
+			case Message::GameState:
+			{
+				Message msg;
+				GameStateMessage stateMessage;
+
+				stateMessage.tick = tick_;
+				stateMessage.nPlayers = 0;
+
+				for (size_t i = 0; i < players_.size(); i++)
+				{
+					if (players_[i]->state() == Player::Alive)
+					{
+						int j = stateMessage.nPlayers;
+
+						stateMessage.players[j].id = players_[i]->id;
+						stateMessage.players[j].state = players_[i]->soldierState();
+						stateMessage.nPlayers++;
+					}
+				}
+
+				stateMessage.serialize(&msg);
+
+				ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_UNSEQUENCED);
+				enet_host_broadcast(server_, 1, packet);
 			}
 			break;
 

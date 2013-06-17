@@ -8,17 +8,24 @@ namespace net
 {
 	class Message;
 
-	class StartMessage
+	class GameStateMessage
 	{
 	public:
 		static bool validate(const Message *msg);
 		void serialize(Message *msg);
 		void unserialize(const Message *msg);
 
-		Player::Info playersInfo[Server::MaxPeers];
+		struct State
+		{
+			uint8_t id;
+			Player::SoldierState state;
+		};
+
+		uint32_t tick;
 		int nPlayers;
+		State players[Server::MaxPeers];
 
 	private:
-		uint8_t data_[1 + Player::Info::MaxSize * Server::MaxPeers]; // msg type + array of player info (see Player::Info)
+		uint8_t data_[1 + 32 + (1 + Player::SoldierState::Size) * Server::MaxPeers]; // msg type + tick + array of (id + SoldierState)
 	};
 }

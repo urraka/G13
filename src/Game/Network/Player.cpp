@@ -4,6 +4,10 @@
 #include "Messages/StartMessage.h"
 #include "Messages/InputMessage.h"
 
+#include "../Debugger.h"
+
+#include <iostream>
+
 namespace net
 {
 	Player::Player() : state_(Disconnected)
@@ -70,6 +74,9 @@ namespace net
 
 	void Player::onDisconnect()
 	{
+		if (state_ != Joining)
+			server->broadcast(Message::PlayerLeave, this);
+
 		state_ = Disconnected;
 		reset();
 	}
@@ -80,6 +87,8 @@ namespace net
 		{
 			case Message::Nick:
 			{
+				DBG( std::cout << "[Server] Received NickMessage from player #" << id << ". Nick: " << name_ << std::endl; );
+
 				if (state_ == Joining)
 				{
 					NickMessage nickMessage;

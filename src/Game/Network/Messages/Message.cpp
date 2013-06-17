@@ -1,6 +1,11 @@
 #include "Message.h"
 #include "NickMessage.h"
+#include "InputMessage.h"
 #include "StartMessage.h"
+#include "PlayerJoinMessage.h"
+#include "PlayerLeaveMessage.h"
+#include "SpawnMessage.h"
+#include "GameStateMessage.h"
 
 namespace net
 {
@@ -13,13 +18,13 @@ namespace net
 		switch (type())
 		{
 			case Nick:         return NickMessage::validate(this);
-			case SpawnRequest: return false;
-			case Input:        return false;
+			case SpawnRequest: assert(false); return false;
+			case Input:        return InputMessage::validate(this);
 			case Start:        return StartMessage::validate(this);
-			case PlayerJoin:   return false;
-			case PlayerLeave:  return false;
-			case Spawn:        return false;
-			case GameState:    return false;
+			case PlayerJoin:   return PlayerJoinMessage::validate(this);
+			case PlayerLeave:  return PlayerLeaveMessage::validate(this);
+			case Spawn:        return SpawnMessage::validate(this);
+			case GameState:    return GameStateMessage::validate(this);
 			default:           return false;
 		}
 	}

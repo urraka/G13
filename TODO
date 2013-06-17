@@ -6,10 +6,20 @@ General
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 Networking
-  - Soldier state needs animation id.
+  - Add some kind of switch to enable/disable server.
+  - Messages
+    x Nick
+    - SpawnRequest
+    x Input
+    x Start
+    x PlayerJoin
+    x PlayerLeave
+    x Gamestate
+    x Spawn
+  x Soldier state needs animation id.
   - Add tick to every message so unordered packets can be used.
   - Add own allocation for enet.
-  - Add some SoldierState and embed it inside PlayerInfo
+  x Add some SoldierState and embed it inside PlayerInfo
   - Decide if server updates only when receiving data.
   / Design packet structures/format.
   / Self-contained loop with time measuring and crap in Server class.
