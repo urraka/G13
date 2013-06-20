@@ -21,6 +21,7 @@ using glm::u8vec4;
 
 #include "fpm/fpm.h"
 #include "interpolable.h"
+#include "minbits.h"
 #include "Triangle.h"
 
 typedef fpm::fixed fixed;

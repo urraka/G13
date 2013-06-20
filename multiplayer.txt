@@ -36,20 +36,30 @@ PLAYER (shared between client/server)
 * for later on.. retrieve server info before starting all the client/server stuff
 * separate player info from game state stuff and make client request each player info
 * add some key to start/stop server, and some state when not connected
-* all net messages into net::msg namespace, and simplify stuff somehow (msg->send(peer*), msg->broadcast(host*))
+* all net messages into net::msg namespace, and simplify stuff somehow
+* redefine protocol
+* use magic defines for serialization/unserialization
+
+[msg]
+|- create<T> (ENetPacket*) # one object "pool", calls T::read(), return NULL if invalid
+|- create    (ENetPacket*)
+|- destroy<T>(Message*)
+|- destroy   (Message*)
 
 msg::Message
-|- create(packet*)  # static, big switch with pools
-|- send(peer*)      # calls serialize()
-|- broadcast(host*) # calls serialize()
-|- data[1400]       # private
-|- length           # private, defaults to 0
-|- serialize()      # private, virtual
+|- type()
+|- serialize()
+|
+|> msg::SpecificMessage
+|  |- read(bytes*, length) # returns false if invalid
+|  |- serialize()
+|  |- [public fields]
 
-msg::SpecificMessage
-|- public friendly fields
-|- readPacket(packet*)     # private
-|- serialize()             # private
+net::PacketData # make it pooled
+|- new
+|- delete
+|- data[1350] # enet takes like 28 bytes for header
+|- length
 
 net::Multiplayer
 |- mode (Client, Server)
@@ -57,9 +67,11 @@ net::Multiplayer
 |- Map
 |- tick
 |- ENetHost*
+|- send(Message*, ENetPeer*)
 |
 |> net::Server : net::Multiplayer
 |  |- state (Running, Stopping, Stopped)
+|  |- broadcast(Message*)
 |
 |> net::Client : net::Multiplayer
    |- state (Connected, Connecting Disconnected)
@@ -73,3 +85,13 @@ net::Player
 stt::Multiplayer # can have client, server or both
 |- net::Server
 |- net::Client
+
+PROTOCOL
+  Client
+    on connect         -> send msg::Login
+    on msg::GameInfo   -> send msg::PlayerInfoRequest (for each player in gameinfo)
+    on msg::Join       -> update gameinfo and player info, when all players info is received send msg::SpawnRequest
+    on msg::Leave      -> update gameinfo
+    on msg::Spawn      -> start playing
+    on playing         -> send msg::Input
+    on msg::GameState  -> update other players, adjust own position if necessary
