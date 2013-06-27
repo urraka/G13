@@ -14,6 +14,7 @@ G13-win32.lnk
 
 # directories
 
+old/
 bin/
 dep/packages/
 proj/vc10/Debug/

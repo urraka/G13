@@ -1,0 +1,96 @@
+// Important: this file shall not have #pragma once, it's included multiple times.
+
+namespace net
+{
+
+MESSAGES_BEGIN()
+
+//******************************************************************************
+// Client
+//******************************************************************************
+
+MESSAGE(Login)
+	char name[Player::MaxNameLength + 1];
+BEGIN
+	String(name, Player::MinNameLength)
+END
+
+MESSAGE(Ready)
+BEGIN
+END
+
+MESSAGE(Input)
+	uint32_t tick;
+	uint8_t input;
+BEGIN
+	Integer(tick)
+	Bits(input, cmp::SoldierInput::MaxBits)
+END
+
+//******************************************************************************
+// Server
+//******************************************************************************
+
+LIST(PlayerIds, item)
+	Bits(item, MINBITS(Multiplayer::MaxPlayers - 1))
+LISTEND
+
+MESSAGE(ServerInfo)
+	uint32_t tick;
+	uint8_t  clientId;
+	size_t   nPlayers;
+	uint8_t  players[Multiplayer::MaxPlayers];
+BEGIN
+	Integer(tick)
+	Bits(clientId, MINBITS(Multiplayer::MaxPlayers - 1))
+	List(PlayerIds, players, nPlayers, 0)
+END
+
+MESSAGE(PlayerConnect)
+	uint8_t id;
+	char    name[Player::MaxNameLength + 1];
+BEGIN
+	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	String(name, Player::MinNameLength)
+END
+
+MESSAGE(PlayerDisconnect)
+	uint8_t id;
+BEGIN
+	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+END
+
+MESSAGE(PlayerJoin)
+	uint32_t tick;
+	uint8_t  id;
+	fixvec2  position;
+BEGIN
+	Integer(tick)
+	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	Fixed(position.x)
+	Fixed(position.y)
+END
+
+LIST(SoldierState, soldier)
+	Bits(soldier.playerId, MINBITS(Multiplayer::MaxPlayers - 1))
+	Fixed(soldier.position.x)
+	Fixed(soldier.position.y)
+	Fixed(soldier.velocity.x)
+	Fixed(soldier.velocity.y)
+	Bool(soldier.flip)
+	Bool(soldier.duck)
+	Bool(soldier.floor)
+LISTEND
+
+MESSAGE(GameState)
+	uint32_t tick;
+	size_t   nSoldiers;
+	ent::Soldier::State soldiers[Multiplayer::MaxPlayers];
+BEGIN
+	Integer(tick)
+	List(SoldierState, soldiers, nSoldiers, 0)
+END
+
+MESSAGES_END()
+
+}

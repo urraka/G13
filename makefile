@@ -53,13 +53,14 @@ endif
 
 cxx := g++
 opt := -Wall -fno-exceptions -fno-rtti
+inc := -Isrc
 
 ifeq ($(debug),yes)
   opt += -g
   def += -DDEBUG
   out-dir-suffix := -d
 else
-  opt += -O2 -s
+  opt += -O3 -s
 endif
 
 ifeq ($(platform),win32)
@@ -87,6 +88,7 @@ ifeq ($(platform),unix)
 endif
 
 ifeq ($(platform),osx)
+  cxx := clang++
   out-dir := bin/osx$(out-dir-suffix)
   out := $(out-dir)/G13
   lib += -lGLEW -lglfw -framework OpenGL -lpng -lz -lfixmath

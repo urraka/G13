@@ -2,7 +2,7 @@
 
 #include "State.h"
 
-namespace net{ class Client; }
+namespace net { class Client; }
 
 namespace stt
 {

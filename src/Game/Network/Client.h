@@ -1,37 +1,41 @@
 #pragma once
 
-#include "Player.h"
-#include <enet/enet.h>
+#include "Multiplayer.h"
+#include <string>
 
 namespace net
 {
-	class Client
+	class Client : public Multiplayer
 	{
 	public:
+		enum State { Disconnected, Connecting, Connected };
+
 		Client();
 		~Client();
 
 		bool connect(const char *host, int port);
-		void disconnect();
-		bool connected() const;
-		bool connecting() const;
-		void update();
+		void update(Time dt);
+
+		bool active() const;
 
 	private:
-		ENetHost *client_;
+		State state_;
 		ENetPeer *peer_;
 
-		enum State
-		{
-			Disconnected,
-			Connecting,
-			Connected
-		};
+		uint8_t id_;
+		char name_[Player::MaxNameLength + 1];
+		cmp::SoldierInput input_;
 
-		State state_;
+		int connectingCount_;
 
-		Player::State playerState_;
+		void onConnect   (ENetPeer *peer);
+		void onDisconnect(ENetPeer *peer);
+		void onMessage   (msg::Message *msg, ENetPeer *from);
 
-		void onPacketReceived(ENetPacket *packet);
+		void onServerInfo(msg::Message *msg);
+		void onPlayerConnect(msg::Message *msg);
+		void onPlayerDisconnect(msg::Message *msg);
+		void onPlayerJoin(msg::Message *msg);
+		void onGameState(msg::Message *msg);
 	};
 }

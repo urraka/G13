@@ -88,10 +88,13 @@ stt::Multiplayer # can have client, server or both
 
 PROTOCOL
   Client
-    on connect         -> send msg::Login
-    on msg::GameInfo   -> wait for msg::Join messages for all player ids in gameinfo
-    on msg::Join       -> update gameinfo and player info, when all players info is received send (or be able to send) msg::SpawnRequest
-    on msg::Leave      -> update gameinfo
-    on msg::Spawn      -> start playing
-    on playing         -> send msg::Input
-    on msg::GameState  -> update other players, adjust own position if necessary
+    on connect    -> send msg::Login
+    on msg::Info  -> wait for msg::Join messages for all player ids in gameinfo
+    on msg::Join  -> update gameinfo and player info, when all players info is received send (or be able to send) msg::SpawnRequest
+    on msg::Leave -> update gameinfo
+    on msg::Spawn -> start playing
+    on playing    -> send msg::Input
+    on msg::State -> update other players, adjust own position if necessary
+
+  Server
+    on connect

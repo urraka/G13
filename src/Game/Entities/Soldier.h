@@ -23,5 +23,15 @@ namespace ent
 		cmp::SoldierInput input;
 		cmp::SoldierPhysics physics;
 		cmp::SoldierGraphics graphics;
+
+		struct State
+		{
+			uint8_t playerId;
+			fixvec2 position;
+			fixvec2 velocity;
+			bool    flip;
+			bool    duck;
+			bool    floor;
+		};
 	};
 }

@@ -39,6 +39,7 @@
 #define LIST(x,y)     NOTHING(x)
 #define LISTEND       NOTHING(x)
 #define Integer(x)    NOTHING(x)
+#define Bool(x)       NOTHING(x)
 #define String(x,y)   NOTHING(x)
 #define Bits(x,y)     NOTHING(x)
 #define Fixed(x)      NOTHING(x)
@@ -90,6 +91,7 @@
 #define LIST(x,y)     NOTHING(x)
 #define LISTEND       NOTHING(x)
 #define Integer(x)    NOTHING(x)
+#define Bool(x)       NOTHING(x)
 #define String(x,y)   NOTHING(x)
 #define Bits(x,y)     NOTHING(x)
 #define Fixed(x)      NOTHING(x)
@@ -134,6 +136,7 @@
 #define LIST(x,y)     NOTHING(x)
 #define LISTEND       NOTHING(x)
 #define Integer(x)    NOTHING(x)
+#define Bool(x)       NOTHING(x)
 #define String(x,y)   NOTHING(x)
 #define Bits(x,y)     NOTHING(x)
 #define Fixed(x)      NOTHING(x)
@@ -192,6 +195,10 @@
 
 #define Integer(x) \
 		_w.write(x);
+
+#define Bool(x) \
+		{ const bool &_unused = x; UNUSED(_unused); } \
+		_w.write((bool)x);
 
 #define Bits(x, bits) \
 		_w.write(x, bits);
@@ -281,6 +288,11 @@
 		if (!_r.has(sizeof(x) * 8)) return false; \
 		_r.read(&x);
 
+#define Bool(x) \
+		{ bool &_unused = x; UNUSED(_unused); } \
+		if (!_r.has(1)) return false; \
+		_r.read(&x);
+
 #define Bits(x, bits) \
 		if (!_r.has(bits)) return false; \
 		_r.read(&x, bits);
@@ -290,7 +302,7 @@
 		if (_strlen < min || _strlen == sizeof(str)) return false;
 
 #define Fixed(x) \
-		if (!r.has(sizeof(int32_t) * 8)) return false; \
+		if (!_r.has(sizeof(int32_t) * 8)) return false; \
 		_r.read(&_i32); \
 		x = fixed::from_value(_i32);
 
@@ -321,6 +333,7 @@
 #undef LIST
 #undef LISTEND
 #undef Integer
+#undef Bool
 #undef String
 #undef Bits
 #undef Fixed

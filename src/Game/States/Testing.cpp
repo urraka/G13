@@ -58,7 +58,7 @@ namespace stt
 	void Testing::update(Time dt)
 	{
 		if (client_)
-			client_->update();
+			client_->update(dt);
 
 		replayLog_.update(&replay_, &soldier_);
 

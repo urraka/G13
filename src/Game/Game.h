@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Network/Server.h"
 #include "../System/Clock.h"
 #include "States/State.h"
 
@@ -41,8 +40,6 @@ private:
 	int fps_;
 	uint64_t tick_;
 	bool quit_;
-
-	net::Server server_;
 };
 
 extern Game *game;

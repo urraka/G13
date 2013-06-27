@@ -79,10 +79,8 @@ void Game::init(Application *app)
 	if (enet_initialize() != 0)
 		std::cerr << "Failed to initialize enet." << std::endl;
 
-	server_.start(2345);
-
-	// state_ = new stt::Testing();
-	state_ = new stt::Connecting();
+	state_ = new stt::Testing();
+	//state_ = new stt::Connecting();
 }
 
 void Game::draw()
@@ -143,8 +141,6 @@ void Game::input()
 
 void Game::update()
 {
-	server_.update();
-
 	if (quit_) return;
 
 	const Time maxFrameTime = Clock::milliseconds(250);

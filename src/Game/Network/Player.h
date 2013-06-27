@@ -1,85 +1,45 @@
 #pragma once
 
 #include "../Entities/Soldier.h"
-#include "../../System/Clock.h"
 
-#include <enet/enet.h>
+#include <stdint.h>
 #include <string>
+
+class Map;
 
 namespace net
 {
-	// this Player class lives on the server side
-
-	class Message;
-
 	class Player
 	{
 	public:
+		enum State { Disconnected, Connecting, Connected, Playing };
+
 		Player();
-		~Player();
 
+		void initialize();
+		void update(Time dt, uint32_t tick);
 
-		enum State
-		{
-			Disconnected = 0,
-			Joining,
-			Dead,
-			Alive,
-			StateCount
-		};
-
-		struct SoldierState
-		{
-			static const uint16_t Size = 2*4 + 2*4 + 2; // pos + vel + graphics
-
-			fixvec2 position;
-			fixvec2 velocity;
-			bool flipped;
-			int animation;
-			int frame;
-		};
-
-		struct Info
-		{
-			static const uint16_t MaxNickBytes = 32;
-			static const uint16_t MaxSize = 1 + (MaxNickBytes + 1) + SoldierState::Size; // id & state + null terminated nick + soldier state
-
-			int id;
-			State state;
-			char nickname[MaxNickBytes + 1];
-			SoldierState soldierState;
-		};
-
-		void update(Time dt);
-		void disconnect();
-		bool connected() const;
-		void onConnect(ENetPeer *peer);
+		void onConnecting();
+		void onConnect(const char *name);
 		void onDisconnect();
-		void onMessage(const Message *msg);
+		void onJoin(uint32_t tick, const Map *map, const fixvec2 &position);
+		void onSoldierState(uint32_t tick, const ent::Soldier::State &soldierState);
+		void onInput(uint32_t tick, const cmp::SoldierInput &input);
 
-		ENetPeer *peer() const;
-		State state() const;
-		Info info() const;
-		SoldierState soldierState() const;
-		const char *nickname() const;
-		fixvec2 position() const;
+		State state    () const;
+		bool  connected() const;
 
-		int id;
+		static const size_t MaxNameLength = 32;
+		static const size_t MinNameLength = 1;
 
 	private:
-		ENetPeer *peer_;
+		uint8_t id_;
 		State state_;
+		char name_[MaxNameLength + 1];
 		ent::Soldier soldier_;
-		std::string name_;
 		uint32_t joinTick_;
-		uint32_t lastTick_; // last simulated tick
-		std::vector<uint8_t> inputs_;
+		uint32_t lastTick_;
 
-		void reset();
+		friend class Multiplayer;
 	};
 }
-
-#include "DataStream.h"
-
-net::DataWriter& operator<<(net::DataWriter & s, net::Player::SoldierState const & state);
-net::DataReader& operator>>(net::DataReader & s, net::Player::SoldierState & state);

@@ -1,5 +1,5 @@
 #include "msg.h"
-#include "../BitStream.h"
+#include "BitStream.h"
 
 namespace net { namespace msg
 {

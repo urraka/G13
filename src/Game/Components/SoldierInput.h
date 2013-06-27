@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
 class Replay;
 
@@ -20,5 +21,7 @@ namespace cmp
 		bool jump;
 		bool run;
 		bool duck;
+
+		static const size_t MaxBits = 5;
 	};
 }

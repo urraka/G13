@@ -1,44 +1,33 @@
 #include "Client.h"
-#include "Messages/Message.h"
-#include "Messages/StartMessage.h"
-#include "Messages/SpawnMessage.h"
-#include "Messages/PlayerJoinMessage.h"
-#include "Messages/PlayerLeaveMessage.h"
-#include "Messages/GameStateMessage.h"
-#include "Messages/NickMessage.h"
-#include "Messages/InputMessage.h"
+#include "msg.h"
 
 #include "../Debugger.h"
 
-#include <iostream>
+#include <hlp/assign.hpp>
 #include <assert.h>
+#include <iostream>
 
 namespace net
 {
 	Client::Client()
-		:	client_(0),
+		:	state_(Disconnected),
 			peer_(0),
-			state_(Disconnected),
-			playerState_(Player::Disconnected)
+			id_(-1)
 	{
+		hlp::assign(name_, "player");
 	}
 
 	Client::~Client()
 	{
-		if (peer_)
-			enet_peer_reset(peer_);
-
-		if (client_)
-			enet_host_destroy(client_);
 	}
 
 	bool Client::connect(const char *host, int port)
 	{
-		assert(client_ == 0 && peer_ == 0);
+		assert(connection_ == 0 && peer_ == 0);
 
-		client_ = enet_host_create(0, 1, 2, 0, 0);
+		connection_ = enet_host_create(0, 1, ChannelsCount, 0, 0);
 
-		if (client_ == 0)
+		if (connection_ == 0)
 		{
 			std::cerr << "[Client] enet_host_create failed." << std::endl;
 			return false;
@@ -48,13 +37,11 @@ namespace net
 		enet_address_set_host(&address, host);
 		address.port = port;
 
-		peer_ = enet_host_connect(client_, &address, 2, 0);
+		peer_ = enet_host_connect(connection_, &address, ChannelsCount, 0);
 
 		if (peer_ == 0)
 		{
 			std::cerr << "[Client] enet_host_connect failed." << std::endl;
-			enet_host_destroy(client_);
-			client_ = 0;
 			return false;
 		}
 
@@ -67,118 +54,148 @@ namespace net
 		return true;
 	}
 
-	void Client::disconnect()
+	void Client::update(Time dt)
 	{
-		if (client_ == 0 || peer_ == 0)
-			return;
+		Multiplayer::update(dt);
 
-		enet_peer_disconnect(peer_, 0);
-	}
-
-	bool Client::connected() const
-	{
-		return state_ == Connected;
-	}
-
-	bool Client::connecting() const
-	{
-		return state_ == Connecting;
-	}
-
-	void Client::update()
-	{
-		ENetEvent event;
-
-		while (enet_host_service(client_, &event, 0) > 0)
+		if (active())
 		{
-			switch (event.type)
+			input_.update();
+			players_[id_].onInput(tick_, input_);
+			players_[id_].update(dt, tick_);
+
+			msg::Input inputMsg;
+			inputMsg.tick = tick_;
+			inputMsg.input = input_.serialize();
+
+			for (size_t i = 0; i < MaxPlayers; i++)
 			{
-				case ENET_EVENT_TYPE_CONNECT:
-				{
-					DBG( std::cout << "[Client] Connected to host." << std::endl );
+				Player *player = &players_[i];
 
-					state_ = Connected;
-					playerState_ = Player::Joining;
+				if (i == id_ || player->state() != Player::Playing)
+					continue;
 
-					Message msg;
-					NickMessage nickMessage;
-
-					strncpy(nickMessage.nickname, "player", sizeof(nickMessage.nickname));
-
-					nickMessage.serialize(&msg);
-
-					ENetPacket *packet = enet_packet_create(msg.data, msg.length, ENET_PACKET_FLAG_RELIABLE);
-					enet_host_broadcast(client_, 0, packet);
-				}
-				break;
-
-				case ENET_EVENT_TYPE_DISCONNECT:
-				{
-					DBG(
-						if (state_ == Connecting)
-							std::cout << "[Client] Connection failed." << std::endl;
-						else
-							std::cout << "[Client] Disconnected from host." << std::endl;
-					);
-
-					state_ = Disconnected;
-				}
-				break;
-
-				case ENET_EVENT_TYPE_RECEIVE:
-				{
-					onPacketReceived(event.packet);
-					enet_packet_destroy(event.packet);
-				}
-				break;
-
-				default: break;
+				player->update(dt, tick_);
 			}
 		}
+
+		tick_++;
 	}
 
-	void Client::onPacketReceived(ENetPacket *packet)
+	bool Client::active() const
 	{
-		Message msg(packet->data, packet->dataLength);
+		return state_ == Connected && id_ != -1 && players_[id_].connected();
+	}
 
-		if (!msg.validate())
+	void Client::onConnect(ENetPeer *peer)
+	{
+		state_ = Connected;
+
+		msg::Login login;
+		hlp::assign(login.name, name_);
+
+		send(&login, peer);
+	}
+
+	void Client::onDisconnect(ENetPeer *peer)
+	{
+		DBG(
+			if (state_ == Connecting)
+				std::cout << "[Client] Connection failed." << std::endl;
+			else
+				std::cout << "[Client] Disconnected from host." << std::endl;
+		);
+
+		state_ = Disconnected;
+		id_ = -1;
+	}
+
+	void Client::onMessage(msg::Message *msg, ENetPeer *from)
+	{
+		switch (msg->type())
 		{
-			DBG( std::cout << "[Client] Invalid message with type = " << (int)msg.type() << std::endl; );
-			return;
-		}
-
-		switch (msg.type())
-		{
-			case Message::Start:
-			{
-				DBG( std::cout << "[Client] Received StartMessage." << std::endl; );
-			}
-			break;
-
-			case Message::Spawn:
-			{
-				DBG( std::cout << "[Client] Received SpawnMessage." << std::endl; );
-			}
-			break;
-
-			case Message::PlayerJoin:
-			{
-				DBG( std::cout << "[Client] Received PlayerJoinMessage." << std::endl; );
-			}
-			break;
-
-			case Message::PlayerLeave:
-			{
-				DBG( std::cout << "[Client] Received PlayerLeaveMessage." << std::endl; );
-			}
-			break;
-
-			case Message::GameState:
-			{
-			}
-			break;
-
+			case msg::ServerInfo::Type:       onServerInfo(msg);       break;
+			case msg::PlayerConnect::Type:    onPlayerConnect(msg);    break;
+			case msg::PlayerDisconnect::Type: onPlayerDisconnect(msg); break;
+			case msg::PlayerJoin::Type:       onPlayerJoin(msg);       break;
+			case msg::GameState::Type:        onGameState(msg);        break;
 			default: break;
+		}
+	}
+
+	void Client::onServerInfo(msg::Message *msg)
+	{
+		msg::ServerInfo *info = (msg::ServerInfo*)msg;
+
+		id_ = info->clientId;
+		tick_ = info->tick;
+
+		for (size_t i = 0; i < MaxPlayers; i++)
+			players_[i].initialize();
+
+		connectingCount_ = 0;
+
+		for (size_t i = 0; i < info->nPlayers; i++)
+		{
+			uint8_t id = info->players[i];
+			players_[id].onConnecting();
+
+			connectingCount_++;
+		}
+
+		players_[id_].onConnecting();
+	}
+
+	void Client::onPlayerConnect(msg::Message *msg)
+	{
+		msg::PlayerConnect *playerConnect = (msg::PlayerConnect*)msg;
+		Player *player = &players_[playerConnect->id];
+
+		if (player->connected())
+			player->onDisconnect();
+
+		if (player->state() == Player::Connecting)
+		{
+			player->onConnect(playerConnect->name);
+
+			if (--connectingCount_ == 0)
+			{
+				players_[id_].onConnect(name_);
+
+				msg::Ready ready;
+				send(&ready, peer_);
+			}
+		}
+		else
+		{
+			player->onConnect(playerConnect->name);
+		}
+	}
+
+	void Client::onPlayerDisconnect(msg::Message *msg)
+	{
+		msg::PlayerDisconnect *playerDisconnect = (msg::PlayerDisconnect*)msg;
+		players_[playerDisconnect->id].onDisconnect();
+	}
+
+	void Client::onPlayerJoin(msg::Message *msg)
+	{
+		msg::PlayerJoin *playerJoin = (msg::PlayerJoin*)msg;
+		players_[playerJoin->id].onJoin(playerJoin->tick, map_, playerJoin->position);
+	}
+
+	void Client::onGameState(msg::Message *msg)
+	{
+		msg::GameState *gameState = (msg::GameState*)msg;
+
+		for (size_t i = 0; i < gameState->nSoldiers; i++)
+		{
+			Player *player = &players_[gameState->soldiers[i].playerId];
+
+			if (active() && player->state() == Player::Connected)
+				player->onJoin(tick_, map_, gameState->soldiers[i].position);
+
+			player->onSoldierState(gameState->tick, gameState->soldiers[i]);
 		}
 	}
 }

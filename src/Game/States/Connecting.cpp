@@ -22,9 +22,9 @@ namespace stt
 
 	void Connecting::update(Time dt)
 	{
-		client_->update();
+		client_->update(dt);
 
-		if (client_->connected())
+		/*if (client_->connected())
 		{
 			// TODO: retrieve initial data and switch state
 
@@ -37,7 +37,7 @@ namespace stt
 
 			delete client_;
 			game->quit();
-		}
+		}*/
 	}
 
 	void Connecting::draw(float percent)
