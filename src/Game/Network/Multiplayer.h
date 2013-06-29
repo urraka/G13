@@ -34,7 +34,7 @@ namespace net
 		Player players_[MaxPlayers];
 
 		void loadMap();
-		void send(msg::Message *msg, ENetPeer *target);
+		void send(msg::Message *msg, ENetPeer *target = 0); // target = 0 -> broadcast
 
 		virtual void onConnect   (ENetPeer *peer) = 0;
 		virtual void onDisconnect(ENetPeer *peer) = 0;

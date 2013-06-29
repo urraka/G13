@@ -26,7 +26,6 @@ namespace ent
 
 		struct State
 		{
-			uint8_t playerId;
 			fixvec2 position;
 			fixvec2 velocity;
 			bool    flip;

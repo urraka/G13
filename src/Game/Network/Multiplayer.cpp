@@ -104,7 +104,10 @@ namespace net
 		packet->freeCallback = free_packet;
 		packet->userData = this;
 
-		enet_peer_send(target, channel, packet);
+		if (target != 0)
+			enet_peer_send(target, channel, packet);
+		else
+			enet_host_broadcast(connection_, channel, packet);
 	}
 
 	void Multiplayer::free_packet(ENetPacket *packet)

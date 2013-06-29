@@ -56,6 +56,9 @@ namespace net
 
 	void Client::update(Time dt)
 	{
+		if (state_ == Disconnected)
+			return;
+
 		Multiplayer::update(dt);
 
 		if (active())
@@ -119,6 +122,7 @@ namespace net
 			case msg::PlayerDisconnect::Type: onPlayerDisconnect(msg); break;
 			case msg::PlayerJoin::Type:       onPlayerJoin(msg);       break;
 			case msg::GameState::Type:        onGameState(msg);        break;
+
 			default: break;
 		}
 	}
@@ -130,6 +134,8 @@ namespace net
 		id_ = info->clientId;
 		tick_ = info->tick;
 
+		loadMap();
+
 		for (size_t i = 0; i < MaxPlayers; i++)
 			players_[i].initialize();
 
@@ -137,18 +143,25 @@ namespace net
 
 		for (size_t i = 0; i < info->nPlayers; i++)
 		{
-			uint8_t id = info->players[i];
-			players_[id].onConnecting();
+			Player *player = &players_[info->players[i]];
+
+			player->mode(Player::Remote);
+			player->onConnecting();
 
 			connectingCount_++;
 		}
 
+		players_[id_].mode(Player::Local);
 		players_[id_].onConnecting();
 	}
 
 	void Client::onPlayerConnect(msg::Message *msg)
 	{
 		msg::PlayerConnect *playerConnect = (msg::PlayerConnect*)msg;
+
+		if (playerConnect->id == id_)
+			return;
+
 		Player *player = &players_[playerConnect->id];
 
 		if (player->connected())
@@ -193,9 +206,9 @@ namespace net
 			Player *player = &players_[gameState->soldiers[i].playerId];
 
 			if (active() && player->state() == Player::Connected)
-				player->onJoin(tick_, map_, gameState->soldiers[i].position);
+				player->onJoin(tick_, map_, gameState->soldiers[i].state.position);
 
-			player->onSoldierState(gameState->tick, gameState->soldiers[i]);
+			player->onSoldierState(gameState->tick, gameState->soldiers[i].state);
 		}
 	}
 }

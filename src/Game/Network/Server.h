@@ -12,7 +12,7 @@ namespace net
 		Server();
 		~Server();
 
-		void start(int port);
+		bool start(int port);
 		void update(Time dt);
 
 	private:
@@ -21,5 +21,9 @@ namespace net
 		void onConnect   (ENetPeer *peer);
 		void onDisconnect(ENetPeer *peer);
 		void onMessage   (msg::Message *msg, ENetPeer *from);
+
+		void onPlayerLogin(Player *player, msg::Message *msg);
+		void onPlayerReady(Player *player, msg::Message *msg);
+		void onPlayerInput(Player *player, msg::Message *msg);
 	};
 }

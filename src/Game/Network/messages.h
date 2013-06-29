@@ -73,19 +73,24 @@ END
 
 LIST(SoldierState, soldier)
 	Bits(soldier.playerId, MINBITS(Multiplayer::MaxPlayers - 1))
-	Fixed(soldier.position.x)
-	Fixed(soldier.position.y)
-	Fixed(soldier.velocity.x)
-	Fixed(soldier.velocity.y)
-	Bool(soldier.flip)
-	Bool(soldier.duck)
-	Bool(soldier.floor)
+	Fixed(soldier.state.position.x)
+	Fixed(soldier.state.position.y)
+	Fixed(soldier.state.velocity.x)
+	Fixed(soldier.state.velocity.y)
+	Bool(soldier.state.flip)
+	Bool(soldier.state.duck)
+	Bool(soldier.state.floor)
 LISTEND
 
 MESSAGE(GameState)
+	struct SoldierState {
+		uint8_t playerId;
+		ent::Soldier::State state;
+	};
+
 	uint32_t tick;
 	size_t   nSoldiers;
-	ent::Soldier::State soldiers[Multiplayer::MaxPlayers];
+	SoldierState soldiers[Multiplayer::MaxPlayers];
 BEGIN
 	Integer(tick)
 	List(SoldierState, soldiers, nSoldiers, 0)
