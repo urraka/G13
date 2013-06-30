@@ -1,49 +1,48 @@
 #include "msg.h"
 #include "BitStream.h"
 
-namespace net { namespace msg
+namespace net {
+namespace msg {
+namespace _
 {
-	namespace _
+	// This stuff here holds an instance of each message type to avoid allocating.
+	// Sort of a 1 object pool, which can be done since only one message lives
+	// at a time. If this fact ever changes ASSERT!
+
+	template<class T> class msgcont
 	{
-		// This stuff here holds an instance of each message type to avoid allocating.
-		// Sort of a 1 object pool, which can be done since only one message lives
-		// at a time. If this fact ever changes ASSERT!
+	public:
+		msgcont() : used(false) {}
+		bool used;
+		T msg;
 
-		template<class T> class msgcont
+		static msgcont<T> &get()
 		{
-		public:
-			msgcont() : used(false) {}
-			bool used;
-			T msg;
+			static msgcont<T> container;
+			return container;
+		}
+	};
 
-			static msgcont<T> &get()
-			{
-				static msgcont<T> container;
-				return container;
-			}
-		};
+	template<class T> static net::msg::Message *create(const uint8_t *data, size_t length)
+	{
+		msgcont<T> &container = msgcont<T>::get();
 
-		template<class T> static net::msg::Message *create(const uint8_t *data, size_t length)
+		assert(!container.used);
+
+		if (container.msg.read(data, length))
 		{
-			msgcont<T> &container = msgcont<T>::get();
-
-			assert(!container.used);
-
-			if (container.msg.read(data, length))
-			{
-				container.used = true;
-				return &container.msg;
-			}
-
-			return 0;
+			container.used = true;
+			return &container.msg;
 		}
 
-		template<class T> static void destroy(T*)
-		{
-			msgcont<T>::get().used = false;
-		}
+		return 0;
 	}
-}}
+
+	template<class T> static void destroy(T*)
+	{
+		msgcont<T>::get().used = false;
+	}
+}}}
 
 #define MSGMAGIC_CREATE
 #include "msg_magic.h"

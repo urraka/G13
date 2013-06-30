@@ -8,8 +8,6 @@
 
 namespace stt
 {
-	stt_name(Testing);
-
 	Testing::Testing(net::Client *client)
 		:	background_(0),
 			textures_(),

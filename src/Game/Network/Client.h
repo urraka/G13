@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Multiplayer.h"
+#include "../Entities/Camera.h"
+#include "../../System/Event.h"
+#include "../../Graphics/Graphics.h"
 #include <string>
 
 namespace net
@@ -14,9 +17,13 @@ namespace net
 		~Client();
 
 		bool connect(const char *host, int port);
+		void disconnect();
 		void update(Time dt);
+		void draw(float framePercent);
+		void event(const Event &evt);
 
 		bool active() const;
+		State state() const;
 
 	private:
 		State state_;
@@ -28,6 +35,11 @@ namespace net
 
 		int connectingCount_;
 
+		ent::Camera camera_;
+		VBO<ColorVertex> *background_;
+		Texture          *texture_;
+		SpriteBatch      *spriteBatch_;
+
 		void onConnect   (ENetPeer *peer);
 		void onDisconnect(ENetPeer *peer);
 		void onMessage   (msg::Message *msg, ENetPeer *from);
@@ -37,5 +49,8 @@ namespace net
 		void onPlayerDisconnect(msg::Message *msg);
 		void onPlayerJoin(msg::Message *msg);
 		void onGameState(msg::Message *msg);
+
+		void onResize(int width, int height);
+		void onKeyPressed(Keyboard::Key key);
 	};
 }

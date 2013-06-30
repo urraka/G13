@@ -85,7 +85,7 @@ LISTEND
 MESSAGE(GameState)
 	struct SoldierState {
 		uint8_t playerId;
-		ent::Soldier::State state;
+		cmp::SoldierState state;
 	};
 
 	uint32_t tick;

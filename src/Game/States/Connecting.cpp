@@ -8,8 +8,6 @@
 
 namespace stt
 {
-	stt_name(Connecting);
-
 	Connecting::Connecting()
 	{
 		client_ = new net::Client();

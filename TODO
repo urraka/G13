@@ -1,3 +1,15 @@
+General refactoring
+  - Modules: sys, gfx, math, hlp, g13.
+  - Graphics turns into global functions in gfx namespace.
+  - Graphics initialization through gfx::initialize().
+  - Design a better approach to handle shaders.
+  - Different gfx objects not created from graphics instance anymore (just using new).
+  - Clock goes away, just do sys::time(), sys::milliseconds(), etc.
+  - Decide what to do with platform.h, which is needed across modules.
+  - Move fpm namespace inside math namespace.
+  - Each directory under src/ should be named after a namespace.
+  - Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
+
 General
   - Consider making each module a library to include into the game.
   - Move platform.h away from system.

@@ -24,8 +24,6 @@ namespace stt
 		void draw(float framePercent);
 		void event(const Event &evt);
 
-		stt_name_decl();
-
 	private:
 		enum
 		{

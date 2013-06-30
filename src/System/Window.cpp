@@ -116,8 +116,8 @@ void Window::create(bool fullscreen, int fsaa)
 		}
 		else
 		{
-			result = glfwOpenWindow(mode.Width * 0.8f, mode.Height * 0.8f, 0, 0, 0, 0, 0, 0, GLFW_WINDOW);
-			glfwSetWindowPos(mode.Width * 0.1f, mode.Height * 0.1f);
+			result = glfwOpenWindow(mode.Width * 0.4f, mode.Height * 0.4f, 0, 0, 0, 0, 0, 0, GLFW_WINDOW);
+			glfwSetWindowPos(mode.Width * 0.5f, mode.Height * 0.5f);
 		}
 
 		if (result == GL_FALSE)

@@ -1,6 +1,8 @@
 #include "Multiplayer.h"
 #include "msg.h"
 #include "../Map.h"
+#include "../Debugger.h"
+#include <iostream>
 
 namespace net
 {
@@ -55,6 +57,10 @@ namespace net
 						onMessage(msg, event.peer);
 						msg::destroy(msg);
 					}
+					else
+					{
+						DBG(std::cout << "[Multiplayer] Invalid message received." << std::endl)
+					}
 
 					enet_packet_destroy(event.packet);
 				}
@@ -62,6 +68,9 @@ namespace net
 
 				default: break;
 			}
+
+			if (connection_ == 0)
+				return;
 		}
 	}
 

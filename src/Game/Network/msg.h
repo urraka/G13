@@ -8,7 +8,8 @@
 #include <assert.h>
 #include <stdint.h>
 
-namespace net { namespace msg
+namespace net {
+namespace msg
 {
 	class Message
 	{

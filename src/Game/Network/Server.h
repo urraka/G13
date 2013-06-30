@@ -13,7 +13,10 @@ namespace net
 		~Server();
 
 		bool start(int port);
+		void stop();
 		void update(Time dt);
+
+		State state() const;
 
 	private:
 		State state_;

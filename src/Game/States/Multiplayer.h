@@ -2,15 +2,19 @@
 
 #include "State.h"
 
-namespace net { class Client; }
+namespace net
+{
+	class Client;
+	class Server;
+}
 
 namespace stt
 {
-	class Connecting : public State
+	class Multiplayer : public State
 	{
 	public:
-		Connecting();
-		~Connecting();
+		Multiplayer();
+		~Multiplayer();
 
 		void update(Time dt);
 		void draw(float percent);
@@ -18,5 +22,8 @@ namespace stt
 
 	private:
 		net::Client *client_;
+		net::Server *server_;
+
+		void onKeyPressed(Keyboard::Key key);
 	};
 }

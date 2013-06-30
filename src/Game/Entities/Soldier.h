@@ -6,6 +6,7 @@
 #include "../Components/SoldierInput.h"
 #include "../Components/SoldierPhysics.h"
 #include "../Components/SoldierGraphics.h"
+#include "../Components/SoldierState.h"
 
 class Replay;
 
@@ -24,13 +25,9 @@ namespace ent
 		cmp::SoldierPhysics physics;
 		cmp::SoldierGraphics graphics;
 
-		struct State
-		{
-			fixvec2 position;
-			fixvec2 velocity;
-			bool    flip;
-			bool    duck;
-			bool    floor;
-		};
+		cmp::SoldierState state();
+
+	private:
+		cmp::SoldierState state_;
 	};
 }

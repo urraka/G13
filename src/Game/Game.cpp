@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "States/Connecting.h"
 #include "States/Testing.h"
+#include "States/Multiplayer.h"
 #include "Debugger.h"
 
 #include "../Graphics/Graphics.h"
@@ -79,8 +80,9 @@ void Game::init(Application *app)
 	if (enet_initialize() != 0)
 		std::cerr << "Failed to initialize enet." << std::endl;
 
-	state_ = new stt::Testing();
-	//state_ = new stt::Connecting();
+	state_ = new stt::Multiplayer();
+	// state_ = new stt::Testing();
+	// state_ = new stt::Connecting();
 }
 
 void Game::draw()

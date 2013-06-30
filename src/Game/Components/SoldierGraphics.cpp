@@ -1,6 +1,4 @@
 #include "SoldierGraphics.h"
-#include "SoldierInput.h"
-#include "SoldierPhysics.h"
 
 namespace cmp
 {
@@ -10,21 +8,23 @@ namespace cmp
 	{
 		int cx = 26;
 		int cy = 78;
+		int w = 54;
+		int h = 82;
 
-		frames[Standing00]    = Frame(0, 0, 54, 82, cx, cy, 0);
-		frames[Ducking00]     = Frame(212, 0, 54, 82, cx, cy, 0);
-		frames[Walking00]     = Frame(53, 0, 54, 82, cx, cy, Clock::seconds(0.1));
-		frames[Walking01]     = Frame(106, 0, 54, 82, cx, cy, Clock::seconds(0.1));
-		frames[DuckWalking00] = Frame(265, 0, 54, 82, cx, cy, Clock::seconds(0.1));
-		frames[DuckWalking01] = Frame(318, 0, 54, 82, cx, cy, Clock::seconds(0.1));
-		frames[Falling00]     = Frame(53, 0, 54, 82, cx, cy, 0);
-		frames[DuckFalling00] = Frame(265, 0, 54, 82, cx, cy, 0);
+		frames[Standing00   ] = Frame(  0, 0, w, h, cx, cy, 0);
+		frames[Ducking00    ] = Frame(212, 0, w, h, cx, cy, 0);
+		frames[Walking00    ] = Frame( 53, 0, w, h, cx, cy, Clock::seconds(0.1));
+		frames[Walking01    ] = Frame(106, 0, w, h, cx, cy, Clock::seconds(0.1));
+		frames[DuckWalking00] = Frame(265, 0, w, h, cx, cy, Clock::seconds(0.1));
+		frames[DuckWalking01] = Frame(318, 0, w, h, cx, cy, Clock::seconds(0.1));
+		frames[Falling00    ] = Frame( 53, 0, w, h, cx, cy, 0);
+		frames[DuckFalling00] = Frame(265, 0, w, h, cx, cy, 0);
 
-		animations[Standing]    = AnimationInfo(Standing00, Standing00);
-		animations[Ducking]     = AnimationInfo(Ducking00, Ducking00);
-		animations[Walking]     = AnimationInfo(Walking00, Walking01);
+		animations[Standing   ] = AnimationInfo(Standing00   , Standing00   );
+		animations[Ducking    ] = AnimationInfo(Ducking00    , Ducking00    );
+		animations[Walking    ] = AnimationInfo(Walking00    , Walking01    );
 		animations[DuckWalking] = AnimationInfo(DuckWalking00, DuckWalking01);
-		animations[Falling]     = AnimationInfo(Falling00, Falling00);
+		animations[Falling    ] = AnimationInfo(Falling00    , Falling00    );
 		animations[DuckFalling] = AnimationInfo(DuckFalling00, DuckFalling00);
 	}
 
@@ -35,27 +35,27 @@ namespace cmp
 		updateSprite(animation.frame());
 	}
 
-	void SoldierGraphics::update(Time dt)
+	void SoldierGraphics::update(Time dt, const SoldierState &state)
 	{
 		position.update();
-		position.current = math::from_fixed(physics->position);
+		position.current = math::from_fixed(state.position);
 
 		int notMoving = Standing;
 		int moving = Walking;
 		int falling = Falling;
 
-		if (physics->ducking())
+		if (state.duck)
 		{
 			notMoving = Ducking;
 			moving = DuckWalking;
 			falling = DuckFalling;
 		}
 
-		if (physics->floor())
+		if (state.floor)
 		{
-			if (physics->velocity.x != 0 && animation.id() != moving)
+			if (state.velocity.x != 0 && animation.id() != moving)
 				animation.set(moving, data_.animations[moving].first + 1);
-			else if (physics->velocity.x == 0)
+			else if (state.velocity.x == 0)
 				animation.set(notMoving);
 		}
 		else
@@ -66,8 +66,7 @@ namespace cmp
 		animation.update(dt);
 		updateSprite(animation.frame());
 
-		if (input->left)  sprite.scale.x = 1.f;
-		if (input->right) sprite.scale.x = -1.f;
+		sprite.scale.x = state.flip ? -1.f : 1.0f;
 	}
 
 	void SoldierGraphics::frame(float percent)

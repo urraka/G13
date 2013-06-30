@@ -15,6 +15,7 @@ namespace net
 	public:
 		enum State { Disconnected, Connecting, Connected, Playing };
 		enum Mode { Server, Local, Remote };
+		static const uint8_t InvalidId = 0xFF;
 
 		Player();
 
@@ -25,7 +26,7 @@ namespace net
 		void onConnect(const char *name);
 		void onDisconnect();
 		void onJoin(uint32_t tick, const Map *map, const fixvec2 &position);
-		void onSoldierState(uint32_t tick, const ent::Soldier::State &soldierState);
+		void onSoldierState(uint32_t tick, const cmp::SoldierState &soldierState);
 		void onInput(uint32_t tick, const cmp::SoldierInput &input);
 
 		void mode(Mode mode);
@@ -36,6 +37,8 @@ namespace net
 		uint8_t     id       () const;
 		ENetPeer   *peer     () const;
 		const char *name     () const;
+
+		ent::Soldier *soldier();
 
 		static const size_t MaxNameLength = 32;
 		static const size_t MinNameLength = 1;
@@ -48,12 +51,13 @@ namespace net
 		ent::Soldier soldier_;
 		uint32_t joinTick_;
 		uint32_t lastInputTick_; // this could just go away i think
+		std::vector<uint8_t> inputs_;
 
 		struct SoldierState
 		{
 			SoldierState() : received(false) {}
 			bool received;
-			ent::Soldier::State state;
+			cmp::SoldierState state;
 		};
 
 		// remote players state is stored in a ring buffer to interpolate N ticks behind

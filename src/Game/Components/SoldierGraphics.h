@@ -5,24 +5,20 @@
 #include "../../System/Clock.h"
 #include "../Animation.h"
 
+#include "SoldierState.h"
+
 namespace cmp
 {
-	class SoldierInput;
-	class SoldierPhysics;
-
 	class SoldierGraphics
 	{
 	public:
 		SoldierGraphics();
-		void update(Time dt);
+		void update(Time dt, const SoldierState &state);
 		void frame(float percent);
 
 		Sprite sprite;
 		Animation animation;
 		math::interpolable<vec2> position;
-
-		const SoldierInput *input;
-		const SoldierPhysics *physics;
 
 	private:
 		void updateSprite(const Frame *frame);

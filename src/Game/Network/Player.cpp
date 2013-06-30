@@ -26,13 +26,38 @@ namespace net
 			case Local:
 			{
 				// TODO: add input to a buffer to correct position with a replay
-				soldier_.update(dt, &soldier_.input);
+
+				if (inputs_.size() == 1)
+				{
+					cmp::SoldierInput input;
+					input.unserialize(inputs_[0]);
+					soldier_.update(dt, &input);
+
+					inputs_.clear();
+				}
 			}
 			break;
 
 			case Remote:
 			{
-				// interpolate/extrapolate
+				/*const int size = int(sizeof stateBuffer_ / sizeof stateBuffer_[0]);
+
+				// TODO: interpolate
+				// uint32_t drawTick = tick - size / 2;
+
+				for (int i = size - 1; i >= 0; i--)
+				{
+					int idx = (stateBase_ + i) % size;
+
+					if (stateBuffer_[idx].received)
+					{
+						soldier_.graphics.update(dt, stateBuffer_[idx].state);
+						break;
+					}
+				}*/
+
+				if (stateBuffer_[0].received)
+					soldier_.graphics.update(dt, stateBuffer_[0].state);
 			}
 			break;
 
@@ -50,7 +75,14 @@ namespace net
 				}
 				else
 				{
-					soldier_.update(dt, &soldier_.input);
+					for (size_t i = 0; i < inputs_.size(); i++)
+					{
+						cmp::SoldierInput input;
+						input.unserialize(inputs_[i]);
+						soldier_.update(dt, &input);
+					}
+
+					inputs_.clear();
 				}
 			}
 			break;
@@ -79,18 +111,21 @@ namespace net
 	void Player::onJoin(uint32_t tick, const Map *map, const fixvec2 &position)
 	{
 		state_ = Playing;
-		lastInputTick_ = tick;
+		lastInputTick_ = tick - 1;
 		joinTick_ = tick;
 		soldier_.reset(position);
 		soldier_.map(map->collisionMap());
 	}
 
-	void Player::onSoldierState(uint32_t tick, const ent::Soldier::State &soldierState)
+	void Player::onSoldierState(uint32_t tick, const cmp::SoldierState &soldierState)
 	{
 		if (tick < stateTick_)
 			return;
 
-		const int size = int(sizeof stateBuffer_ / sizeof stateBuffer_[0]);
+		stateBuffer_[0].state = soldierState;
+		stateBuffer_[0].received = true;
+
+		/*const int size = int(sizeof stateBuffer_ / sizeof stateBuffer_[0]);
 
 		int offset = tick - stateTick_;
 
@@ -105,14 +140,14 @@ namespace net
 
 		int index = offset % size;
 		stateBuffer_[index].received = true;
-		stateBuffer_[index].state = soldierState;
+		stateBuffer_[index].state = soldierState;*/
 	}
 
 	void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)
 	{
 		if (tick > lastInputTick_)
 		{
-			soldier_.input = input;
+			inputs_.push_back(input.serialize());
 			lastInputTick_ = tick;
 		}
 	}
@@ -150,5 +185,10 @@ namespace net
 	const char *Player::name() const
 	{
 		return name_;
+	}
+
+	ent::Soldier *Player::soldier()
+	{
+		return &soldier_;
 	}
 }

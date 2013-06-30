@@ -1,9 +1,12 @@
 #include "Server.h"
 #include "msg.h"
+#include "../Debugger.h"
 
 #include <hlp/assign.hpp>
 #include <assert.h>
 #include <iostream>
+
+#define LOG(x) DBG( std::cout << "[Server] " << x << std::endl; )
 
 namespace net
 {
@@ -28,11 +31,11 @@ namespace net
 
 		if (connection_ == 0)
 		{
-			std::cerr << "[Server] Failed to start connection." << std::endl;
+			LOG("Failed to start connection.")
 			return false;
 		}
 
-		tick_ = 0;
+		tick_ = 1;
 		state_ = Running;
 
 		loadMap();
@@ -43,21 +46,50 @@ namespace net
 			players_[i].mode(Player::Server);
 		}
 
+		LOG("Listening on port " << port << "...")
+
 		return true;
 	}
 
-	void Server::update(Time dt)
+	void Server::stop()
 	{
-		assert(state_ != Stopped);
-
-		Multiplayer::update(dt);
+		state_ = Stopping;
 
 		for (size_t i = 0; i < MaxPlayers; i++)
 		{
 			Player *player = &players_[i];
 
 			if (player->state() != Player::Disconnected)
+				enet_peer_disconnect(player->peer(), 0);
+		}
+	}
+
+	void Server::update(Time dt)
+	{
+		if (state_ == Stopped)
+			return;
+
+		Multiplayer::update(dt);
+
+		size_t activePlayers = 0;
+
+		for (size_t i = 0; i < MaxPlayers; i++)
+		{
+			Player *player = &players_[i];
+
+			if (player->state() != Player::Disconnected)
+			{
 				player->update(dt, tick_);
+				activePlayers++;
+			}
+		}
+
+		if (state_ == Stopping && activePlayers == 0)
+		{
+			state_ = Stopped;
+			enet_host_destroy(connection_);
+			connection_ = 0;
+			return;
 		}
 
 		if (tick_ & 1)
@@ -72,8 +104,8 @@ namespace net
 				{
 					size_t iSoldier = gameState.nSoldiers;
 
-					// TODO: set soldier state
 					gameState.soldiers[iSoldier].playerId = i;
+					gameState.soldiers[iSoldier].state = players_[i].soldier()->state();
 
 					gameState.nSoldiers++;
 				}
@@ -85,8 +117,19 @@ namespace net
 		tick_++;
 	}
 
+	Server::State Server::state() const
+	{
+		return state_;
+	}
+
 	void Server::onConnect(ENetPeer *peer)
 	{
+		if (state_ == Stopping)
+		{
+			enet_peer_reset(peer);
+			return;
+		}
+
 		Player *player = 0;
 
 		for (size_t i = 0; i < MaxPlayers; i++)
@@ -102,6 +145,8 @@ namespace net
 
 		peer->data = player;
 		player->onConnecting(peer);
+
+		LOG("Player #" << (int)player->id() << " connecting...")
 	}
 
 	void Server::onDisconnect(ENetPeer *peer)
@@ -112,6 +157,8 @@ namespace net
 		msg::PlayerDisconnect msg;
 		msg.id = player->id();
 		send(&msg);
+
+		LOG("Player #" << (int)player->id() << " disconnected.")
 	}
 
 	void Server::onMessage(msg::Message *msg, ENetPeer *from)
@@ -165,6 +212,8 @@ namespace net
 				send(&playerConnect, peer);
 			}
 		}
+
+		LOG("Player #" << (int)player->id() << " connected.")
 	}
 
 	void Server::onPlayerReady(Player *player, msg::Message *msg)
@@ -182,6 +231,9 @@ namespace net
 	void Server::onPlayerInput(Player *player, msg::Message *msg)
 	{
 		msg::Input *msgInput = (msg::Input*)msg;
+
+		if (msgInput->tick >= tick_)
+			return;
 
 		cmp::SoldierInput input;
 		input.unserialize(msgInput->input);
