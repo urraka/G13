@@ -2,6 +2,25 @@
 #include "../Game.h"
 #include "../Network/Client.h"
 #include "../Network/Server.h"
+#include "../Debugger.h"
+
+#include <hlp/read.h>
+#include <hlp/split.h>
+#include <hlp/to_int.h>
+
+static void read_settings(std::string *host, int *port)
+{
+	hlp::strvector elements = hlp::split(hlp::read("data/network.txt"), ':');
+
+	*host = "";
+	*port = 0;
+
+	if (elements.size() == 2)
+	{
+		*host = elements[0];
+		*port = hlp::to_int(elements[1]);
+	}
+}
 
 namespace stt
 {
@@ -45,7 +64,13 @@ namespace stt
 			case Keyboard::S:
 			{
 				if (server_->state() == net::Server::Stopped)
-					server_->start(1234);
+				{
+					int port;
+					std::string host;
+					read_settings(&host, &port);
+
+					server_->start(port);
+				}
 				else
 					server_->stop();
 			}
@@ -54,7 +79,13 @@ namespace stt
 			case Keyboard::C:
 			{
 				if (client_->state() == net::Client::Disconnected)
-					client_->connect("localhost", 1234);
+				{
+					int port;
+					std::string host;
+					read_settings(&host, &port);
+
+					client_->connect(host.c_str(), port);
+				}
 			}
 			break;
 

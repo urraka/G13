@@ -8,6 +8,8 @@
 
 #ifdef DEBUG
 
+#include "../System/Event.h"
+
 template<class T> class VBO;
 
 class Graphics;
@@ -26,6 +28,8 @@ public:
 	void loadCollisionHulls();
 	void drawCollisionHulls();
 	void showCollisionData();
+
+	void onKeyPressed(Keyboard::Key key);
 
 	Map *map;
 	ent::Soldier *soldier;

@@ -172,4 +172,20 @@ void Debugger::showCollisionData()
 	std::cout << std::endl;
 }
 
+void Debugger::onKeyPressed(Keyboard::Key key)
+{
+	switch (key)
+	{
+		case Keyboard::W:
+			wireframe = !wireframe;
+			break;
+
+		case Keyboard::F6:
+			showFPS = !showFPS;
+			break;
+
+		default: break;
+	}
+}
+
 #endif

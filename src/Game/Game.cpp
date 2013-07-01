@@ -104,6 +104,7 @@ void Game::input()
 {
 	Event event;
 
+
 	while (window->poll(&event))
 	{
 		state_->event(event);
@@ -112,13 +113,15 @@ void Game::input()
 			graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
 
 		DBG(
+			if (event.type == Event::Keyboard && event.keyboard.pressed)
+				dbg->onKeyPressed(event.keyboard.key);
+		);
+
+		DBG(
 			if (event.type == Event::Keyboard)
 			{
 				if (event.keyboard.pressed)
 				{
-					if (event.keyboard.key == Keyboard::F6)
-						dbg->showFPS = !dbg->showFPS;
-
 					if (event.keyboard.key == Keyboard::F5)
 					{
 						dbg->stepMode = !dbg->stepMode;
