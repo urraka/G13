@@ -2,7 +2,7 @@
 #include "msg.h"
 #include "../Debugger.h"
 
-#include <hlp/assign.hpp>
+#include <hlp/assign.h>
 #include <assert.h>
 #include <iostream>
 

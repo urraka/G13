@@ -3,7 +3,7 @@
 #include "../../System/Clock.h"
 #include "Player.h"
 
-#include <hlp/pool.hpp>
+#include <hlp/pool.h>
 #include <enet/enet.h>
 
 class Map;

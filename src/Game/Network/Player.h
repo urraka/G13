@@ -2,6 +2,7 @@
 
 #include "../Entities/Soldier.h"
 
+#include <hlp/ring.h>
 #include <stdint.h>
 #include <vector>
 #include <enet/enet.h>
@@ -55,15 +56,26 @@ namespace net
 
 		struct SoldierState
 		{
-			SoldierState() : received(false) {}
-			bool received;
+			SoldierState() {}
+			SoldierState(uint32_t t, const cmp::SoldierState &s) : tick(t), state(s) {}
+			uint32_t tick;
 			cmp::SoldierState state;
 		};
 
+		hlp::ring<SoldierState, 10> stateBuffer_;
+
+		// struct SoldierState
+		// {
+		// 	SoldierState() : received(false) {}
+		// 	bool received;
+		// 	cmp::SoldierState state;
+		// };
+
 		// remote players state is stored in a ring buffer to interpolate N ticks behind
-		SoldierState stateBuffer_[5];
-		int      stateBase_;
-		uint32_t stateTick_;
+		// SoldierState stateBuffer_[10];
+		// int      stateBase_;
+		// uint32_t stateTick_;
+		// uint32_t stateTickLast_;
 
 		ENetPeer *peer_;
 		Time connectTimeout_;

@@ -1,14 +1,15 @@
 #include "Player.h"
 #include "../Map.h"
 
-#include <hlp/assign.hpp>
+#include <hlp/assign.h>
 
 namespace net
 {
 	Player::Player()
 		:	mode_(Server),
-			stateBase_(0),
-			stateTick_(0),
+			// stateBase_(0),
+			// stateTick_(0),
+			// stateTickLast_(0),
 			peer_(0)
 	{
 		hlp::assign(name_, "");
@@ -40,24 +41,103 @@ namespace net
 
 			case Remote:
 			{
+				uint32_t desiredTick = std::max(tick - stateBuffer_.capacity() / 2, joinTick_);
+
+				int N = stateBuffer_.size();
+				int a = N - 1;
+				int b = 0;
+
+				while (a >= 0 && stateBuffer_[a].tick > desiredTick) a--;
+				while (b <  N && stateBuffer_[b].tick < desiredTick) b++;
+
+				if (a == -1) a = 0;
+				if (b ==  N) b = N - 1;
+
+				if (a != b)
+				{
+					cmp::SoldierState sa = stateBuffer_[a].state;
+					cmp::SoldierState sb = stateBuffer_[b].state;
+
+					float span = (float)(stateBuffer_[b].tick - stateBuffer_[a].tick);
+					float percent = (desiredTick - stateBuffer_[a].tick) / span;
+
+					sa.position = sa.position + (sb.position - sa.position) * fixed(percent);
+
+					soldier_.graphics.update(dt, sa);
+				}
+				else
+				{
+					soldier_.graphics.update(dt, stateBuffer_[a].state);
+				}
+
+				// first real interpolation test (broken)
 				/*const int size = int(sizeof stateBuffer_ / sizeof stateBuffer_[0]);
 
-				// TODO: interpolate
-				// uint32_t drawTick = tick - size / 2;
+				uint32_t desiredTick = std::max(tick - size / 2, joinTick_);
+				int offset = std::min(size - 1, std::max(0, int(desiredTick - stateTick_)));
 
-				for (int i = size - 1; i >= 0; i--)
+				int a = offset;
+				int b = offset;
+
+				while (a >= 0   && !stateBuffer_[(stateBase_ + a) % size].received) a--;
+				while (b < size && !stateBuffer_[(stateBase_ + b) % size].received) b++;
+
+				if (a == -1 || b == size)
 				{
-					int idx = (stateBase_ + i) % size;
+					soldier_.graphics.update(dt, soldier_.state());
+					return;
+				}
 
-					if (stateBuffer_[idx].received)
+				if (a == -1)   a = b;
+				if (b == size) b = a;
+
+				if (b != size)
+				{
+					if (a != b)
 					{
-						soldier_.graphics.update(dt, stateBuffer_[idx].state);
-						break;
+						assert(a < offset && offset < b);
+
+						cmp::SoldierState sa = stateBuffer_[(stateBase_ + a) % size].state;
+						cmp::SoldierState sb = stateBuffer_[(stateBase_ + b) % size].state;
+
+						fixed percent = fixed(offset - a) / fixed(b - a);
+						sa.position = sa.position + (sb.position - sa.position) * percent;
+
+						// much less of a lame test:
+						// const vec2 &current = soldier_.graphics.position.current;
+						// vec2 diff = math::from_fixed(sa.position) - current;
+						// float distance = glm::length(diff);
+
+						// if (distance > 0.1f)
+						// {
+						// 	vec2 pos = current + diff * 0.1f;
+						// 	sa.position.x = fixed(pos.x);
+						// 	sa.position.y = fixed(pos.y);
+						// }
+
+						soldier_.graphics.update(dt, sa);
+					}
+					else
+					{
+						soldier_.graphics.update(dt, stateBuffer_[(stateBase_ + a) % size].state);
 					}
 				}*/
 
-				if (stateBuffer_[0].received)
-					soldier_.graphics.update(dt, stateBuffer_[0].state);
+				// less of a lame test:
+				// for (int i = size - 1; i >= 0; i--)
+				// {
+				// 	int idx = (stateBase_ + i) % size;
+
+				// 	if (stateBuffer_[idx].received)
+				// 	{
+				// 		soldier_.graphics.update(dt, stateBuffer_[idx].state);
+				// 		break;
+				// 	}
+				// }
+
+				// lame test:
+				// if (stateBuffer_[0].received)
+				// 	soldier_.graphics.update(dt, stateBuffer_[0].state);
 			}
 			break;
 
@@ -106,6 +186,10 @@ namespace net
 	{
 		state_ = Disconnected;
 		peer_ = 0;
+
+		// stateBase_ = 0;
+		// stateTick_ = 0;
+		// stateTickLast_ = 0;
 	}
 
 	void Player::onJoin(uint32_t tick, const Map *map, const fixvec2 &position)
@@ -115,32 +199,43 @@ namespace net
 		joinTick_ = tick;
 		soldier_.reset(position);
 		soldier_.map(map->collisionMap());
+
+		stateBuffer_.clear();
+		stateBuffer_.push(SoldierState(tick, soldier_.state()));
+
+		// onSoldierState(tick, soldier_.state());
 	}
 
 	void Player::onSoldierState(uint32_t tick, const cmp::SoldierState &soldierState)
 	{
-		if (tick < stateTick_)
-			return;
+		if (stateBuffer_.size() == 0 || tick > stateBuffer_[stateBuffer_.size() - 1].tick)
+			stateBuffer_.push(SoldierState(tick, soldierState));
 
-		stateBuffer_[0].state = soldierState;
-		stateBuffer_[0].received = true;
+		// if (tick <= stateTickLast_)
+		// 	return;
 
-		/*const int size = int(sizeof stateBuffer_ / sizeof stateBuffer_[0]);
+		// lame test:
+		// stateBuffer_[0].state = soldierState;
+		// stateBuffer_[0].received = true;
 
-		int offset = tick - stateTick_;
+		// const int size = int(sizeof stateBuffer_ / sizeof stateBuffer_[0]);
 
-		if (offset >= size)
-		{
-			for (int i = 0; i < offset - size && i < size; i++)
-				stateBuffer_[(stateBase_ + i) % size].received = false;
+		// int offset = tick - stateTick_;
 
-			stateBase_ = (stateBase_ + offset - size + 1) % size;
-			stateTick_ = tick - size + 1;
-		}
+		// if (offset >= size)
+		// {
+		// 	for (int i = 0; i < offset - size && i < size; i++)
+		// 		stateBuffer_[(stateBase_ + i) % size].received = false;
 
-		int index = offset % size;
-		stateBuffer_[index].received = true;
-		stateBuffer_[index].state = soldierState;*/
+		// 	stateBase_ = (stateBase_ + offset - size + 1) % size;
+		// 	stateTick_ = tick - size + 1;
+		// }
+
+		// int index = (stateBase_ + offset) % size;
+		// stateBuffer_[index].received = true;
+		// stateBuffer_[index].state = soldierState;
+
+		// stateTickLast_ = tick;
 	}
 
 	void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)

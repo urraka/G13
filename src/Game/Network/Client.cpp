@@ -6,7 +6,7 @@
 
 #include "../Debugger.h"
 
-#include <hlp/assign.hpp>
+#include <hlp/assign.h>
 #include <assert.h>
 #include <iostream>
 
@@ -286,7 +286,8 @@ namespace net
 			if (active() && player->state() == Player::Connected)
 				player->onJoin(tick_, map_, gameState->soldiers[i].state.position);
 
-			player->onSoldierState(gameState->tick, gameState->soldiers[i].state);
+			if (player->state() == Player::Playing)
+				player->onSoldierState(gameState->tick, gameState->soldiers[i].state);
 		}
 	}
 
