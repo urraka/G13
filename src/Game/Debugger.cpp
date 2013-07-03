@@ -23,6 +23,7 @@ Debugger::Debugger()
 		showFPS(false),
 		stepMode(false),
 		wireframe(false),
+		interpolation(true),
 		collisionHulls()
 {
 }
@@ -182,6 +183,10 @@ void Debugger::onKeyPressed(Keyboard::Key key)
 
 		case Keyboard::F6:
 			showFPS = !showFPS;
+			break;
+
+		case Keyboard::I:
+			interpolation = !interpolation;
 			break;
 
 		default: break;

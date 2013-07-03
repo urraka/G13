@@ -9,6 +9,7 @@
 #ifdef DEBUG
 
 #include "../System/Event.h"
+#include <iostream>
 
 template<class T> class VBO;
 
@@ -39,6 +40,7 @@ public:
 	bool showFPS;
 	bool stepMode;
 	bool wireframe;
+	bool interpolation;
 
 private:
 	VBO<ColorVertex> *collisionHulls[2];

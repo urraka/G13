@@ -287,7 +287,10 @@ namespace net
 				player->onJoin(tick_, map_, gameState->soldiers[i].state.position);
 
 			if (player->state() == Player::Playing)
-				player->onSoldierState(gameState->tick, gameState->soldiers[i].state);
+			{
+				uint32_t tick = gameState->tick - gameState->soldiers[i].tickOffset;
+				player->onSoldierState(tick, gameState->soldiers[i].state);
+			}
 		}
 	}
 
@@ -300,7 +303,7 @@ namespace net
 		gfx->bind(Graphics::ColorShader);
 		gfx->draw(background_);
 
-		if (active())
+		if (active() && players_[id_].state() == Player::Playing)
 		{
 			spriteBatch_->clear();
 

@@ -15,8 +15,15 @@ namespace net
 	{
 	public:
 		enum State { Disconnected, Connecting, Connected, Playing };
-		enum Mode { Server, Local, Remote };
-		static const uint8_t InvalidId = 0xFF;
+		enum Mode  { Server, Local, Remote };
+
+		enum
+		{
+			InvalidId     = 0xFF,
+			MaxNameLength = 32,
+			MinNameLength = 1,
+			MaxTickOffset = 63
+		};
 
 		Player();
 
@@ -38,11 +45,9 @@ namespace net
 		uint8_t     id       () const;
 		ENetPeer   *peer     () const;
 		const char *name     () const;
+		uint32_t    tick     () const;
 
 		ent::Soldier *soldier();
-
-		static const size_t MaxNameLength = 32;
-		static const size_t MinNameLength = 1;
 
 	private:
 		uint8_t id_;
@@ -51,8 +56,9 @@ namespace net
 		char name_[MaxNameLength + 1];
 		ent::Soldier soldier_;
 		uint32_t joinTick_;
-		uint32_t lastInputTick_; // this could just go away i think
+		uint32_t lastInputTick_;
 		std::vector<uint8_t> inputs_;
+		uint32_t tick_;
 
 		struct SoldierState
 		{
@@ -63,19 +69,6 @@ namespace net
 		};
 
 		hlp::ring<SoldierState, 10> stateBuffer_;
-
-		// struct SoldierState
-		// {
-		// 	SoldierState() : received(false) {}
-		// 	bool received;
-		// 	cmp::SoldierState state;
-		// };
-
-		// remote players state is stored in a ring buffer to interpolate N ticks behind
-		// SoldierState stateBuffer_[10];
-		// int      stateBase_;
-		// uint32_t stateTick_;
-		// uint32_t stateTickLast_;
 
 		ENetPeer *peer_;
 		Time connectTimeout_;

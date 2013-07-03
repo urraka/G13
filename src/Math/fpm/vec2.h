@@ -2,6 +2,9 @@
 
 #include "fixed.h"
 
+namespace fpm { class vec2; }
+std::ostream& operator<<(std::ostream & stream, fpm::vec2 const & x);
+
 namespace fpm
 {
 	class vec2

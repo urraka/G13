@@ -72,6 +72,7 @@ BEGIN
 END
 
 LIST(SoldierState, soldier)
+	Bits(soldier.tickOffset, MINBITS(Player::MaxTickOffset))
 	Bits(soldier.playerId, MINBITS(Multiplayer::MaxPlayers - 1))
 	Fixed(soldier.state.position.x)
 	Fixed(soldier.state.position.y)
@@ -84,6 +85,7 @@ LISTEND
 
 MESSAGE(GameState)
 	struct SoldierState {
+		uint8_t tickOffset;
 		uint8_t playerId;
 		cmp::SoldierState state;
 	};

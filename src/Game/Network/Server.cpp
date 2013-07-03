@@ -103,9 +103,11 @@ namespace net
 				if (players_[i].state() == Player::Playing)
 				{
 					size_t iSoldier = gameState.nSoldiers;
+					msg::GameState::SoldierState *s = &gameState.soldiers[iSoldier];
 
-					gameState.soldiers[iSoldier].playerId = i;
-					gameState.soldiers[iSoldier].state = players_[i].soldier()->state();
+					s->tickOffset = std::min((uint32_t)Player::MaxTickOffset, tick_ - players_[i].tick());
+					s->playerId = i;
+					s->state = players_[i].soldier()->state();
 
 					gameState.nSoldiers++;
 				}
@@ -232,8 +234,11 @@ namespace net
 	{
 		msg::Input *msgInput = (msg::Input*)msg;
 
-		if (msgInput->tick >= tick_)
+		if (msgInput->tick > tick_)
+		{
+			assert(false);
 			return;
+		}
 
 		cmp::SoldierInput input;
 		input.unserialize(msgInput->input);

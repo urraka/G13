@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "../../System/Event.h"
 
 namespace ent
 {
@@ -21,6 +22,12 @@ namespace ent
 
 		position_.update();
 		zoom_.update();
+
+		if (Keyboard::pressed(Keyboard::NumpadAdd))
+			zoom(ZoomIn);
+
+		if (Keyboard::pressed(Keyboard::NumpadSubtract))
+			zoom(ZoomOut);
 
 		zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);
 		zoomVelocity_ = zoomTarget_ - zoom_.current;

@@ -166,10 +166,15 @@ void Game::update()
 		}
 	);
 
-	if (frameTime > maxFrameTime)
-		frameTime = maxFrameTime;
+	Time frozenTime = 0;
 
-	currentTime_ = newTime;
+	if (frameTime > maxFrameTime)
+	{
+		frozenTime = frameTime - maxFrameTime;
+		frameTime = maxFrameTime;
+	}
+
+	currentTime_ = newTime - frozenTime;
 	timeAccumulator_ += frameTime;
 
 	DBG( if (dbg->stepMode) return; );

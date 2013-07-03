@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "../Map.h"
+#include "../Debugger.h"
 
 #include <hlp/assign.h>
 
@@ -7,9 +8,6 @@ namespace net
 {
 	Player::Player()
 		:	mode_(Server),
-			// stateBase_(0),
-			// stateTick_(0),
-			// stateTickLast_(0),
 			peer_(0)
 	{
 		hlp::assign(name_, "");
@@ -41,7 +39,8 @@ namespace net
 
 			case Remote:
 			{
-				uint32_t desiredTick = std::max(tick - stateBuffer_.capacity() / 2, joinTick_);
+				const uint32_t ticksBehind = 4; //stateBuffer_.capacity() / 2;
+				uint32_t desiredTick = std::max(tick - ticksBehind, joinTick_);
 
 				int N = stateBuffer_.size();
 				int a = N - 1;
@@ -53,22 +52,32 @@ namespace net
 				if (a == -1) a = 0;
 				if (b ==  N) b = N - 1;
 
+				DBG(
+					if (!dbg->interpolation)
+						a = b = stateBuffer_.size() - 1;
+				);
+
+				cmp::SoldierState state;
+
 				if (a != b)
 				{
-					cmp::SoldierState sa = stateBuffer_[a].state;
-					cmp::SoldierState sb = stateBuffer_[b].state;
+					assert(a < b);
+
+					const cmp::SoldierState *sa = &stateBuffer_[a].state;
+					const cmp::SoldierState *sb = &stateBuffer_[b].state;
 
 					float span = (float)(stateBuffer_[b].tick - stateBuffer_[a].tick);
-					float percent = (desiredTick - stateBuffer_[a].tick) / span;
+					float percent = float(desiredTick - stateBuffer_[a].tick) / span;
 
-					sa.position = sa.position + (sb.position - sa.position) * fixed(percent);
-
-					soldier_.graphics.update(dt, sa);
+					state = *sb;
+					state.position = sa->position + (sb->position - sa->position) * fixed(percent);
 				}
 				else
 				{
-					soldier_.graphics.update(dt, stateBuffer_[a].state);
+					state = stateBuffer_[a].state;
 				}
+
+				soldier_.graphics.update(dt, state);
 			}
 			break;
 
@@ -91,6 +100,7 @@ namespace net
 						cmp::SoldierInput input;
 						input.unserialize(inputs_[i]);
 						soldier_.update(dt, &input);
+						tick_++;
 					}
 
 					inputs_.clear();
@@ -123,7 +133,7 @@ namespace net
 	{
 		state_ = Playing;
 		lastInputTick_ = tick - 1;
-		joinTick_ = tick;
+		tick_ = joinTick_ = tick;
 		soldier_.reset(position);
 		soldier_.map(map->collisionMap());
 
@@ -135,6 +145,8 @@ namespace net
 	{
 		if (stateBuffer_.size() == 0 || tick > stateBuffer_[stateBuffer_.size() - 1].tick)
 			stateBuffer_.push(SoldierState(tick, soldierState));
+		else
+			DBG(std::cout << "tick #" << tick << " skipped." << std::endl)
 	}
 
 	void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)
@@ -184,5 +196,10 @@ namespace net
 	ent::Soldier *Player::soldier()
 	{
 		return &soldier_;
+	}
+
+	uint32_t Player::tick() const
+	{
+		return tick_;
 	}
 }

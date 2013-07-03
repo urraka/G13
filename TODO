@@ -43,6 +43,7 @@ Networking
 Game
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
+    - Run from bottom-left to the right until blocked by the "wall", then walk left.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
   - Consider making components private with methods to access as const.
 
