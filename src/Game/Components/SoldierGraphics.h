@@ -29,7 +29,9 @@ namespace cmp
 			Ducking,
 			Walking,
 			DuckWalking,
+			Jumping,
 			Falling,
+			DuckJumping,
 			DuckFalling,
 			AnimationsCount
 		};

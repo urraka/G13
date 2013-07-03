@@ -159,26 +159,6 @@ namespace stt
 						default:
 							break;
 					}
-
-					DBG(
-						switch (evt.keyboard.key)
-						{
-							case Keyboard::H:
-								dbg->showCollisionHulls = !dbg->showCollisionHulls;
-								break;
-
-							case Keyboard::C:
-								dbg->showCollisionData();
-								break;
-
-							case Keyboard::W:
-								dbg->wireframe = !dbg->wireframe;
-								break;
-
-							default:
-								break;
-						}
-					);
 				}
 
 				break;

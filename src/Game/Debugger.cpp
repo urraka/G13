@@ -28,8 +28,20 @@ Debugger::Debugger()
 {
 }
 
+Debugger::~Debugger()
+{
+	if (collisionHulls[0]) delete collisionHulls[0];
+	if (collisionHulls[1]) delete collisionHulls[1];
+}
+
 void Debugger::loadCollisionHulls()
 {
+	if (collisionHulls[0]) delete collisionHulls[0];
+	if (collisionHulls[1]) delete collisionHulls[1];
+
+	if (!soldier || !map)
+		return;
+
 	const std::vector<const Collision::Node*> &nodes = map->collisionMap()->retrieve(fixrect());
 
 	std::vector<ColorVertex> vert;
@@ -99,12 +111,15 @@ void Debugger::loadCollisionHulls()
 
 void Debugger::drawCollisionHulls()
 {
-	if (showCollisionHulls)
+	if (showCollisionHulls && soldier && collisionHulls[0] && collisionHulls[1])
 		graphics->draw(collisionHulls[(int)soldier->physics.ducking()]);
 }
 
 void Debugger::showCollisionData()
 {
+	if (!map)
+		return;
+
 	std::cout << std::endl;
 	std::cout << "Collision map data: " << std::endl << std::endl;
 	std::stringstream s;
@@ -187,6 +202,14 @@ void Debugger::onKeyPressed(Keyboard::Key key)
 
 		case Keyboard::I:
 			interpolation = !interpolation;
+			break;
+
+		case Keyboard::H:
+			showCollisionHulls = !showCollisionHulls;
+			break;
+
+		case Keyboard::M:
+			dbg->showCollisionData();
 			break;
 
 		default: break;

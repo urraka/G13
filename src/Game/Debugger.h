@@ -25,6 +25,7 @@ class Debugger
 {
 public:
 	Debugger();
+	~Debugger();
 
 	void loadCollisionHulls();
 	void drawCollisionHulls();

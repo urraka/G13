@@ -20,12 +20,14 @@ namespace cmp
 		frames[Falling00    ] = Frame( 53, 0, w, h, cx, cy, 0);
 		frames[DuckFalling00] = Frame(265, 0, w, h, cx, cy, 0);
 
-		animations[Standing   ] = AnimationInfo(Standing00   , Standing00   );
-		animations[Ducking    ] = AnimationInfo(Ducking00    , Ducking00    );
-		animations[Walking    ] = AnimationInfo(Walking00    , Walking01    );
-		animations[DuckWalking] = AnimationInfo(DuckWalking00, DuckWalking01);
-		animations[Falling    ] = AnimationInfo(Falling00    , Falling00    );
-		animations[DuckFalling] = AnimationInfo(DuckFalling00, DuckFalling00);
+		animations[Standing    ] = AnimationInfo(Standing00   , Standing00   );
+		animations[Ducking     ] = AnimationInfo(Ducking00    , Ducking00    );
+		animations[Walking     ] = AnimationInfo(Walking00    , Walking01    );
+		animations[DuckWalking ] = AnimationInfo(DuckWalking00, DuckWalking01);
+		animations[Jumping    ] = AnimationInfo(Walking01    , Walking01    );
+		animations[Falling    ] = AnimationInfo(Walking00    , Walking00    );
+		animations[DuckJumping] = AnimationInfo(DuckWalking01, DuckWalking01);
+		animations[DuckFalling] = AnimationInfo(DuckWalking00, DuckWalking00);
 	}
 
 	SoldierGraphics::SoldierGraphics()
@@ -42,25 +44,34 @@ namespace cmp
 
 		int notMoving = Standing;
 		int moving = Walking;
+		int jumping = Jumping;
 		int falling = Falling;
 
 		if (state.duck)
 		{
 			notMoving = Ducking;
 			moving = DuckWalking;
+			jumping = DuckJumping;
 			falling = DuckFalling;
 		}
 
 		if (state.floor)
 		{
 			if (state.velocity.x != 0 && animation.id() != moving)
-				animation.set(moving, data_.animations[moving].first + 1);
+			{
+				int frame = data_.animations[moving].first;
+
+				if (animation.frameIndex() == frame)
+					frame++;
+
+				animation.set(moving, frame);
+			}
 			else if (state.velocity.x == 0)
 				animation.set(notMoving);
 		}
 		else
 		{
-			animation.set(falling);
+			animation.set(state.velocity.y <= 0 ? jumping : falling);
 		}
 
 		animation.update(dt);

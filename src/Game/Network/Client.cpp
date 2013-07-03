@@ -263,7 +263,15 @@ namespace net
 		players_[playerJoin->id].onJoin(playerJoin->tick, map_, playerJoin->position);
 
 		if (playerJoin->id == id_)
+		{
 			camera_.target(&players_[id_].soldier()->graphics.position.current);
+
+			DBG(
+				dbg->map = map_;
+				dbg->soldier = players_[id_].soldier();
+				dbg->loadCollisionHulls();
+			);
+		}
 
 		DBG(
 			if (playerJoin->id == id_)
@@ -319,6 +327,7 @@ namespace net
 
 			gfx->matrix(camera_.matrix(framePercent));
 			map_->draw(gfx);
+			DBG( dbg->drawCollisionHulls(); );
 			gfx->draw(spriteBatch_);
 		}
 	}

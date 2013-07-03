@@ -98,3 +98,111 @@ PROTOCOL
 
   Server
     on connect
+
+
+Multiplayer
++- tick
++- map
++- players
++- connection (ENetHost*)
+|
++- update(dt)
+|  +- poll network (enet_host_service)
+|     +- EVENT_CONNECT
+|     |  +- onConnect(peer)
+|     |
+|     +- EVENT_DISCONNECT
+|     |  +- onDisconnect(peer)
+|     |
+|     +- EVENT_PACKET
+|        +- msg = unserialize(packet)
+|        +- onMessage(msg, peer)
+|
++- send(msg, peer)
+|  +- packet = serialize(msg)
+|  +- packet->type = RELIABLE
+|  +- if msg->type == GameState: packet->type = UNSEQUENCED
+|  +- if peer != NULL: send_packet(packet, peer)
+|  +- if peer == NULL: broadcast_packet(packet)
+|
++- broadcast(msg)
+|  +- send(msg, NULL)
+|
++- Server : Multiplayer
+   +- state (Running|Stopped|Stopping)
+   |
+   +- start(port)
+   |  +- connection = host_create()
+   |  +- connection->listen(port)
+   |  +- tick = 1
+   |  +- state = Running
+   |  +- map = load_map()
+   |  +- initialize_players()
+   |     +- player->state = Disconnected
+   |     +- player->peer = NULL
+   |     +- player->mode = ServerMode
+   |
+   +- stop()
+   |  +- state = Stopping
+   |  +- for each connected player
+   |     +- peer_disconnect(player->peer)
+   |
+   +- update(dt)
+      +- Multiplayer::update(dt)
+         +- onConnect(peer)
+         |  +- if state == Stopping
+         |  |  +- peer_reset(peer)
+         |  |  +- return
+         |  |
+         |  +- player = findDisconnectedPlayer()
+         |  +- peer->data = player
+         |  +- player->onConnecting(peer)
+         |     +- player->state = Connecting
+         |     +- player->peer = peer
+         |     +- player->timeout = 0
+         |
+         +- onDisconnect(peer)
+         |  +- player = peer->data
+         |  +- player->onDisconnect()
+         |  |  +- player->state = Disconnected
+         |  |
+         |  +- msg = msg::PlayerDisconnect
+         |  +- msg->id = player->id
+         |  +- broadcast(msg)
+         |
+         +- onMessage(msg, peer)
+            +- player = peer->data
+            +- switch (msg->type)
+               +- onPlayerLogin(player, msg)
+               |  +- player->onConnect()
+               |  |  +- state = Connected
+               |  |
+               |  +- info = msg::ServerInfo
+               |  +- info->tick = tick
+               |  +- info->clientId = player->id
+               |  +- info->players = [array of player id's]
+               |  +- send(info, player->peer)
+               |  |
+               |  +- connect = msg::PlayerConnect
+               |  +- connect->id = player->id
+               |  +- broadcast(connect)
+               |  |
+               |  +- for each other connected player
+               |     +- connect = msg::PlayerConnect
+               |     +- connect->id = otherPlayer->id
+               |     +- send(connect, player->peer)
+               |
+               +- onPlayerReady(player, msg)
+               |  +- msg = msg::PlayerJoin
+               |  +- msg->tick = tick
+               |  +- msg->id = player->id
+               |  +- msg->spawnPosition = map->spawnPosition()
+               |  +- broadcast(msg)
+               |  +- player->onJoin(tick, map, msg->spawnPosition)
+               |     +- player->state = Playing
+               |     +- player->soldier->map = map
+               |     +- player->soldier->position = spawnPosition
+               |     +- player->lastInputTick = tick - 1
+               |     +- player->inputs->clear()
+               |
+               +- onPlayerInput(player, msg)

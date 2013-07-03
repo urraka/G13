@@ -137,6 +137,7 @@ namespace net
 		soldier_.reset(position);
 		soldier_.map(map->collisionMap());
 
+		inputs_.clear();
 		stateBuffer_.clear();
 		stateBuffer_.push(SoldierState(tick, soldier_.state()));
 	}
@@ -145,8 +146,6 @@ namespace net
 	{
 		if (stateBuffer_.size() == 0 || tick > stateBuffer_[stateBuffer_.size() - 1].tick)
 			stateBuffer_.push(SoldierState(tick, soldierState));
-		else
-			DBG(std::cout << "tick #" << tick << " skipped." << std::endl)
 	}
 
 	void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)

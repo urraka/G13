@@ -42,7 +42,8 @@ namespace cmp
 
 		if (input->jump && floor())
 		{
-			Collision::Result collision = Collision::resolve(map, position, position + fixvec2(0, -1), bbox);
+			const fixvec2 offset = fixvec2(0, -1);
+			Collision::Result collision = Collision::resolve(map, position, position + offset, bbox);
 
 			if (!collision.node || fpm::fabs(fpm::slope(collision.node->line)) > 1)
 			{
@@ -73,6 +74,11 @@ namespace cmp
 
 			nextDelta = fixvec2(0, 0);
 
+			const Collision::Node *prevNode = currentNode_;
+			Collision::Hull prevHull = currentHull_;
+
+			bool wasInFloor = currentNode_ && currentNode_->floor;
+
 			if (currentNode_ != 0 && currentNode_->floor)
 			{
 				// adjust velocity to floor direction
@@ -99,15 +105,31 @@ namespace cmp
 						delta.y = (dest->x - position.x) * delta.y / delta.x;
 						delta.x = dest->x - position.x;
 
-						const Collision::Node *nextNode = (dest == &currentNode_->line.p1 ? currentNode_->prev : currentNode_->next);
+						if (input->run)
+						{
+							currentNode_ = 0;
+						}
+						else
+						{
+							const Collision::Node *nextNode;
 
-						if (nextNode != 0 && !nextNode->floor)
-							nextNode = 0;
+							if (dest == &currentNode_->line.p1)
+								nextNode = currentNode_->prev;
+							else
+								nextNode = currentNode_->next;
 
-						if (nextNode != 0 && (nextNode < &currentHull_.nodes[0] || nextNode > &currentHull_.nodes[2]))
-							currentHull_ = Collision::createHull(nextNode, bbox);
+							if (nextNode != 0 && !nextNode->floor)
+								nextNode = 0;
 
-						currentNode_ = nextNode;
+							bool isHullNode = nextNode >= &currentHull_.nodes[0] &&
+								nextNode <= &currentHull_.nodes[2];
+
+							if (nextNode != 0 && !isHullNode)
+								currentHull_ = Collision::createHull(nextNode, bbox);
+
+							currentNode_ = nextNode;
+						}
+
 						nextDelta.x = fpm::max(0, length - fpm::length(delta)) * fpm::sign(delta.x);
 					}
 				}
@@ -141,10 +163,18 @@ namespace cmp
 
 				if (collision.node)
 				{
-					if (currentNode_ != 0 && currentNode_->floor && !collision.hull.nodes[collision.iHullNode].floor)
+					if (wasInFloor && !collision.hull.nodes[collision.iHullNode].floor)
 					{
 						velocity.x = 0;
 						nextDelta.x = 0;
+
+						// revert node in case we switched to the next one but collided
+						// with a wall before actually reaching it
+						if (currentNode_ != prevNode)
+						{
+							currentNode_ = prevNode;
+							currentHull_ = prevHull;
+						}
 					}
 					else
 					{
