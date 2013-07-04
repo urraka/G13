@@ -8,7 +8,7 @@ ifeq ($(shell uname | grep 'MINGW32_NT' -c),1)
 endif
 
 ifeq ($(shell uname | grep 'Linux' -c),1)
-  platform := unix
+  platform := linux
 endif
 
 ifeq ($(shell uname | grep 'Darwin' -c),1)
@@ -21,8 +21,8 @@ ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),win32)
   platform := win32
 endif
 
-ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),unix)
-  platform := unix
+ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),linux)
+  platform := linux
 endif
 
 ifeq ($(patsubst %-d,%,$(MAKECMDGOALS)),osx)
@@ -80,8 +80,8 @@ ifeq ($(platform),win32)
   endif
 endif
 
-ifeq ($(platform),unix)
-  out-dir := bin/unix$(out-dir-suffix)
+ifeq ($(platform),linux)
+  out-dir := bin/linux$(out-dir-suffix)
   out := $(out-dir)/G13
   lib += -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -lfixmath
   def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
@@ -104,7 +104,7 @@ src := $(foreach sdir,$(src-dir),$(wildcard $(sdir)/*.cpp))
 obj := $(patsubst src/%.cpp,$(out-dir)/%.o,$(src))
 dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
 
-win32 win32-d unix unix-d osx osx-d debug: $(bin-dir) $(out)
+win32 win32-d linux linux-d osx osx-d debug: $(bin-dir) $(out)
 
 help:
 	@echo "Usage: make [debug]"
@@ -153,4 +153,4 @@ $(bin-dir):
 clean:
 	rm -r bin
 
-.PHONY: clean help debug win32 win32-d unix unix-d osx osx-d
+.PHONY: clean help debug win32 win32-d linux linux-d osx osx-d
