@@ -83,7 +83,14 @@ endif
 ifeq ($(platform),linux)
   out-dir := bin/linux$(out-dir-suffix)
   out := $(out-dir)/G13
-  lib += -lGLEW -lGLU -lGL -lglfw -lXrandr -lpng -lz -lfixmath
+  lib += lib/linux/libGLEW.a
+  lib += lib/linux/libglfw.a
+  lib += lib/linux/libpng15.a
+  lib += lib/linux/libz.a
+  lib += lib/linux/libfixmath.a
+  lib += lib/linux/libenet.a
+  lib += -lXrandr -lGL
+  inc += -Iinclude
   def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
 endif
 
