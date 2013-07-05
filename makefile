@@ -60,7 +60,7 @@ ifeq ($(debug),yes)
   def += -DDEBUG
   out-dir-suffix := -d
 else
-  opt += -O3 -s
+  opt += -O3
 endif
 
 ifeq ($(platform),win32)
@@ -74,7 +74,7 @@ ifeq ($(platform),win32)
   lib += lib/win32/libenet.a
   lib += -lopengl32 -lws2_32 -lwinmm
   def += -DWIN32 -DGLEW_STATIC
-  opt += -static-libgcc -static-libstdc++
+  opt += -s -static-libgcc -static-libstdc++
   ifeq ($(debug),no)
     opt += -mwindows
   endif
@@ -92,13 +92,21 @@ ifeq ($(platform),linux)
   lib += -lXrandr -lGL
   inc += -Iinclude
   def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
+  opt += -s
 endif
 
 ifeq ($(platform),osx)
   cxx := clang++
   out-dir := bin/osx$(out-dir-suffix)
   out := $(out-dir)/G13
-  lib += -lGLEW -lglfw -framework OpenGL -lpng -lz -lfixmath
+  lib += lib/osx/libGLEW.a
+  lib += lib/osx/libglfw.a
+  lib += lib/osx/libpng15.a
+  lib += lib/osx/libz.a
+  lib += lib/osx/libfixmath.a
+  lib += lib/osx/libenet.a
+  lib += -framework OpenGL -framework Cocoa -framework IOKit
+  inc += -Iinclude
   def += -DOSX
 endif
 

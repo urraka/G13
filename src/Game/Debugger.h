@@ -14,7 +14,7 @@
 template<class T> class VBO;
 
 class Graphics;
-class ColorVertex;
+struct ColorVertex;
 class Map;
 
 namespace ent {

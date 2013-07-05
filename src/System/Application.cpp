@@ -56,7 +56,7 @@ int Application::run()
 	assert(launchCallback_ != 0 && terminateCallback_ != 0);
 
 	#if defined(IOS)
-		iosSetAppLaunchedCallback(Application::iosLaunched);
+		iosSetAppLaunchedCallback(Application::iosLaunch);
 		iosSetTerminateCallback(Application::iosTerminate);
 
 		return iosRun(argc_, argv_);
