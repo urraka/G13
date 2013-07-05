@@ -38,7 +38,7 @@ LISTEND
 MESSAGE(ServerInfo)
 	uint32_t tick;
 	uint8_t  clientId;
-	size_t   nPlayers;
+	uint32_t nPlayers;
 	uint8_t  players[Multiplayer::MaxPlayers];
 BEGIN
 	Integer(tick)
@@ -91,7 +91,7 @@ MESSAGE(GameState)
 	};
 
 	uint32_t tick;
-	size_t   nSoldiers;
+	uint32_t nSoldiers;
 	SoldierState soldiers[Multiplayer::MaxPlayers];
 BEGIN
 	Integer(tick)

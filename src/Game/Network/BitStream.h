@@ -35,7 +35,6 @@ namespace net
 		void read(uint16_t *x, size_t bits = sizeof(uint16_t) * 8) { read_ <uint16_t> (            x, bits); }
 		void read(uint32_t *x, size_t bits = sizeof(uint32_t) * 8) { read_ <uint32_t> (            x, bits); }
 		void read(uint64_t *x, size_t bits = sizeof(uint64_t) * 8) { read_ <uint64_t> (            x, bits); }
-		void read(size_t   *x, size_t bits = sizeof(size_t  ) * 8) { read_ <size_t  > (            x, bits); }
 
 		void read(bool *x)
 		{
@@ -93,7 +92,6 @@ namespace net
 		void write(uint16_t x, size_t bits = sizeof(uint16_t) * 8) { write_ <uint16_t> (             x, bits); }
 		void write(uint32_t x, size_t bits = sizeof(uint32_t) * 8) { write_ <uint32_t> (             x, bits); }
 		void write(uint64_t x, size_t bits = sizeof(uint64_t) * 8) { write_ <uint64_t> (             x, bits); }
-		void write(size_t   x, size_t bits = sizeof(size_t  ) * 8) { write_ <size_t  > (             x, bits); }
 
 		void write(bool x) { write_<uint8_t>((uint8_t)x, 1); }
 

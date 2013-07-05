@@ -1,3 +1,7 @@
+Networking
+  - Server asserts when client tick > server tick. Make it kill the client.
+  - The number of ticks that remote players are rendered behind is hardcoded, fix that.
+
 General refactoring
   - Modules: sys, gfx, math, hlp, g13.
   - Graphics turns into global functions in gfx namespace.
@@ -17,33 +21,10 @@ General
   - Add all external includes to project and all libs compiled for the different systems.
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
-Networking
-  - Add some kind of switch to enable/disable server.
-  - Messages
-    x Nick
-    - SpawnRequest
-    x Input
-    x Start
-    x PlayerJoin
-    x PlayerLeave
-    x Gamestate
-    x Spawn
-  x Soldier state needs animation id.
-  - Add tick to every message so unordered packets can be used.
-  - Add own allocation for enet.
-  x Add some SoldierState and embed it inside PlayerInfo
-  - Decide if server updates only when receiving data.
-  / Design packet structures/format.
-  / Self-contained loop with time measuring and crap in Server class.
-  / Decide how to handle server (standalone, along with client, use another thread, etc).
-    * Standalone, then find its way into the client.
-  / Decide what object will keep all the game state (players, bullets, etc).
-    * Server class will be main container (for now).
-
 Game
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
-    - Run from bottom-left to the right until blocked by the "wall", then walk left.
+    x Run from bottom-left to the right until blocked by the "wall", then walk left.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
   - Consider making components private with methods to access as const.
 
@@ -70,6 +51,27 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Add some kind of switch to enable/disable server.
+  x Messages
+    x Nick
+    x SpawnRequest
+    x Input
+    x Start
+    x PlayerJoin
+    x PlayerLeave
+    x Gamestate
+    x Spawn
+  x Soldier state needs animation id.
+  x Add tick to every message so unordered packets can be used.
+  x Add own allocation for enet.
+  x Add some SoldierState and embed it inside PlayerInfo
+  x Decide if server updates only when receiving data.
+  x Design packet structures/format.
+  / Self-contained loop with time measuring and crap in Server class.
+  x Decide how to handle server (standalone, along with client, use another thread, etc).
+    * Standalone, then find its way into the client.
+  x Decide what object will keep all the game state (players, bullets, etc).
+    * Server class will be main container (for now).
   x Add all messages in a Message directory and divide them in h/cpp.
   x Simplify Packet so it contains only one Message.
   x Add DataReader/DataWriter to access binary data in a network friendly way.

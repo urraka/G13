@@ -161,7 +161,7 @@
     namespace                                                                                  \
     {                                                                                          \
         template<class T>                                                                      \
-        static void _w_ ## ListType (BitWriter &_w, const T *_list, size_t _count,             \
+        static void _w_ ## ListType (BitWriter &_w, const T *_list, uint32_t _count,           \
                                     const size_t _sizeBits)                                    \
         {                                                                                      \
             _w.write(_count, _sizeBits);                                                       \
@@ -235,7 +235,7 @@
     namespace                                                                                  \
     {                                                                                          \
         template<class T>                                                                      \
-        static bool _r_ ## ListType (BitReader &_r, T *_list, size_t &_count,                  \
+        static bool _r_ ## ListType (BitReader &_r, T *_list, uint32_t &_count,                \
                                     size_t _min, const size_t _sizeBits)                       \
         {                                                                                      \
             size_t _strlen = 0;                                                                \
