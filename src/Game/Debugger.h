@@ -42,6 +42,8 @@ public:
 	bool stepMode;
 	bool wireframe;
 	bool interpolation;
+	bool extrapolation;
+	int ticksBehind;
 
 private:
 	VBO<ColorVertex> *collisionHulls[2];

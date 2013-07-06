@@ -12,7 +12,6 @@
 #include <sstream>
 #include <iomanip>
 
-
 Debugger *dbg = 0;
 
 Debugger::Debugger()
@@ -24,6 +23,8 @@ Debugger::Debugger()
 		stepMode(false),
 		wireframe(false),
 		interpolation(true),
+		extrapolation(false),
+		ticksBehind(4),
 		collisionHulls()
 {
 }
@@ -60,7 +61,7 @@ void Debugger::loadCollisionHulls()
 		indices.resize(0);
 
 		ColorVertex vertex;
-		vertex.color = u8vec4(255, 255, 0, 255);
+		vertex.color = u8vec4(255, 0, 0, 255);
 
 		for (size_t i = 0; i < nodes.size(); i++)
 		{
@@ -202,6 +203,22 @@ void Debugger::onKeyPressed(Keyboard::Key key)
 
 		case Keyboard::I:
 			interpolation = !interpolation;
+			std::cout << "Interpolation " << (interpolation ? "enabled." : "disabled.") << std::endl;
+			break;
+
+		case Keyboard::O:
+			extrapolation = !extrapolation;
+			std::cout << "Extrapolation " << (extrapolation ? "enabled." : "disabled.") << std::endl;
+			break;
+
+		case Keyboard::Q:
+			ticksBehind--;
+			std::cout << "ticksBehind = " << ticksBehind << std::endl;
+			break;
+
+		case Keyboard::E:
+			ticksBehind++;
+			std::cout << "ticksBehind = " << ticksBehind << std::endl;
 			break;
 
 		case Keyboard::H:

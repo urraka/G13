@@ -1,8 +1,11 @@
 Networking
   - Server asserts when client tick > server tick. Make it kill the client.
   - The number of ticks that remote players are rendered behind is hardcoded, fix that.
+  - Extrapolation
+  - Client side prediction is not correcting if out of sync.
 
 General refactoring
+  - Codin convention: remove identation inside namespaces.
   - Modules: sys, gfx, math, hlp, g13.
   - Graphics turns into global functions in gfx namespace.
   - Graphics initialization through gfx::initialize().

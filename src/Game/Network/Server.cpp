@@ -236,7 +236,7 @@ namespace net
 
 		if (msgInput->tick > tick_)
 		{
-			assert(false);
+			LOG("Input tick > server tick (" << msgInput->tick << " > " << tick_ << ")");
 			return;
 		}
 
