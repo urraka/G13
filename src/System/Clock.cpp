@@ -10,8 +10,7 @@
 #endif
 
 #if defined(WIN32)
-namespace
-{
+namespace {
 	LARGE_INTEGER getFrequency()
 	{
 		LARGE_INTEGER frequency;

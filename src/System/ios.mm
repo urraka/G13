@@ -35,51 +35,52 @@
 // Module locals
 // -----------------------------------------------------------------------------
 
-namespace
+namespace {
+
+AppDelegate *app = 0;
+GLView *view = 0;
+
+IOSAppLaunchedFun appLaunchedCallback = 0;
+IOSTerminateFun terminateCallback = 0;
+IOSDisplayFun displayCallback = 0;
+IOSOrientationFun orientationCallback = 0;
+
+int currentOrientation = IOS_ORIENTATION_PORTRAIT;
+
+void updateOrientation()
 {
-	AppDelegate *app = 0;
-	GLView *view = 0;
+	UIInterfaceOrientation statusBarOrientation = [[UIApplication sharedApplication] statusBarOrientation];
 
-	IOSAppLaunchedFun appLaunchedCallback = 0;
-	IOSTerminateFun terminateCallback = 0;
-	IOSDisplayFun displayCallback = 0;
-	IOSOrientationFun orientationCallback = 0;
-
-	int currentOrientation = IOS_ORIENTATION_PORTRAIT;
-
-	void updateOrientation()
+	switch ([UIDevice currentDevice].orientation)
 	{
-		UIInterfaceOrientation statusBarOrientation = [[UIApplication sharedApplication] statusBarOrientation];
+		case UIDeviceOrientationPortrait:
+			currentOrientation = IOS_ORIENTATION_PORTRAIT;
+			statusBarOrientation = UIInterfaceOrientationPortrait;
+			break;
 
-		switch ([UIDevice currentDevice].orientation)
-		{
-			case UIDeviceOrientationPortrait:
-				currentOrientation = IOS_ORIENTATION_PORTRAIT;
-				statusBarOrientation = UIInterfaceOrientationPortrait;
-				break;
+		case UIDeviceOrientationPortraitUpsideDown:
+			currentOrientation = IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN;
+			statusBarOrientation = UIInterfaceOrientationPortraitUpsideDown;
+			break;
 
-			case UIDeviceOrientationPortraitUpsideDown:
-				currentOrientation = IOS_ORIENTATION_PORTRAIT_UPSIDE_DOWN;
-				statusBarOrientation = UIInterfaceOrientationPortraitUpsideDown;
-				break;
+		case UIDeviceOrientationLandscapeLeft:
+			currentOrientation = IOS_ORIENTATION_LANDSCAPE_LEFT;
+			statusBarOrientation = UIInterfaceOrientationLandscapeRight;
+			break;
 
-			case UIDeviceOrientationLandscapeLeft:
-				currentOrientation = IOS_ORIENTATION_LANDSCAPE_LEFT;
-				statusBarOrientation = UIInterfaceOrientationLandscapeRight;
-				break;
+		case UIDeviceOrientationLandscapeRight:
+			currentOrientation = IOS_ORIENTATION_LANDSCAPE_RIGHT;
+			statusBarOrientation = UIInterfaceOrientationLandscapeLeft;
+			break;
 
-			case UIDeviceOrientationLandscapeRight:
-				currentOrientation = IOS_ORIENTATION_LANDSCAPE_RIGHT;
-				statusBarOrientation = UIInterfaceOrientationLandscapeLeft;
-				break;
-
-			default:
-				break;
-		}
-
-		[[UIApplication sharedApplication] setStatusBarOrientation:statusBarOrientation];
+		default:
+			break;
 	}
+
+	[[UIApplication sharedApplication] setStatusBarOrientation:statusBarOrientation];
 }
+
+} // unnamed
 
 // -----------------------------------------------------------------------------
 // GLView implementation

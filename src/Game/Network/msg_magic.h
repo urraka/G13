@@ -9,19 +9,15 @@
 //******************************************************************************
 
 #define MESSAGES_BEGIN()                                                                       \
-    namespace msg                                                                              \
-    {                                                                                          \
-        namespace _                                                                            \
-        {                                                                                      \
-            static const size_t type_base = __COUNTER__ + 1;                                   \
-        }
+    namespace msg {                                                                            \
+    namespace _ {                                                                              \
+        static const size_t type_base = __COUNTER__ + 1;                                       \
+    }
 
 #define MESSAGES_END()                                                                         \
-        namespace _                                                                            \
-        {                                                                                      \
-            static const size_t type_count = __COUNTER__ - type_base;                          \
-        }                                                                                      \
-    }
+    namespace _ {                                                                              \
+        static const size_t type_count = __COUNTER__ - type_base;                              \
+    }} // msg::_
 
 #define MESSAGE(T)                                                                             \
     class T : public Message                                                                   \

@@ -2,20 +2,21 @@
 
 #include <glm/glm.hpp>
 
-namespace math
+namespace math {
+
+template<typename T> class interpolable
 {
-	template<typename T> class interpolable
-	{
-	public:
-		T previous;
-		T current;
+public:
+	T previous;
+	T current;
 
-		interpolable() : previous(), current() {}
-		interpolable(T value) : previous(value), current(value) {}
+	interpolable() : previous(), current() {}
+	interpolable(T value) : previous(value), current(value) {}
 
-		void update()     { previous = current; }
-		void set(T value) { previous = current = value; }
+	void update()     { previous = current; }
+	void set(T value) { previous = current = value; }
 
-		T value(float percent) const { return glm::mix(previous, current, percent); };
-	};
-}
+	T value(float percent) const { return glm::mix(previous, current, percent); };
+};
+
+} // math

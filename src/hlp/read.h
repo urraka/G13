@@ -2,13 +2,14 @@
 #include <sstream>
 #include <string>
 
-namespace hlp
+namespace hlp {
+
+inline std::string read(const char *filename)
 {
-	inline std::string read(const char *filename)
-	{
-		std::ifstream file(filename);
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		return buffer.str();
-	}
+	std::ifstream file(filename);
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return buffer.str();
 }
+
+} // hlp

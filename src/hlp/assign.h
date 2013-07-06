@@ -1,11 +1,12 @@
 #include <string>
 #include <cstring>
 
-namespace hlp
+namespace hlp {
+
+template<size_t N> void assign(char (&dest)[N], const char *src)
 {
-	template<size_t N> void assign(char (&dest)[N], const char *src)
-	{
-		strncpy(dest, src, N);
-		dest[N - 1] = 0;
-	}
+	strncpy(dest, src, N);
+	dest[N - 1] = 0;
 }
+
+} // hlp

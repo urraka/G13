@@ -11,67 +11,68 @@
 #include <iostream>
 #include <cmath>
 
-namespace { namespace callbacks {
+namespace {
+namespace callbacks {
 
-	Window *window = 0;
-	Window::DisplayCallback displayCallback = 0;
+Window *window = 0;
+Window::DisplayCallback displayCallback = 0;
 
-	#if defined(IOS)
-		void ios_display()
+#if defined(IOS)
+	void ios_display()
+	{
+		displayCallback();
+	}
+
+	void ios_orientation()
+	{
+		ResizeEvent event;
+		event.rotation = window->rotation();
+		window->size(event.width, event.height);
+		window->push(Event(event));
+	}
+#else
+	int GLFWCALL close()
+	{
+		window->push(Event(Event::Close));
+		return GL_TRUE;
+	}
+
+	void GLFWCALL resize(int width, int height)
+	{
+		ResizeEvent event;
+		event.rotation = window->rotation();
+		window->size(event.width, event.height);
+		window->push(Event(event));
+	}
+
+	void GLFWCALL keyboard(int key, int action)
+	{
+		KeyboardEvent event;
+		event.key = static_cast<Keyboard::Key>(key);
+		event.pressed = (action == GLFW_PRESS);
+		window->push(Event(event));
+	}
+
+	void GLFWCALL character(int ch, int action)
+	{
+		if (action == GLFW_PRESS)
 		{
-			displayCallback();
-		}
-
-		void ios_orientation()
-		{
-			ResizeEvent event;
-			event.rotation = window->rotation();
-			window->size(event.width, event.height);
+			CharEvent event;
+			event.ch = ch;
 			window->push(Event(event));
 		}
-	#else
-		int GLFWCALL close()
-		{
-			window->push(Event(Event::Close));
-			return GL_TRUE;
-		}
+	}
 
-		void GLFWCALL resize(int width, int height)
-		{
-			ResizeEvent event;
-			event.rotation = window->rotation();
-			window->size(event.width, event.height);
-			window->push(Event(event));
-		}
+	void GLFWCALL mouse(int button, int action)
+	{
+		MouseEvent event;
+		event.button = static_cast<Mouse::Button>(button);
+		event.pressed = (action == GLFW_PRESS);
+		window->push(Event(event));
+	}
+#endif
 
-		void GLFWCALL keyboard(int key, int action)
-		{
-			KeyboardEvent event;
-			event.key = static_cast<Keyboard::Key>(key);
-			event.pressed = (action == GLFW_PRESS);
-			window->push(Event(event));
-		}
-
-		void GLFWCALL character(int ch, int action)
-		{
-			if (action == GLFW_PRESS)
-			{
-				CharEvent event;
-				event.ch = ch;
-				window->push(Event(event));
-			}
-		}
-
-		void GLFWCALL mouse(int button, int action)
-		{
-			MouseEvent event;
-			event.button = static_cast<Mouse::Button>(button);
-			event.pressed = (action == GLFW_PRESS);
-			window->push(Event(event));
-		}
-	#endif
-
-}}
+}} // unnamed::callbacks
 
 Window::Window()
 	:	pollIndex_(0)

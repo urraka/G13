@@ -10,8 +10,7 @@
 
 #include <assert.h>
 
-namespace
-{
+namespace {
 	Application *self = 0;
 }
 

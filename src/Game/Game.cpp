@@ -1,5 +1,4 @@
 #include "Game.h"
-#include "States/Connecting.h"
 #include "States/Testing.h"
 #include "States/Multiplayer.h"
 #include "Debugger.h"
@@ -82,7 +81,6 @@ void Game::init(Application *app)
 
 	state_ = new stt::Multiplayer();
 	// state_ = new stt::Testing();
-	// state_ = new stt::Connecting();
 }
 
 void Game::draw()

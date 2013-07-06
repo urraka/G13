@@ -10,24 +10,25 @@
 
 class Replay;
 
-namespace ent
+namespace ent {
+
+class Soldier
 {
-	class Soldier
-	{
-	public:
-		Soldier();
+public:
+	Soldier();
 
-		void update(Time dt, cmp::SoldierInput *inpt = 0);
-		void reset(fixvec2 pos);
-		void map(const Collision::Map *map);
+	void update(Time dt, cmp::SoldierInput *inpt = 0);
+	void reset(fixvec2 pos);
+	void map(const Collision::Map *map);
 
-		cmp::SoldierInput input;
-		cmp::SoldierPhysics physics;
-		cmp::SoldierGraphics graphics;
+	cmp::SoldierInput input;
+	cmp::SoldierPhysics physics;
+	cmp::SoldierGraphics graphics;
 
-		cmp::SoldierState state();
+	cmp::SoldierState state();
 
-	private:
-		cmp::SoldierState state_;
-	};
-}
+private:
+	cmp::SoldierState state_;
+};
+
+} // ent

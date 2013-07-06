@@ -11,6 +11,7 @@ General refactoring
   - Graphics initialization through gfx::initialize().
   - Design a better approach to handle shaders.
   - Different gfx objects not created from graphics instance anymore (just using new).
+  - Add opacity to sprites.
   - Clock goes away, just do sys::time(), sys::milliseconds(), etc.
   - Decide what to do with platform.h, which is needed across modules.
   - Move fpm namespace inside math namespace.

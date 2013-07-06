@@ -2,8 +2,7 @@
 
 #include "../System/platform.h"
 
-namespace
-{
+namespace {
 
 struct shader
 {
@@ -116,10 +115,9 @@ const char *mixedFrag =
 	"	gl_FragColor = mix(fragColor, texture2D(sampler, fragTexCoords) * fragColor, textureEnabled);"
 	"}";
 
-}
+} // unnamed
 
-namespace shaders
-{
+namespace shaders {
 	shader color = { colorVert, colorFrag };
 	shader texture = { textureVert, textureFrag };
 	shader mixed = { mixedVert, mixedFrag };

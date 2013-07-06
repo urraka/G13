@@ -2,33 +2,34 @@
 
 #include "../Collision.h"
 
-namespace cmp
+namespace cmp {
+
+class SoldierInput;
+
+class SoldierPhysics
 {
-	class SoldierInput;
+public:
+	SoldierPhysics();
 
-	class SoldierPhysics
-	{
-	public:
-		SoldierPhysics();
+	void update(Time time);
+	void reset(fixvec2 pos);
+	bool ducking() const;
+	bool floor() const;
 
-		void update(Time time);
-		void reset(fixvec2 pos);
-		bool ducking() const;
-		bool floor() const;
+	fixrect bboxNormal;
+	fixrect bboxDucked;
+	fixvec2 position;
+	fixvec2 velocity;
+	fixvec2 acceleration;
 
-		fixrect bboxNormal;
-		fixrect bboxDucked;
-		fixvec2 position;
-		fixvec2 velocity;
-		fixvec2 acceleration;
+	const SoldierInput *input;
+	const Collision::Map *map;
 
-		const SoldierInput *input;
-		const Collision::Map *map;
+private:
+	bool ducked_;
 
-	private:
-		bool ducked_;
+	Collision::Hull currentHull_;
+	const Collision::Node *currentNode_;
+};
 
-		Collision::Hull currentHull_;
-		const Collision::Node *currentNode_;
-	};
-}
+} // cmp

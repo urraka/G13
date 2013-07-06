@@ -8,6 +8,8 @@
 #include <hlp/split.h>
 #include <hlp/to_int.h>
 
+namespace stt {
+
 static void read_settings(std::string *host, int *port)
 {
 	hlp::strvector elements = hlp::split(hlp::read("data/network.txt"), ':');
@@ -22,90 +24,89 @@ static void read_settings(std::string *host, int *port)
 	}
 }
 
-namespace stt
+Multiplayer::Multiplayer()
+	:	client_(0),
+		server_(0)
 {
-	Multiplayer::Multiplayer()
-		:	client_(0),
-			server_(0)
-	{
-		client_ = new net::Client();
-		server_ = new net::Server();
-	}
+	client_ = new net::Client();
+	server_ = new net::Server();
+}
 
-	Multiplayer::~Multiplayer()
-	{
-		delete client_;
-		delete server_;
-	}
+Multiplayer::~Multiplayer()
+{
+	delete client_;
+	delete server_;
+}
 
-	void Multiplayer::update(Time dt)
-	{
-		server_->update(dt);
-		client_->update(dt);
-	}
+void Multiplayer::update(Time dt)
+{
+	server_->update(dt);
+	client_->update(dt);
+}
 
-	void Multiplayer::draw(float percent)
-	{
-		client_->draw(percent);
-	}
+void Multiplayer::draw(float percent)
+{
+	client_->draw(percent);
+}
 
-	void Multiplayer::event(const Event &evt)
-	{
-		if (evt.type == Event::Keyboard && evt.keyboard.pressed)
-			onKeyPressed(evt.keyboard.key);
+void Multiplayer::event(const Event &evt)
+{
+	if (evt.type == Event::Keyboard && evt.keyboard.pressed)
+		onKeyPressed(evt.keyboard.key);
 
-		client_->event(evt);
-	}
+	client_->event(evt);
+}
 
-	void Multiplayer::onKeyPressed(Keyboard::Key key)
+void Multiplayer::onKeyPressed(Keyboard::Key key)
+{
+	switch (key)
 	{
-		switch (key)
+		case Keyboard::S:
 		{
-			case Keyboard::S:
+			if (server_->state() == net::Server::Stopped)
 			{
-				if (server_->state() == net::Server::Stopped)
-				{
-					int port;
-					std::string host;
-					read_settings(&host, &port);
+				int port;
+				std::string host;
+				read_settings(&host, &port);
 
-					server_->start(port);
-				}
-				else
-					server_->stop();
+				server_->start(port);
 			}
-			break;
-
-			case Keyboard::C:
-			{
-				if (client_->state() == net::Client::Disconnected)
-				{
-					int port;
-					std::string host;
-					read_settings(&host, &port);
-
-					client_->connect(host.c_str(), port);
-				}
-			}
-			break;
-
-			case Keyboard::Escape:
-			{
-				if (client_->state() == net::Client::Disconnected && server_->state() == net::Server::Stopped)
-				{
-					game->quit();
-				}
-				else
-				{
-					if (server_->state() == net::Server::Running)
-						server_->stop();
-
-					client_->disconnect();
-				}
-			}
-			break;
-
-			default: break;
+			else
+				server_->stop();
 		}
+		break;
+
+		case Keyboard::C:
+		{
+			if (client_->state() == net::Client::Disconnected)
+			{
+				int port;
+				std::string host;
+				read_settings(&host, &port);
+
+				client_->connect(host.c_str(), port);
+			}
+		}
+		break;
+
+		case Keyboard::Escape:
+		{
+			if (client_->state() == net::Client::Disconnected && server_->state() == net::Server::Stopped)
+			{
+				game->quit();
+			}
+			else
+			{
+				if (server_->state() == net::Server::Running)
+					server_->stop();
+
+				client_->disconnect();
+			}
+		}
+		break;
+
+		default: break;
 	}
 }
+
+} // stt

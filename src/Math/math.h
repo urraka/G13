@@ -29,10 +29,18 @@ typedef fpm::vec2 fixvec2;
 typedef fpm::rect fixrect;
 typedef fpm::line fixline;
 
-namespace math
-{
-	std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon);
+namespace math {
 
-	static inline vec2 from_fixed(fixvec2 x) { return vec2(x.x.to_float(), x.y.to_float()); }
-	static inline fixvec2 to_fixed(vec2 x) { return fixvec2(x.x, x.y); }
+std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon);
+
+static inline vec2 from_fixed(fixvec2 x)
+{
+	return vec2(x.x.to_float(), x.y.to_float());
 }
+
+static inline fixvec2 to_fixed(vec2 x)
+{
+	return fixvec2(x.x, x.y);
+}
+
+} // math

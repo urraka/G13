@@ -5,23 +5,24 @@
 
 class Replay;
 
-namespace cmp
+namespace cmp {
+
+class SoldierInput
 {
-	class SoldierInput
-	{
-	public:
-		SoldierInput();
-		void update();
-		void reset();
-		uint8_t serialize() const;
-		void unserialize(uint8_t data);
+public:
+	SoldierInput();
+	void update();
+	void reset();
+	uint8_t serialize() const;
+	void unserialize(uint8_t data);
 
-		bool left;
-		bool right;
-		bool jump;
-		bool run;
-		bool duck;
+	bool left;
+	bool right;
+	bool jump;
+	bool run;
+	bool duck;
 
-		static const size_t MaxBits = 5;
-	};
-}
+	static const size_t MaxBits = 5;
+};
+
+} // cmp

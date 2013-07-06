@@ -1,7 +1,6 @@
 // Important: this file shall not have #pragma once, it's included multiple times.
 
-namespace net
-{
+namespace net {
 
 MESSAGES_BEGIN()
 
@@ -100,4 +99,4 @@ END
 
 MESSAGES_END()
 
-}
+} // net

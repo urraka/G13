@@ -9,23 +9,24 @@
 #include <stdint.h>
 
 namespace net {
-namespace msg
+namespace msg {
+
+class Message
 {
-	class Message
-	{
-	public:
-		virtual uint8_t type() const = 0;
-		virtual size_t serialize(uint8_t *data, size_t length) const = 0;
-	};
+public:
+	virtual uint8_t type() const = 0;
+	virtual size_t serialize(uint8_t *data, size_t length) const = 0;
+};
 
-	struct Storage
-	{
-		uint8_t data[1400 - 28];
-	};
+struct Storage
+{
+	uint8_t data[1400 - 28];
+};
 
-	Message *create(const uint8_t *data, size_t length);
-	void destroy(Message *msg);
-}}
+Message *create(const uint8_t *data, size_t length);
+void destroy(Message *msg);
+
+}} // net::msg
 
 #define MSGMAGIC_DECLARE
 #include "msg_magic.h"

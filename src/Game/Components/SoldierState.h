@@ -1,13 +1,14 @@
 #pragma once
 
-namespace cmp
+namespace cmp {
+
+struct SoldierState
 {
-	struct SoldierState
-	{
-		fixvec2 position;
-		fixvec2 velocity;
-		bool    flip;
-		bool    duck;
-		bool    floor;
-	};
-}
+	fixvec2 position;
+	fixvec2 velocity;
+	bool    flip;
+	bool    duck;
+	bool    floor;
+};
+
+} // cmp

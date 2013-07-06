@@ -9,7 +9,8 @@ class Application;
 class Window;
 class Graphics;
 
-class Game {
+class Game
+{
 public:
 	Game();
 	~Game();
