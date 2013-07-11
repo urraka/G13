@@ -36,27 +36,24 @@ void Sprite::vertices(SpriteVertex (&vertex)[4]) const
 	// texcords
 
 	vertex[0].u = u[0];
-	vertex[0].v = /*1.0f - */v[0];
+	vertex[0].v = v[0];
 	vertex[1].u = u[1];
-	vertex[1].v = /*1.0f - */v[0];
+	vertex[1].v = v[0];
 	vertex[2].u = u[1];
-	vertex[2].v = /*1.0f - */v[1];
+	vertex[2].v = v[1];
 	vertex[3].u = u[0];
-	vertex[3].v = /*1.0f - */v[1];
+	vertex[3].v = v[1];
 
 	// position
 
-	float dx = -cx;
-	float dy = -cy;
-
-	vertex[0].x = dx;
-	vertex[0].y = dy;
-	vertex[1].x = dx + width;
-	vertex[1].y = dy;
-	vertex[2].x = dx + width;
-	vertex[2].y = dy + height;
-	vertex[3].x = dx;
-	vertex[3].y = dy + height;
+	vertex[0].x = -cx;
+	vertex[0].y = -cy;
+	vertex[1].x = -cx + width;
+	vertex[1].y = -cy;
+	vertex[2].x = -cx + width;
+	vertex[2].y = -cy + height;
+	vertex[3].x = -cx;
+	vertex[3].y = -cy + height;
 
 	// transform the vertices
 
