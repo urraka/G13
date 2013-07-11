@@ -1,11 +1,11 @@
 #pragma once
 
 #include "../../Math/math.h"
-#include "../../Graphics/Sprite.h"
 #include "../../System/Clock.h"
 #include "../Animation.h"
-
 #include "SoldierState.h"
+
+#include <gfx/Sprite.h>
 
 namespace cmp {
 
@@ -16,7 +16,7 @@ public:
 	void update(Time dt, const SoldierState &state);
 	void frame(float percent);
 
-	Sprite sprite;
+	gfx::Sprite sprite;
 	Animation animation;
 	math::interpolable<vec2> position;
 

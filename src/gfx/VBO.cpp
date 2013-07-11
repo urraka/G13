@@ -19,6 +19,16 @@ VBO::VBO()
 {
 }
 
+VBO::VBO(IBO *ibo)
+	:	id_(0),
+		mode_(Triangles),
+		size_(0),
+		shader_(0),
+		ibo_(ibo),
+		attributes_(0)
+{
+}
+
 VBO::~VBO()
 {
 	if (context->vbo == this)

@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Debugger.h"
 
+#include <gfx/gfx.h>
 #include <set>
 
 static std::vector< std::vector<ivec2> > line_strips();
@@ -12,19 +13,20 @@ Map::Map()
 
 Map::~Map()
 {
-	for (size_t i = 0; i < buffers_.size(); i++)
-		delete buffers_[i];
+	for (size_t i = 0; i < vbos_.size(); i++)
+	{
+		delete vbos_[i]->ibo();
+		delete vbos_[i];
+	}
 }
 
 void Map::load()
 {
-	Graphics *graphics = game->graphics;
-
 	std::vector< std::vector<ivec2> > lineStrips = line_strips();
 	collisionMap_.create(lineStrips);
 
 	std::vector<vec2> polygon;
-	std::vector<ColorVertex> vert;
+	std::vector<gfx::ColorVertex> vert;
 
 	// first line strip is map bounds, so i'll replace it with a new strip that makes a polygon around it
 
@@ -79,16 +81,25 @@ void Map::load()
 		for (size_t i = 0; i < strip.size() - 1; i++)
 		{
 			polygon[i] = vec2((float)strip[i].x, (float)strip[i].y);
-			vert[i].position = polygon[i];
-			vert[i].color = u8vec4(0, 0, 0, 255);
+
+			vert[i].x = polygon[i].x;
+			vert[i].y = polygon[i].y;
+			vert[i].r = 0;
+			vert[i].g = 0;
+			vert[i].b = 0;
+			vert[i].a = 255;
 		}
 
 		std::vector<uint16_t> indices = math::triangulate(polygon);
 
-		VBO<ColorVertex> *buffer = graphics->buffer<ColorVertex>(vbo_t::Triangles, vbo_t::StaticDraw, vbo_t::StaticDraw, vert.size(), indices.size());
-		buffer->set(vert.data(), 0, vert.size());
-		buffer->set(indices.data(), 0, indices.size());
-		buffers_.push_back(buffer);
+		gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
+		ibo->set(indices.data(), 0, indices.size());
+
+		gfx::VBO *vbo = new gfx::VBO(ibo);
+		vbo->allocate<gfx::ColorVertex>(vert.size(), gfx::Static);
+		vbo->set(vert.data(), 0, vert.size());
+
+		vbos_.push_back(vbo);
 	}
 }
 
@@ -97,16 +108,14 @@ const Collision::Map *Map::collisionMap() const
 	return &collisionMap_;
 }
 
-void Map::draw(Graphics *graphics)
+void Map::draw()
 {
-	graphics->bind(Graphics::ColorShader);
+	DBG(gfx::wireframe(dbg->wireframe));
 
-	DBG(graphics->wireframe(dbg->wireframe));
+	for (size_t i = 0; i < vbos_.size(); i++)
+		gfx::draw(vbos_[i]);
 
-	for (size_t i = 0; i < buffers_.size(); i++)
-		graphics->draw(buffers_[i]);
-
-	DBG(graphics->wireframe(false));
+	DBG(gfx::wireframe(false));
 }
 
 std::vector< std::vector<ivec2> > line_strips()

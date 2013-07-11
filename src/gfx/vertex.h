@@ -28,4 +28,7 @@ struct SpriteVertex
 	uint8_t opacity;
 };
 
+ColorVertex color_vertex(float x, float y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+SpriteVertex sprite_vertex(float x, float y, float u, float v, uint8_t opacity);
+
 } // gfx

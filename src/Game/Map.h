@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Graphics/Graphics.h"
 #include "Collision.h"
+#include <gfx/forward.h>
 
 class Map
 {
@@ -9,10 +9,10 @@ public:
 	Map();
 	~Map();
 	void load();
-	void draw(Graphics *graphics);
+	void draw();
 	const Collision::Map *collisionMap() const;
 
 protected:
-	std::vector< VBO<ColorVertex>* > buffers_;
+	std::vector<gfx::VBO*> vbos_;
 	Collision::Map collisionMap_;
 };

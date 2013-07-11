@@ -51,24 +51,36 @@ void SoldierGraphics::update(Time dt, const SoldierState &state)
 	animation.update(dt);
 	updateSprite(animation.frame());
 
-	sprite.scale.x = state.flip ? -1.f : 1.0f;
+	sprite.sx = state.flip ? -1.f : 1.0f;
 }
 
 void SoldierGraphics::frame(float percent)
 {
-	sprite.position = position.value(percent);
+	vec2 pos = position.value(percent);
+
+	sprite.x = pos.x;
+	sprite.y = pos.y;
 }
 
 void SoldierGraphics::updateSprite(const Frame *frame)
 {
-	sprite.size = vec2((float)frame->width, (float)frame->height);
-	sprite.center = vec2((float)frame->cx, (float)frame->cy);
+	sprite.width = (float)frame->width;
+	sprite.height = (float)frame->height;
+
+	sprite.cx = (float)frame->cx;
+	sprite.cy = (float)frame->cy;
 
 	vec2 tex0 = vec2((float)frame->x, (float)frame->y);
-	vec2 tex1 = tex0 + sprite.size;
+	vec2 tex1 = tex0 + vec2(sprite.width, sprite.height);
 	vec2 texSize(375.0f, 82.0f);
 
-	sprite.texcoords = vec4(vec2(tex0 / texSize), vec2(tex1 / texSize));
+	tex0 /= texSize;
+	tex1 /= texSize;
+
+	sprite.u[0] = tex0.x;
+	sprite.v[0] = tex0.y;
+	sprite.u[1] = tex1.x;
+	sprite.v[1] = tex1.y;
 }
 
 // animation data

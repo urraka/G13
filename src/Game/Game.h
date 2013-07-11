@@ -7,7 +7,6 @@
 
 class Application;
 class Window;
-class Graphics;
 
 class Game
 {
@@ -29,7 +28,6 @@ public:
 	void state(stt::State *state);
 
 	Window *window;
-	Graphics *graphics;
 
 private:
 	stt::State *state_;

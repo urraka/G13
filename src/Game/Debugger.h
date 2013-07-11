@@ -13,10 +13,8 @@
 #include "../System/Event.h"
 #include <iostream>
 
-template<class T> class VBO;
+#include <gfx/forward.h>
 
-class Graphics;
-struct ColorVertex;
 class Map;
 
 namespace ent {
@@ -37,7 +35,6 @@ public:
 
 	Map *map;
 	ent::Soldier *soldier;
-	Graphics *graphics;
 
 	bool showCollisionHulls;
 	bool showFPS;
@@ -48,7 +45,7 @@ public:
 	int ticksBehind;
 
 private:
-	VBO<ColorVertex> *collisionHulls[2];
+	gfx::VBO *collisionHulls[2];
 };
 
 extern Debugger *dbg;

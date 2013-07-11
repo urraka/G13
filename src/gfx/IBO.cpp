@@ -23,6 +23,8 @@ IBO::~IBO()
 
 void IBO::allocate(size_t size, Usage usage)
 {
+	size_ = size;
+
 	if (id_ == 0)
 		glGenBuffers(1, &id_);
 

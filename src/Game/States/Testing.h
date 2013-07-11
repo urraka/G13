@@ -4,11 +4,13 @@
 
 #include "../../System/Clock.h"
 #include "../../System/Event.h"
-#include "../../Graphics/Graphics.h"
 #include "../Entities/Camera.h"
 #include "../Entities/Soldier.h"
 #include "../Map.h"
 #include "../Replay.h"
+
+#include <gfx/forward.h>
+#include <gfx/Sprite.h>
 
 namespace net { class Client; }
 
@@ -28,7 +30,6 @@ private:
 	enum
 	{
 		TextureGuy = 0,
-		TextureTree,
 		TextureCount
 	};
 
@@ -37,10 +38,11 @@ private:
 	Map map_;
 	ent::Camera camera_;
 	ent::Soldier soldier_;
-	Sprite tree_;
-	VBO<ColorVertex> *background_;
-	Texture *textures_[TextureCount];
-	SpriteBatch *sprites_;
+
+	gfx::VBO *background_;
+	gfx::Texture *textures_[TextureCount];
+	gfx::SpriteBatch *sprites_;
+
 	net::Client *client_;
 
 	void updateBackground(int width, int height);

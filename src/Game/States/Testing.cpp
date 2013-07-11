@@ -6,6 +6,8 @@
 #include "../../System/Window.h"
 #include "../Debugger.h"
 
+#include <gfx/gfx.h>
+
 namespace stt {
 
 Testing::Testing(net::Client *client)
@@ -19,15 +21,16 @@ Testing::Testing(net::Client *client)
 		dbg->soldier = &soldier_;
 	);
 
-	Graphics *graphics = game->graphics;
-
-	sprites_ = graphics->batch(1);
-	textures_[TextureGuy] = graphics->texture("data/guy.png");
-	textures_[TextureTree] = graphics->texture("data/tree.png");
+	sprites_ = new gfx::SpriteBatch(1);
+	textures_[TextureGuy] = new gfx::Texture("data/guy.png");
 
 	int width, height;
 	game->window->size(width, height);
-	background_ = graphics->buffer<ColorVertex>(vbo_t::TriangleFan, vbo_t::StaticDraw, 4);
+
+	background_ = new gfx::VBO();
+	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
+	background_->mode(gfx::TriangleFan);
+
 	updateBackground(width, height);
 
 	map_.load();
@@ -86,27 +89,20 @@ void Testing::draw(float framePercent)
 {
 	soldier_.graphics.frame(framePercent);
 
-	Graphics *graphics = game->graphics;
+	gfx::clear();
+	gfx::matrix(mat4(1.0f));
+	gfx::draw(background_);
 
-	graphics->clear();
+	gfx::matrix(camera_.matrix(framePercent));
 
-	graphics->bind(Graphics::ColorShader);
-	graphics->draw(background_);
-
-	graphics->save();
-	graphics->matrix(camera_.matrix(framePercent));
-
-	map_.draw(graphics);
-
+	map_.draw();
 	DBG( dbg->drawCollisionHulls(); );
 
 	sprites_->clear();
 	sprites_->texture(textures_[TextureGuy]);
 	sprites_->add(soldier_.graphics.sprite);
 
-	graphics->draw(sprites_);
-
-	graphics->restore();
+	gfx::draw(sprites_);
 }
 
 void Testing::event(const Event &evt)
@@ -171,19 +167,17 @@ void Testing::event(const Event &evt)
 
 void Testing::updateBackground(int width, int height)
 {
-	ColorVertex vertices[4];
+	gfx::ColorVertex vertex[4];
 
-	vertices[0].position = vec2(0.0f, 0.0f);
-	vertices[1].position = vec2((float)width, 0.0f);
-	vertices[2].position = vec2((float)width, (float)height);
-	vertices[3].position = vec2(0.0f, (float)height);
+	float w = (float)width;
+	float h = (float)height;
 
-	vertices[0].color = u8vec4(0, 0, 255, 255);
-	vertices[1].color = u8vec4(0, 0, 255, 255);
-	vertices[2].color = u8vec4(255, 255, 255, 255);
-	vertices[3].color = u8vec4(255, 255, 255, 255);
+	vertex[0] = gfx::color_vertex(0.0f, 0.0f, 0, 0, 255, 255);
+	vertex[1] = gfx::color_vertex(w, 0.0f, 0, 0, 255, 255);
+	vertex[2] = gfx::color_vertex(w, h, 255, 255, 255, 255);
+	vertex[3] = gfx::color_vertex(0.0f, h, 255, 255, 255, 255);
 
-	background_->set(vertices, 0, 4);
+	background_->set(vertex, 0, 4);
 }
 
 } // stt

@@ -3,12 +3,12 @@
 #include "States/Multiplayer.h"
 #include "Debugger.h"
 
-#include "../Graphics/Graphics.h"
 #include "../System/Event.h"
 #include "../System/Keyboard.h"
 #include "../System/Application.h"
 #include "../System/Window.h"
 
+#include <gfx/gfx.h>
 #include <enet/enet.h>
 
 #include <iostream>
@@ -37,7 +37,6 @@ void Game::terminate()
 
 Game::Game()
 	:	window(0),
-		graphics(0),
 		state_(0),
 		currentTime_(0),
 		timeAccumulator_(0),
@@ -52,8 +51,8 @@ Game::Game()
 Game::~Game()
 {
 	delete state_;
-	delete graphics;
 
+	gfx::terminate();
 	enet_deinitialize();
 }
 
@@ -67,20 +66,17 @@ void Game::init(Application *app)
 	window->title("G13");
 	window->vsync(true);
 
-	graphics = new Graphics();
-	graphics->init();
+	gfx::initialize();
 
 	ivec2 size;
 	window->size(size.x, size.y);
-	graphics->viewport(size.x, size.y, window->rotation());
 
-	DBG( dbg->graphics = graphics; );
+	gfx::viewport(size.x, size.y, window->rotation());
 
 	if (enet_initialize() != 0)
 		std::cerr << "Failed to initialize enet." << std::endl;
 
 	state_ = new stt::Multiplayer();
-	// state_ = new stt::Testing();
 }
 
 void Game::draw()
@@ -108,7 +104,7 @@ void Game::input()
 		state_->event(event);
 
 		if (event.type == Event::Resize)
-			graphics->viewport(event.resize.width, event.resize.height, event.resize.rotation);
+			gfx::viewport(event.resize.width, event.resize.height, event.resize.rotation);
 
 		DBG(
 			if (event.type == Event::Keyboard && event.keyboard.pressed)

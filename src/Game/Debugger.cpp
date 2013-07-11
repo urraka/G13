@@ -1,12 +1,12 @@
 #ifdef DEBUG
 
 #include "Debugger.h"
-#include "../Graphics/Graphics.h"
 #include "Game.h"
 #include "Entities/Soldier.h"
 #include "Map.h"
 #include "Collision.h"
 
+#include <gfx/gfx.h>
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -17,7 +17,6 @@ Debugger *dbg = 0;
 Debugger::Debugger()
 	:	map(0),
 		soldier(0),
-		graphics(0),
 		showCollisionHulls(false),
 		showFPS(false),
 		stepMode(false),
@@ -31,21 +30,42 @@ Debugger::Debugger()
 
 Debugger::~Debugger()
 {
-	if (collisionHulls[0]) delete collisionHulls[0];
-	if (collisionHulls[1]) delete collisionHulls[1];
+	if (collisionHulls[0])
+	{
+		delete collisionHulls[0]->ibo();
+		delete collisionHulls[0];
+	}
+
+	if (collisionHulls[1])
+	{
+		delete collisionHulls[1]->ibo();
+		delete collisionHulls[1];
+	}
 }
 
 void Debugger::loadCollisionHulls()
 {
-	if (collisionHulls[0]) delete collisionHulls[0];
-	if (collisionHulls[1]) delete collisionHulls[1];
+	if (collisionHulls[0])
+	{
+		delete collisionHulls[0]->ibo();
+		delete collisionHulls[0];
+	}
+
+	if (collisionHulls[1])
+	{
+		delete collisionHulls[1]->ibo();
+		delete collisionHulls[1];
+	}
+
+	collisionHulls[0] = 0;
+	collisionHulls[1] = 0;
 
 	if (!soldier || !map)
 		return;
 
 	const std::vector<const Collision::Node*> &nodes = map->collisionMap()->retrieve(fixrect());
 
-	std::vector<ColorVertex> vert;
+	std::vector<gfx::ColorVertex> vert;
 	std::vector<uint16_t> indices;
 
 	vert.reserve(nodes.size() * 4);
@@ -60,8 +80,11 @@ void Debugger::loadCollisionHulls()
 		vert.resize(0);
 		indices.resize(0);
 
-		ColorVertex vertex;
-		vertex.color = u8vec4(255, 0, 0, 255);
+		gfx::ColorVertex vertex;
+		vertex.r = 255;
+		vertex.g = 0;
+		vertex.b = 0;
+		vertex.a = 255;
 
 		for (size_t i = 0; i < nodes.size(); i++)
 		{
@@ -69,12 +92,12 @@ void Debugger::loadCollisionHulls()
 
 			uint16_t index = vert.size();
 
-			vertex.position.x = hull.nodes[0].line.p1.x.to_float();
-			vertex.position.y = hull.nodes[0].line.p1.y.to_float();
+			vertex.x = hull.nodes[0].line.p1.x.to_float();
+			vertex.y = hull.nodes[0].line.p1.y.to_float();
 			vert.push_back(vertex);
 
-			vertex.position.x = hull.nodes[0].line.p2.x.to_float();
-			vertex.position.y = hull.nodes[0].line.p2.y.to_float();
+			vertex.x = hull.nodes[0].line.p2.x.to_float();
+			vertex.y = hull.nodes[0].line.p2.y.to_float();
 			vert.push_back(vertex);
 
 			indices.push_back(index);
@@ -85,8 +108,8 @@ void Debugger::loadCollisionHulls()
 
 			if (prev)
 			{
-				vertex.position.x = hull.nodes[1].line.p1.x.to_float();
-				vertex.position.y = hull.nodes[1].line.p1.y.to_float();
+				vertex.x = hull.nodes[1].line.p1.x.to_float();
+				vertex.y = hull.nodes[1].line.p1.y.to_float();
 				vert.push_back(vertex);
 				indices.push_back(index);
 				indices.push_back(index + 2);
@@ -94,26 +117,30 @@ void Debugger::loadCollisionHulls()
 
 			if (next)
 			{
-				vertex.position.x = hull.nodes[2].line.p2.x.to_float();
-				vertex.position.y = hull.nodes[2].line.p2.y.to_float();
+				vertex.x = hull.nodes[2].line.p2.x.to_float();
+				vertex.y = hull.nodes[2].line.p2.y.to_float();
 				vert.push_back(vertex);
 				indices.push_back(index + 1);
 				indices.push_back(index + 2 + (uint16_t)prev);
 			}
 		}
 
-		VBO<ColorVertex> *buffer = graphics->buffer<ColorVertex>(vbo_t::Lines, vbo_t::StaticDraw, vbo_t::StaticDraw, vert.size(), indices.size());
-		buffer->set(vert.data(), 0, vert.size());
-		buffer->set(indices.data(), 0, indices.size());
+		gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
+		ibo->set(indices.data(), 0, indices.size());
 
-		collisionHulls[k] = buffer;
+		gfx::VBO *vbo = new gfx::VBO(ibo);
+		vbo->allocate<gfx::ColorVertex>(vert.size(), gfx::Static);
+		vbo->set(vert.data(), 0, vert.size());
+		vbo->mode(gfx::Lines);
+
+		collisionHulls[k] = vbo;
 	}
 }
 
 void Debugger::drawCollisionHulls()
 {
 	if (showCollisionHulls && soldier && collisionHulls[0] && collisionHulls[1])
-		graphics->draw(collisionHulls[(int)soldier->physics.ducking()]);
+		gfx::draw(collisionHulls[(int)soldier->physics.ducking()]);
 }
 
 void Debugger::showCollisionData()

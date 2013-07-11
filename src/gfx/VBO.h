@@ -14,6 +14,7 @@ class VBO
 {
 public:
 	VBO();
+	VBO(IBO *ibo);
 	~VBO();
 
 	template<typename T> void allocate(size_t size, Usage usage = Dynamic);

@@ -3,7 +3,8 @@
 #include "Multiplayer.h"
 #include "../Entities/Camera.h"
 #include "../../System/Event.h"
-#include "../../Graphics/Graphics.h"
+
+#include <gfx/forward.h>
 #include <string>
 
 namespace net {
@@ -36,9 +37,9 @@ private:
 	int connectingCount_;
 
 	ent::Camera camera_;
-	VBO<ColorVertex> *background_;
-	Texture          *texture_;
-	SpriteBatch      *spriteBatch_;
+	gfx::VBO *background_;
+	gfx::Texture *texture_;
+	gfx::SpriteBatch *spriteBatch_;
 
 	void onConnect   (ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);

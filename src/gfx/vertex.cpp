@@ -15,6 +15,37 @@ static Attributes sprite_attr();
 }
 
 // -----------------------------------------------------------------------------
+// Constructors
+// -----------------------------------------------------------------------------
+
+ColorVertex color_vertex(float x, float y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+	ColorVertex vertex;
+
+	vertex.x = x;
+	vertex.y = y;
+	vertex.r = r;
+	vertex.g = g;
+	vertex.b = b;
+	vertex.a = a;
+
+	return vertex;
+}
+
+SpriteVertex sprite_vertex(float x, float y, float u, float v, uint8_t opacity)
+{
+	SpriteVertex vertex;
+
+	vertex.x = x;
+	vertex.y = y;
+	vertex.u = u;
+	vertex.v = v;
+	vertex.opacity = opacity;
+
+	return vertex;
+}
+
+// -----------------------------------------------------------------------------
 // attributes<T>()
 // -----------------------------------------------------------------------------
 
