@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <iostream>
 
-#define LOG(x) DBG( std::cout << "[Server] " << x << std::endl; )
+#define LOG(x) {std::cout << "[Server] " << x << std::endl;}
 
 namespace net {
 
@@ -236,7 +236,13 @@ void Server::onPlayerInput(Player *player, msg::Message *msg)
 
 	if (msgInput->tick > tick_)
 	{
-		LOG("Input tick > server tick (" << msgInput->tick << " > " << tick_ << ")");
+		#ifdef DEBUG
+			uint32_t t = msgInput->tick;
+			int id = (int)player->id();
+
+			debug_log("input->tick > tick (" << t << " > " << tick_ << ") for player #" << id);
+		#endif
+
 		return;
 	}
 

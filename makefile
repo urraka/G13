@@ -54,6 +54,7 @@ endif
 cxx := g++
 opt := -Wall -fno-exceptions -fno-rtti
 inc := -Isrc
+glsl-binary := bin/glsl
 
 ifeq ($(debug),yes)
   opt += -g
@@ -64,6 +65,7 @@ else
 endif
 
 ifeq ($(platform),win32)
+  glsl-binary := bin/glsl.exe
   out-dir := bin/win32$(out-dir-suffix)
   out := $(out-dir)/G13.exe
   lib := lib/win32/libglew32.a
@@ -110,8 +112,7 @@ ifeq ($(platform),osx)
   def += -DOSX
 endif
 
-# magic
-
+# cpp/obj/dep
 modules := . $(patsubst src/%,%,$(shell find src -depth -type d))
 src-dir := $(addprefix src/,$(modules))
 bin-dir := $(addprefix $(out-dir)/,$(modules))
@@ -119,11 +120,29 @@ src := $(foreach sdir,$(src-dir),$(wildcard $(sdir)/*.cpp))
 obj := $(patsubst src/%.cpp,$(out-dir)/%.o,$(src))
 dep := $(patsubst src/%.cpp,$(out-dir)/%.d,$(src))
 
-win32 win32-d linux linux-d osx osx-d debug: $(bin-dir) $(out)
+# glsl
+glsl-dir := ./src/gfx/glsl
+glsl-src := $(wildcard $(glsl-dir)/*.vert) $(wildcard $(glsl-dir)/*.frag)
+glsl-out := $(glsl-dir)/glsl.h
 
+# default target
+win32 win32-d linux linux-d osx osx-d debug: $(bin-dir) $(glsl-out) $(out)
+
+# help
 help:
 	@echo "Usage: make [debug]"
 
+# glsl.h
+$(glsl-out): $(glsl-binary) $(glsl-src)
+	@echo Compiling shaders...
+	@$(glsl-binary) $(filter-out $(glsl-binary),$^) > $@
+
+# glsl binary
+$(glsl-binary): tools/glsl.cpp
+	@echo Compiling glsl.cpp...
+	@$(cxx) $< -O2 -o $@
+
+# linking
 $(out): makefile $(obj)
 	@echo Linking...
 	@$(cxx) -o $(out) $(obj) $(lib) $(opt)

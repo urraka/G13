@@ -12,6 +12,8 @@
 #include "Shader.h"
 #include "shaders.h"
 
+VBO_TEMPLATE_INSTANCES();
+
 Graphics::Graphics()
 	:	matrix_(1.0f),
 		projection_(1.0f),
@@ -328,5 +330,3 @@ void Graphics::transform(const mat4 &m)
 {
 	matrix(matrix_ * m);
 }
-
-VBO_TEMPLATE_INSTANCES();

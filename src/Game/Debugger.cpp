@@ -203,22 +203,22 @@ void Debugger::onKeyPressed(Keyboard::Key key)
 
 		case Keyboard::I:
 			interpolation = !interpolation;
-			std::cout << "Interpolation " << (interpolation ? "enabled." : "disabled.") << std::endl;
+			debug_log("Interpolation " << (interpolation ? "enabled." : "disabled."));
 			break;
 
 		case Keyboard::O:
 			extrapolation = !extrapolation;
-			std::cout << "Extrapolation " << (extrapolation ? "enabled." : "disabled.") << std::endl;
+			debug_log("Extrapolation " << (extrapolation ? "enabled." : "disabled."));
 			break;
 
 		case Keyboard::Q:
 			ticksBehind--;
-			std::cout << "ticksBehind = " << ticksBehind << std::endl;
+			debug_log("ticksBehind = " << ticksBehind);
 			break;
 
 		case Keyboard::E:
 			ticksBehind++;
-			std::cout << "ticksBehind = " << ticksBehind << std::endl;
+			debug_log("ticksBehind = " << ticksBehind);
 			break;
 
 		case Keyboard::H:

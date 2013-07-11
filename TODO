@@ -1,11 +1,19 @@
+Graphics refactor
+  x Add #version when creating shader.
+  x Check for GL_ES in shaders.
+  x Even better, add preamble #defining lowp, etc to nothing on desktop and add precision on GLES2.
+  x Add glsl step on makefile.
+  x vbo/ibo -> allocate() should delete buffer and reallocate if necessary.
+  x SpriteBatch might be able to share the same IBO across instances.
+
 Networking
+  - Check where peer->mtu is negotiated.
   - Server asserts when client tick > server tick. Make it kill the client.
   - The number of ticks that remote players are rendered behind is hardcoded, fix that.
   - Extrapolation
   - Client side prediction is not correcting if out of sync.
 
 General refactoring
-  - Codin convention: remove identation inside namespaces.
   - Modules: sys, gfx, math, hlp, g13.
   - Graphics turns into global functions in gfx namespace.
   - Graphics initialization through gfx::initialize().
@@ -55,6 +63,7 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Coding convention: remove identation inside namespaces.
   x Add some kind of switch to enable/disable server.
   x Messages
     x Nick

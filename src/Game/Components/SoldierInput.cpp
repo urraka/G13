@@ -20,7 +20,7 @@ void SoldierInput::update()
 	left  = Keyboard::pressed(Keyboard::Left);
 	right = Keyboard::pressed(Keyboard::Right);
 	jump  = Keyboard::pressed(Keyboard::Up);
-	run   = Keyboard::pressed(Keyboard::LShift);
+	run   = Keyboard::pressed(Keyboard::LShift) || Keyboard::pressed(Keyboard::RShift);
 	duck  = Keyboard::pressed(Keyboard::Down);
 
 	if (left && right) left = right = false;

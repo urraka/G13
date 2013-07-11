@@ -2,8 +2,10 @@
 
 #ifdef DEBUG
 	#define DBG(x) { x; }
+	#define debug_log(x) std::cout << "[Debug] " << x << std::endl;
 #else
 	#define DBG(x)
+	#define debug_log(x)
 #endif
 
 #ifdef DEBUG

@@ -44,7 +44,9 @@ void Player::update(Time dt, uint32_t tick)
 
 			int ticksBehind = 4;
 
-			DBG( ticksBehind = dbg->ticksBehind; );
+			#ifdef DEBUG
+				ticksBehind = dbg->ticksBehind;
+			#endif
 
 			uint32_t desiredTick = std::max(tick - ticksBehind, joinTick_);
 
@@ -55,10 +57,10 @@ void Player::update(Time dt, uint32_t tick)
 			while (a >= 0 && stateBuffer_[a].tick > desiredTick) a--;
 			while (b <  N && stateBuffer_[b].tick < desiredTick) b++;
 
-			DBG(
+			#ifdef DEBUG
 				if (!dbg->interpolation)
 					a = b = stateBuffer_.size() - 1;
-			);
+			#endif
 
 			if (a == -1) a = 0;
 
@@ -88,7 +90,7 @@ void Player::update(Time dt, uint32_t tick)
 				{
 					fixvec2 dest = sb->position;
 
-					DBG(
+					#ifdef DEBUG
 						if (dbg->extrapolation)
 						{
 							dest = sa->position + (sb->position - sa->position) * percent;
@@ -103,7 +105,7 @@ void Player::update(Time dt, uint32_t tick)
 							if (result.node != 0)
 								dest = result.position;
 						}
-					);
+					#endif
 
 					fixvec2 pos = math::to_fixed(soldier_.graphics.position.current);
 					fixvec2 diff = dest - pos;
