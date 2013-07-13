@@ -1,11 +1,3 @@
-Graphics refactor
-  x Add #version when creating shader.
-  x Check for GL_ES in shaders.
-  x Even better, add preamble #defining lowp, etc to nothing on desktop and add precision on GLES2.
-  x Add glsl step on makefile.
-  x vbo/ibo -> allocate() should delete buffer and reallocate if necessary.
-  x SpriteBatch might be able to share the same IBO across instances.
-
 Networking
   - Check where peer->mtu is negotiated.
   - Server asserts when client tick > server tick. Make it kill the client.
@@ -13,49 +5,39 @@ Networking
   - Extrapolation
   - Client side prediction is not correcting if out of sync.
 
-General refactoring
-  - Modules: sys, gfx, math, hlp, g13.
-  - Graphics turns into global functions in gfx namespace.
-  - Graphics initialization through gfx::initialize().
-  - Design a better approach to handle shaders.
-  - Different gfx objects not created from graphics instance anymore (just using new).
-  - Add opacity to sprites.
-  - Clock goes away, just do sys::time(), sys::milliseconds(), etc.
-  - Decide what to do with platform.h, which is needed across modules.
-  - Move fpm namespace inside math namespace.
-  - Each directory under src/ should be named after a namespace.
-  - Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
-
-General
-  - Consider making each module a library to include into the game.
-  - Move platform.h away from system.
-  - Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
-  - Add all external includes to project and all libs compiled for the different systems.
-  - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
-
 Game
+  - Replace network.txt with config.cfg and move it ro root directory.
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
     x Run from bottom-left to the right until blocked by the "wall", then walk left.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
   - Consider making components private with methods to access as const.
 
+Graphics
+  - Test if all the refactoring works on linux/osx/ios.
+  - Find the proper way to choose the mipmap generation method.
+  - Add ability to set own mipmaps.
+  - Add text rendering.
+
+General
+  - Modules: sys, gfx, math, hlp, g13.
+  - Clock goes away, just do sys::time(), sys::milliseconds(), etc.
+  - Move fpm namespace inside math namespace.
+  - Each directory under src/ should be named after a namespace.
+  - Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
+  - Consider making each module a library to include into the game.
+  - Move platform.h away from system.
+  - Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
+  - Add all external includes to project and all libs compiled for the different systems.
+  - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
+
 System
-  - Try that clock formula.
+  - Massive refactoring.
+  - Framebuffer size vs window size.
+  - Try that clock formula or use double instead.
   - iOS: callbacks for touch/movement events.
   - Switch to GLFW3 (when ready).
   - Revisit keyboard/char input stuff.
-
-Graphics
-  - Remove unnecesary includes from Graphics.h and add gfx.h as the general file to include.
-  - Remove dependency with Math and System.
-  - Test buffer state keeping.
-  - Add Image class which loads PNG into a memory buffer.
-  - Make texture class use Image class and add ability to load from buffer.
-  - Add mipmaping support with glGenMipmaps and GL_GENERATE_MIPMAP or whatever (for 2.1).
-  - Add text rendering.
-  - Add shader type to VBO object so it binds it for you.
-  - Add lineWidth method to Graphics.
 
 Math
   - Replace using directives with typedefs.
@@ -63,6 +45,25 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Decide what to do with platform.h, which is needed across modules.
+  x Remove unnecesary includes from Graphics.h and add gfx.h as the general file to include.
+  x Remove dependency with Math and System.
+  x Test buffer state keeping.
+  x Add Image class which loads PNG into a memory buffer.
+  x Make texture class use Image class and add ability to load from buffer.
+  x Add mipmaping support with glGenMipmaps and GL_GENERATE_MIPMAP or whatever (for 2.1).
+  x Add shader type to VBO object so it binds it for you.
+  x Add #version when creating shader.
+  x Check for GL_ES in shaders.
+  x Even better, add preamble #defining lowp, etc to nothing on desktop and add precision on GLES2.
+  x Add glsl step on makefile.
+  x vbo/ibo -> allocate() should delete buffer and reallocate if necessary.
+  x SpriteBatch might be able to share the same IBO across instances.
+  x Graphics turns into global functions in gfx namespace.
+  x Graphics initialization through gfx::initialize().
+  x Design a better approach to handle shaders.
+  x Different gfx objects not created from graphics instance anymore (just using new).
+  x Add opacity to sprites.
   x Coding convention: remove identation inside namespaces.
   x Add some kind of switch to enable/disable server.
   x Messages

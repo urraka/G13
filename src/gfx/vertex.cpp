@@ -8,11 +8,9 @@
 
 namespace gfx {
 
-namespace {
 static Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei stride, GLvoid *ptr);
 static Attributes color_attr();
 static Attributes sprite_attr();
-}
 
 // -----------------------------------------------------------------------------
 // Constructors
@@ -81,8 +79,6 @@ VERTEX_INSTANCES();
 // Helpers
 // -----------------------------------------------------------------------------
 
-namespace {
-
 Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei stride, GLvoid *ptr)
 {
 	Attribute attribute;
@@ -121,7 +117,5 @@ Attributes sprite_attr()
 
 	return a;
 }
-
-} // unnamed
 
 } // gfx

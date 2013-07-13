@@ -11,7 +11,7 @@ SoldierGraphics::SoldierGraphics()
 	updateSprite(animation.frame());
 }
 
-void SoldierGraphics::update(Time dt, const SoldierState &state)
+void SoldierGraphics::update(sys::Time dt, const SoldierState &state)
 {
 	position.update();
 	position.current = math::from_fixed(state.position);
@@ -94,10 +94,10 @@ SoldierGraphics::AnimationData::AnimationData()
 
 	frames[Standing00   ] = Frame(  0, 0, w, h, cx, cy, 0);
 	frames[Ducking00    ] = Frame(212, 0, w, h, cx, cy, 0);
-	frames[Walking00    ] = Frame( 53, 0, w, h, cx, cy, Clock::seconds(0.1));
-	frames[Walking01    ] = Frame(106, 0, w, h, cx, cy, Clock::seconds(0.1));
-	frames[DuckWalking00] = Frame(265, 0, w, h, cx, cy, Clock::seconds(0.1));
-	frames[DuckWalking01] = Frame(318, 0, w, h, cx, cy, Clock::seconds(0.1));
+	frames[Walking00    ] = Frame( 53, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
+	frames[Walking01    ] = Frame(106, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
+	frames[DuckWalking00] = Frame(265, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
+	frames[DuckWalking01] = Frame(318, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
 	frames[Falling00    ] = Frame( 53, 0, w, h, cx, cy, 0);
 	frames[DuckFalling00] = Frame(265, 0, w, h, cx, cy, 0);
 
@@ -105,10 +105,10 @@ SoldierGraphics::AnimationData::AnimationData()
 	animations[Ducking     ] = AnimationInfo(Ducking00    , Ducking00    );
 	animations[Walking     ] = AnimationInfo(Walking00    , Walking01    );
 	animations[DuckWalking ] = AnimationInfo(DuckWalking00, DuckWalking01);
-	animations[Jumping    ] = AnimationInfo(Walking01    , Walking01    );
-	animations[Falling    ] = AnimationInfo(Walking00    , Walking00    );
-	animations[DuckJumping] = AnimationInfo(DuckWalking01, DuckWalking01);
-	animations[DuckFalling] = AnimationInfo(DuckWalking00, DuckWalking00);
+	animations[Jumping     ] = AnimationInfo(Walking01    , Walking01    );
+	animations[Falling     ] = AnimationInfo(Walking00    , Walking00    );
+	animations[DuckJumping ] = AnimationInfo(DuckWalking01, DuckWalking01);
+	animations[DuckFalling ] = AnimationInfo(DuckWalking00, DuckWalking00);
 }
 
 } // cmp

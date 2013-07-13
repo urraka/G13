@@ -13,10 +13,8 @@
 
 namespace gfx {
 
-namespace {
 static GLuint create_shader(GLenum type, const char *source);
 static GLuint create_program(GLuint vert, GLuint frag, const Attributes *attributes);
-}
 
 Shader::Shader()
 	:	program_(0),
@@ -126,8 +124,6 @@ VERTEX_INSTANCES();
 // Helpers
 // -----------------------------------------------------------------------------
 
-namespace {
-
 GLuint create_shader(GLenum type, const char *source)
 {
 	#ifdef GLES2
@@ -205,7 +201,5 @@ GLuint create_program(GLuint vert, GLuint frag, const Attributes *attributes)
 
 	return program;
 }
-
-} // unnamed
 
 } // gfx

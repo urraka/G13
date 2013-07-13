@@ -19,7 +19,7 @@ void Player::initialize()
 	onDisconnect();
 }
 
-void Player::update(Time dt, uint32_t tick)
+void Player::update(sys::Time dt, uint32_t tick)
 {
 	switch (mode_)
 	{
@@ -134,7 +134,7 @@ void Player::update(Time dt, uint32_t tick)
 			{
 				connectTimeout_ += dt;
 
-				if (connectTimeout_ >= Clock::milliseconds(5000))
+				if (connectTimeout_ >= sys::time<sys::Seconds>(5))
 				{
 					enet_peer_reset(peer_);
 					onDisconnect();

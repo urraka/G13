@@ -28,7 +28,7 @@ public:
 	Player();
 
 	void initialize();
-	void update(Time dt, uint32_t tick);
+	void update(sys::Time dt, uint32_t tick);
 
 	void onConnecting(ENetPeer *peer = 0);
 	void onConnect(const char *name);
@@ -71,7 +71,7 @@ private:
 	hlp::ring<SoldierState, 10> stateBuffer_;
 
 	ENetPeer *peer_;
-	Time connectTimeout_;
+	sys::Time connectTimeout_;
 
 	friend class Multiplayer;
 };

@@ -3,48 +3,19 @@
 #include "States/Multiplayer.h"
 #include "Debugger.h"
 
-#include "../System/Event.h"
-#include "../System/Keyboard.h"
-#include "../System/Application.h"
-#include "../System/Window.h"
-
+#include <sys/sys.h>
 #include <gfx/gfx.h>
 #include <enet/enet.h>
-
 #include <iostream>
 
-Game *game = 0;
-
-void Game::launch(Application *app)
-{
-	DBG( dbg = new Debugger(); );
-
-	game = new Game();
-	game->init(app);
-}
-
-void Game::display()
-{
-	game->input();
-	game->draw();
-	game->update();
-}
-
-void Game::terminate()
-{
-	delete game;
-}
-
 Game::Game()
-	:	window(0),
-		state_(0),
+	:	state_(0),
 		currentTime_(0),
 		timeAccumulator_(0),
 		dt_(0),
 		fpsTimer_(0),
 		fps_(0),
-		tick_(0),
-		quit_(false)
+		tick_(0)
 {
 }
 
@@ -56,22 +27,26 @@ Game::~Game()
 	enet_deinitialize();
 }
 
-void Game::init(Application *app)
+void Game::initialize()
 {
-	currentTime_ = Clock::time();
-	dt_ = Clock::milliseconds(30);
+	sys::samples(4);
+	sys::fullscreen(false);
+	sys::window_title("G13");
+	sys::window_size(0.45f, 0.45f);
+	sys::window_position(0.5f, 0.5f);
+	sys::vsync(1);
 
-	window = app->window(false, 0);
-	window->display(Game::display);
-	window->title("G13");
-	window->vsync(true);
-
+	sys::initialize();
 	gfx::initialize();
 
-	ivec2 size;
-	window->size(size.x, size.y);
+	currentTime_ = sys::time();
+	dt_ = sys::time<sys::Milliseconds>(30);
 
-	gfx::viewport(size.x, size.y, window->rotation());
+	int width;
+	int height;
+
+	sys::window_size(&width, &height);
+	gfx::viewport(width, height, sys::window_rotation());
 
 	if (enet_initialize() != 0)
 		std::cerr << "Failed to initialize enet." << std::endl;
@@ -81,7 +56,8 @@ void Game::init(Application *app)
 
 void Game::draw()
 {
-	if (quit_) return;
+	if (sys::exiting())
+		return;
 
 	float percent = (float)(timeAccumulator_ / (double)dt_);
 
@@ -96,71 +72,87 @@ void Game::draw()
 
 void Game::input()
 {
-	Event event;
-
-
-	while (window->poll(&event))
+	while (sys::Event *event = sys::poll_events())
 	{
 		state_->event(event);
 
-		if (event.type == Event::Resize)
-			gfx::viewport(event.resize.width, event.resize.height, event.resize.rotation);
-
-		DBG(
-			if (event.type == Event::Keyboard && event.keyboard.pressed)
-				dbg->onKeyPressed(event.keyboard.key);
-		);
-
-		DBG(
-			if (event.type == Event::Keyboard)
+		switch (event->type)
+		{
+			case sys::Resize:
 			{
-				if (event.keyboard.pressed)
-				{
-					if (event.keyboard.key == Keyboard::F5)
-					{
-						dbg->stepMode = !dbg->stepMode;
-
-						if (!dbg->stepMode)
-							timeAccumulator_ = 0;
-					}
-
-					if (dbg->stepMode && event.keyboard.key == Keyboard::F10)
-					{
-						std::cout << "tick: " << tick_ << std::endl;
-						state_->update(dt_);
-						tick_++;
-					}
-				}
+				sys::ResizeEvent *resize = (sys::ResizeEvent*)event;
+				gfx::viewport(resize->width, resize->height, resize->rotation);
 			}
-		);
+			break;
 
-		if (quit_) break;
+			case sys::Keyboard:
+			{
+				sys::KeyboardEvent *keyboard = (sys::KeyboardEvent*)event;
+
+				if (keyboard->pressed)
+					dbg->onKeyPressed(keyboard->key);
+			}
+			break;
+
+			default: break;
+		}
+
+		if (sys::exiting())
+			break;
+
+		// step mode stuff, should redesign for multiplayer
+		//
+		// DBG(
+		// 	if (event.type == Event::Keyboard)
+		// 	{
+		// 		if (event.keyboard.pressed)
+		// 		{
+		// 			if (event.keyboard.key == Keyboard::F5)
+		// 			{
+		// 				dbg->stepMode = !dbg->stepMode;
+
+		// 				if (!dbg->stepMode)
+		// 					timeAccumulator_ = 0;
+		// 			}
+
+		// 			if (dbg->stepMode && event.keyboard.key == Keyboard::F10)
+		// 			{
+		// 				std::cout << "tick: " << tick_ << std::endl;
+		// 				state_->update(dt_);
+		// 				tick_++;
+		// 			}
+		// 		}
+		// 	}
+		// );
 	}
 }
 
 void Game::update()
 {
-	if (quit_) return;
+	if (sys::exiting())
+		return;
 
-	const Time maxFrameTime = Clock::milliseconds(250);
+	const sys::Time maxFrameTime = sys::time<sys::Milliseconds>(250);
 
-	Time newTime = Clock::time();
-	Time frameTime = newTime - currentTime_;
+	sys::Time newTime = sys::time();
+	sys::Time frameTime = newTime - currentTime_;
 
-	DBG(
+	#ifdef DEBUG
 		fpsTimer_ += frameTime;
 
-		if (fpsTimer_ >= Clock::seconds(1))
+		const sys::Time sec = sys::time<sys::Seconds>(1);
+
+		if (fpsTimer_ >= sec)
 		{
 			if (dbg->showFPS)
 				std::cout << "FPS: " << fps_ << " - Frame time: " << frameTime << std::endl;
 
-			fpsTimer_ -= Clock::seconds(1);
+			fpsTimer_ -= sec;
 			fps_ = 0;
 		}
-	);
+	#endif
 
-	Time frozenTime = 0;
+	sys::Time frozenTime = 0;
 
 	if (frameTime > maxFrameTime)
 	{
@@ -171,7 +163,9 @@ void Game::update()
 	currentTime_ = newTime - frozenTime;
 	timeAccumulator_ += frameTime;
 
-	DBG( if (dbg->stepMode) return; );
+	#ifdef DEBUG
+		if (dbg->stepMode) return;
+	#endif
 
 	while (timeAccumulator_ >= dt_)
 	{
@@ -188,8 +182,7 @@ uint64_t Game::tick() const
 
 void Game::quit()
 {
-	quit_ = true;
-	window->close();
+	sys::exit();
 }
 
 void Game::state(stt::State *state)

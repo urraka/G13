@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../System/Clock.h"
+#include <sys/sys.h>
 
 struct Frame
 {
 	Frame() : x(0), y(0), width(0), height(0), cx(0), cy(0), duration(0) {}
 
-	Frame(int X, int Y, int W, int H, int CX, int CY, Time dur)
+	Frame(int X, int Y, int W, int H, int CX, int CY, sys::Time dur)
 		:	x(X),
 			y(Y),
 			width(W),
@@ -18,7 +18,7 @@ struct Frame
 
 	int x, y, width, height;
 	int cx, cy; // center
-	Time duration;
+	sys::Time duration;
 };
 
 struct AnimationInfo
@@ -71,12 +71,12 @@ public:
 		animations_ = animations;
 	}
 
-	void update(Time dt)
+	void update(sys::Time dt)
 	{
 		assert(frames_ != 0);
 		assert(animations_ != 0);
 
-		Time duration = frames_[frame_].duration;
+		sys::Time duration = frames_[frame_].duration;
 
 		if (duration > 0)
 		{
@@ -101,7 +101,7 @@ public:
 private:
 	int id_;
 	int frame_;
-	Time time_;
+	sys::Time time_;
 	const Frame *frames_;
 	const AnimationInfo *animations_;
 };

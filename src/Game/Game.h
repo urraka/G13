@@ -1,12 +1,9 @@
 #pragma once
 
-#include "../System/Clock.h"
 #include "States/State.h"
 
+#include <sys/sys.h>
 #include <stdint.h>
-
-class Application;
-class Window;
 
 class Game
 {
@@ -14,11 +11,7 @@ public:
 	Game();
 	~Game();
 
-	static void launch(Application *app);
-	static void terminate();
-	static void display();
-
-	void init(Application *app);
+	void initialize();
 	void draw();
 	void input();
 	void update();
@@ -27,18 +20,13 @@ public:
 	void quit();
 	void state(stt::State *state);
 
-	Window *window;
-
 private:
 	stt::State *state_;
 
-	Time currentTime_;
-	Time timeAccumulator_;
-	Time dt_;
-	Time fpsTimer_;
+	sys::Time currentTime_;
+	sys::Time timeAccumulator_;
+	sys::Time dt_;
+	sys::Time fpsTimer_;
 	int fps_;
 	uint64_t tick_;
-	bool quit_;
 };
-
-extern Game *game;

@@ -16,7 +16,7 @@ SoldierPhysics::SoldierPhysics()
 {
 }
 
-void SoldierPhysics::update(Time dt)
+void SoldierPhysics::update(sys::Time dt)
 {
 	assert(map != 0);
 	assert(input != 0);

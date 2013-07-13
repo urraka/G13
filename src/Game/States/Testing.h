@@ -2,13 +2,12 @@
 
 #include "State.h"
 
-#include "../../System/Clock.h"
-#include "../../System/Event.h"
 #include "../Entities/Camera.h"
 #include "../Entities/Soldier.h"
 #include "../Map.h"
 #include "../Replay.h"
 
+#include <sys/sys.h>
 #include <gfx/forward.h>
 #include <gfx/Sprite.h>
 
@@ -22,9 +21,9 @@ public:
 	Testing(net::Client *client = 0);
 	~Testing();
 
-	void update(Time dt);
+	void update(sys::Time dt);
 	void draw(float framePercent);
-	void event(const Event &evt);
+	void event(sys::Event *event);
 
 private:
 	enum

@@ -6,6 +6,7 @@
 #include "Map.h"
 #include "Collision.h"
 
+#include <sys/keyboard.h>
 #include <gfx/gfx.h>
 #include <vector>
 #include <iostream>
@@ -216,43 +217,43 @@ void Debugger::showCollisionData()
 	std::cout << std::endl;
 }
 
-void Debugger::onKeyPressed(Keyboard::Key key)
+void Debugger::onKeyPressed(int key)
 {
 	switch (key)
 	{
-		case Keyboard::W:
+		case 'W':
 			wireframe = !wireframe;
 			break;
 
-		case Keyboard::F6:
+		case sys::F6:
 			showFPS = !showFPS;
 			break;
 
-		case Keyboard::I:
+		case 'I':
 			interpolation = !interpolation;
 			debug_log("Interpolation " << (interpolation ? "enabled." : "disabled."));
 			break;
 
-		case Keyboard::O:
+		case 'O':
 			extrapolation = !extrapolation;
 			debug_log("Extrapolation " << (extrapolation ? "enabled." : "disabled."));
 			break;
 
-		case Keyboard::Q:
+		case 'Q':
 			ticksBehind--;
 			debug_log("ticksBehind = " << ticksBehind);
 			break;
 
-		case Keyboard::E:
+		case 'E':
 			ticksBehind++;
 			debug_log("ticksBehind = " << ticksBehind);
 			break;
 
-		case Keyboard::H:
+		case 'H':
 			showCollisionHulls = !showCollisionHulls;
 			break;
 
-		case Keyboard::M:
+		case 'M':
 			dbg->showCollisionData();
 			break;
 

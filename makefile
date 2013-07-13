@@ -69,12 +69,12 @@ ifeq ($(platform),win32)
   out-dir := bin/win32$(out-dir-suffix)
   out := $(out-dir)/G13.exe
   lib := lib/win32/libglew32.a
-  lib += lib/win32/libglfw.a
+  lib += lib/win32/libglfw3.a
   lib += lib/win32/libpng.a
   lib += lib/win32/libz.a
   lib += lib/win32/libfixmath.a
   lib += lib/win32/libenet.a
-  lib += -lopengl32 -lws2_32 -lwinmm
+  lib += -lgdi32 -lopengl32 -lws2_32 -lwinmm
   def += -DWIN32 -DGLEW_STATIC
   opt += -s -static-libgcc -static-libstdc++
   ifeq ($(debug),no)

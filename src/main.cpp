@@ -1,12 +1,11 @@
-#include "System/Application.h"
-#include "Game/Game.h"
+#include <g13/g13.h>
+#include <sys/sys.h>
 
 int main(int argc, char *argv[])
 {
-	Application app(argc, argv);
+	sys::callback(sys::Initialize, g13::initialize);
+	sys::callback(sys::Display, g13::display);
+	sys::callback(sys::Terminate, g13::terminate);
 
-	app.launchCallback(Game::launch);
-	app.terminateCallback(Game::terminate);
-
-	return app.run();
+	return sys::run(argc, argv);
 }

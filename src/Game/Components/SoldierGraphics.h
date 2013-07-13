@@ -1,10 +1,10 @@
 #pragma once
 
 #include "../../Math/math.h"
-#include "../../System/Clock.h"
 #include "../Animation.h"
 #include "SoldierState.h"
 
+#include <sys/sys.h>
 #include <gfx/Sprite.h>
 
 namespace cmp {
@@ -13,7 +13,7 @@ class SoldierGraphics
 {
 public:
 	SoldierGraphics();
-	void update(Time dt, const SoldierState &state);
+	void update(sys::Time dt, const SoldierState &state);
 	void frame(float percent);
 
 	gfx::Sprite sprite;

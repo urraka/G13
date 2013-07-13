@@ -2,6 +2,8 @@
 
 #include "../Collision.h"
 
+#include <sys/sys.h>
+
 namespace cmp {
 
 class SoldierInput;
@@ -11,7 +13,7 @@ class SoldierPhysics
 public:
 	SoldierPhysics();
 
-	void update(Time time);
+	void update(sys::Time time);
 	void reset(fixvec2 pos);
 	bool ducking() const;
 	bool floor() const;

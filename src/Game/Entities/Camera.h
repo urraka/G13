@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Math/math.h"
-#include "../../System/Clock.h"
+#include <sys/sys.h>
 
 namespace ent {
 
@@ -23,7 +23,7 @@ public:
 		MatrixInverted
 	};
 
-	void update(Time dt);
+	void update(sys::Time dt);
 	void target(const vec2 *target);
 	void viewport(int width, int height);
 	mat4 matrix(float framePercent, MatrixMode mode = MatrixNormal);

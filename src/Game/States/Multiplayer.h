@@ -1,6 +1,7 @@
 #pragma once
 
 #include "State.h"
+#include <sys/sys.h>
 
 namespace net {
 	class Client;
@@ -15,15 +16,15 @@ public:
 	Multiplayer();
 	~Multiplayer();
 
-	void update(Time dt);
+	void update(sys::Time dt);
 	void draw(float percent);
-	void event(const Event &evt);
+	void event(sys::Event *evt);
 
 private:
 	net::Client *client_;
 	net::Server *server_;
 
-	void onKeyPressed(Keyboard::Key key);
+	void onKeyPressed(int key);
 };
 
 } // stt

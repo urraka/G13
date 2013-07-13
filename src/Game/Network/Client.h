@@ -2,8 +2,8 @@
 
 #include "Multiplayer.h"
 #include "../Entities/Camera.h"
-#include "../../System/Event.h"
 
+#include <sys/sys.h>
 #include <gfx/forward.h>
 #include <string>
 
@@ -19,9 +19,9 @@ public:
 
 	bool connect(const char *host, int port);
 	void disconnect();
-	void update(Time dt);
+	void update(sys::Time dt);
 	void draw(float framePercent);
-	void event(const Event &evt);
+	void event(sys::Event *evt);
 
 	bool active() const;
 	State state() const;
@@ -52,7 +52,7 @@ private:
 	void onGameState(msg::Message *msg);
 
 	void onResize(int width, int height);
-	void onKeyPressed(Keyboard::Key key);
+	void onKeyPressed(int key);
 };
 
 } // net

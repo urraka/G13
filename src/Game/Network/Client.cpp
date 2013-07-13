@@ -2,7 +2,6 @@
 #include "msg.h"
 #include "../Game.h"
 #include "../Map.h"
-#include "../../System/Window.h"
 
 #include "../Debugger.h"
 
@@ -36,7 +35,7 @@ Client::Client()
 	spriteBatch_->texture(texture_);
 
 	int w, h;
-	game->window->size(w, h);
+	sys::window_size(&w, &h);
 	onResize(w, h);
 }
 
@@ -86,7 +85,7 @@ void Client::disconnect()
 		enet_peer_disconnect(peer_, 0);
 }
 
-void Client::update(Time dt)
+void Client::update(sys::Time dt)
 {
 	if (state_ == Disconnected)
 		return;
@@ -338,18 +337,25 @@ void Client::draw(float framePercent)
 	}
 }
 
-void Client::event(const Event &evt)
+void Client::event(sys::Event *evt)
 {
-	switch (evt.type)
+	switch (evt->type)
 	{
-		case Event::Resize:
-			onResize(evt.resize.width, evt.resize.height);
-			break;
+		case sys::Resize:
+		{
+			sys::ResizeEvent *resize = (sys::ResizeEvent*)evt;
+			onResize(resize->width, resize->height);
+		}
+		break;
 
-		case Event::Keyboard:
-			if (evt.keyboard.pressed)
-				onKeyPressed(evt.keyboard.key);
-			break;
+		case sys::Keyboard:
+		{
+			sys::KeyboardEvent *keyboard = (sys::KeyboardEvent*)evt;
+
+			if (keyboard->pressed)
+				onKeyPressed(keyboard->key);
+		}
+		break;
 
 		default: break;
 	}
@@ -372,7 +378,7 @@ void Client::onResize(int width, int height)
 	background_->set(vertex, 0, 4);
 }
 
-void Client::onKeyPressed(Keyboard::Key key)
+void Client::onKeyPressed(int key)
 {
 }
 

@@ -64,7 +64,7 @@ void Server::stop()
 	}
 }
 
-void Server::update(Time dt)
+void Server::update(sys::Time dt)
 {
 	if (state_ == Stopped)
 		return;

@@ -28,7 +28,7 @@ Multiplayer::~Multiplayer()
 	delete dataPool_;
 }
 
-void Multiplayer::update(Time dt)
+void Multiplayer::update(sys::Time dt)
 {
 	ENetEvent event;
 

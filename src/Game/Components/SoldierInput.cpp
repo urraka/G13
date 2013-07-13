@@ -1,6 +1,7 @@
 #include "SoldierInput.h"
-#include "../../System/Keyboard.h"
 #include "../Replay.h"
+
+#include <sys/sys.h>
 
 namespace cmp {
 
@@ -17,11 +18,11 @@ void SoldierInput::update()
 {
 	reset();
 
-	left  = Keyboard::pressed(Keyboard::Left);
-	right = Keyboard::pressed(Keyboard::Right);
-	jump  = Keyboard::pressed(Keyboard::Up);
-	run   = Keyboard::pressed(Keyboard::LShift) || Keyboard::pressed(Keyboard::RShift);
-	duck  = Keyboard::pressed(Keyboard::Down);
+	left  = sys::pressed(sys::Left);
+	right = sys::pressed(sys::Right);
+	jump  = sys::pressed(sys::Up);
+	run   = sys::pressed(sys::LeftShift) || sys::pressed(sys::RightShift);
+	duck  = sys::pressed(sys::Down);
 
 	if (left && right) left = right = false;
 }

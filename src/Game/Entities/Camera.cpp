@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include "../../System/Event.h"
 
 namespace ent {
 
@@ -14,19 +13,19 @@ Camera::Camera()
 {
 }
 
-void Camera::update(Time dt)
+void Camera::update(sys::Time dt)
 {
 	const float kVelMultiplier = 2.5f;
 
-	float dts = Clock::toSeconds<float>(dt);
+	float dts = sys::to_seconds(dt);
 
 	position_.update();
 	zoom_.update();
 
-	if (Keyboard::pressed(Keyboard::NumpadAdd))
+	if (sys::pressed(sys::NumpadAdd))
 		zoom(ZoomIn);
 
-	if (Keyboard::pressed(Keyboard::NumpadSubtract))
+	if (sys::pressed(sys::NumpadSubtract))
 		zoom(ZoomOut);
 
 	zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);

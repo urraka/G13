@@ -6,9 +6,7 @@
 
 namespace gfx {
 
-namespace {
 static uint8_t *load_image(const char *path, int *width, int *height, ImageFormat *format);
-}
 
 Image::Image(const char *filename)
 	:	width_(0),
@@ -49,8 +47,6 @@ ImageFormat Image::format() const
 {
 	return format_;
 }
-
-namespace {
 
 uint8_t *load_image(const char *path, int *width, int *height, ImageFormat *format)
 {
@@ -139,8 +135,6 @@ uint8_t *load_image(const char *path, int *width, int *height, ImageFormat *form
 	fclose(file);
 
 	return image;
-}
-
 }
 
 } // gfx

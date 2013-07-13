@@ -10,7 +10,6 @@
 
 #ifdef DEBUG
 
-#include "../System/Event.h"
 #include <iostream>
 
 #include <gfx/forward.h>
@@ -31,7 +30,7 @@ public:
 	void drawCollisionHulls();
 	void showCollisionData();
 
-	void onKeyPressed(Keyboard::Key key);
+	void onKeyPressed(int key);
 
 	Map *map;
 	ent::Soldier *soldier;

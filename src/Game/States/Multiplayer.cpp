@@ -38,7 +38,7 @@ Multiplayer::~Multiplayer()
 	delete server_;
 }
 
-void Multiplayer::update(Time dt)
+void Multiplayer::update(sys::Time dt)
 {
 	server_->update(dt);
 	client_->update(dt);
@@ -49,19 +49,24 @@ void Multiplayer::draw(float percent)
 	client_->draw(percent);
 }
 
-void Multiplayer::event(const Event &evt)
+void Multiplayer::event(sys::Event *evt)
 {
-	if (evt.type == Event::Keyboard && evt.keyboard.pressed)
-		onKeyPressed(evt.keyboard.key);
+	if (evt->type == sys::Keyboard)
+	{
+		sys::KeyboardEvent *keyboard = (sys::KeyboardEvent*)evt;
+
+		if (keyboard->pressed)
+			onKeyPressed(keyboard->key);
+	}
 
 	client_->event(evt);
 }
 
-void Multiplayer::onKeyPressed(Keyboard::Key key)
+void Multiplayer::onKeyPressed(int key)
 {
 	switch (key)
 	{
-		case Keyboard::S:
+		case 'S':
 		{
 			if (server_->state() == net::Server::Stopped)
 			{
@@ -76,7 +81,7 @@ void Multiplayer::onKeyPressed(Keyboard::Key key)
 		}
 		break;
 
-		case Keyboard::C:
+		case 'C':
 		{
 			if (client_->state() == net::Client::Disconnected)
 			{
@@ -89,11 +94,11 @@ void Multiplayer::onKeyPressed(Keyboard::Key key)
 		}
 		break;
 
-		case Keyboard::Escape:
+		case sys::Escape:
 		{
 			if (client_->state() == net::Client::Disconnected && server_->state() == net::Server::Stopped)
 			{
-				game->quit();
+				sys::exit();
 			}
 			else
 			{

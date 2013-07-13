@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../System/Clock.h"
 #include "Player.h"
 
+#include <sys/sys.h>
 #include <hlp/pool.h>
 #include <enet/enet.h>
 
@@ -20,7 +20,7 @@ class Multiplayer
 public:
 	Multiplayer();
 	virtual ~Multiplayer();
-	virtual void update(Time dt);
+	virtual void update(sys::Time dt);
 
 	static const size_t MaxPlayers = 32;
 

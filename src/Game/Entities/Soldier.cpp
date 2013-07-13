@@ -9,7 +9,7 @@ Soldier::Soldier()
 	state_.flip = false;
 }
 
-void Soldier::update(Time dt, cmp::SoldierInput *inpt)
+void Soldier::update(sys::Time dt, cmp::SoldierInput *inpt)
 {
 	if (inpt != 0)
 		input = *inpt;

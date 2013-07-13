@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Multiplayer.h"
+#include <sys/sys.h>
 
 namespace net {
 
@@ -14,7 +15,7 @@ public:
 
 	bool start(int port);
 	void stop();
-	void update(Time dt);
+	void update(sys::Time dt);
 
 	State state() const;
 

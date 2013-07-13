@@ -2,8 +2,6 @@
 
 #include "../Game.h"
 #include "../Network/Client.h"
-#include "../../System/Keyboard.h"
-#include "../../System/Window.h"
 #include "../Debugger.h"
 
 #include <gfx/gfx.h>
@@ -25,7 +23,7 @@ Testing::Testing(net::Client *client)
 	textures_[TextureGuy] = new gfx::Texture("data/guy.png");
 
 	int width, height;
-	game->window->size(width, height);
+	sys::window_size(&width, &height);
 
 	background_ = new gfx::VBO();
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
@@ -56,17 +54,17 @@ Testing::~Testing()
 		delete textures_[i];
 }
 
-void Testing::update(Time dt)
+void Testing::update(sys::Time dt)
 {
 	if (client_)
 		client_->update(dt);
 
 	replayLog_.update(&replay_, &soldier_);
 
-	if (Keyboard::pressed(Keyboard::NumpadAdd))
+	if (sys::pressed(sys::NumpadAdd))
 		camera_.zoom(ent::Camera::ZoomIn);
 
-	if (Keyboard::pressed(Keyboard::NumpadSubtract))
+	if (sys::pressed(sys::NumpadSubtract))
 		camera_.zoom(ent::Camera::ZoomOut);
 
 	if (replay_.state() == Replay::Playing)
@@ -105,30 +103,32 @@ void Testing::draw(float framePercent)
 	gfx::draw(sprites_);
 }
 
-void Testing::event(const Event &evt)
+void Testing::event(sys::Event *evt)
 {
-	switch (evt.type)
+	switch (evt->type)
 	{
-		case Event::Resize:
+		case sys::Resize:
 		{
-			updateBackground(evt.resize.width, evt.resize.height);
-			camera_.viewport(evt.resize.width, evt.resize.height);
-			break;
+			sys::ResizeEvent *resize = (sys::ResizeEvent*)evt;
+
+			updateBackground(resize->width, resize->height);
+			camera_.viewport(resize->width, resize->height);
 		}
+		break;
 
-		case Event::Keyboard:
+		case sys::Keyboard:
 		{
-			if (evt.keyboard.pressed)
-			{
-				switch (evt.keyboard.key)
-				{
-					case Keyboard::Escape:
-					{
-						game->quit();
-					}
-					break;
+			sys::KeyboardEvent *keyboard = (sys::KeyboardEvent*)evt;
 
-					case Keyboard::F11:
+			if (keyboard->pressed)
+			{
+				switch (keyboard->key)
+				{
+					case sys::Escape:
+						sys::exit();
+						break;
+
+					case sys::F11:
 					{
 						if (replay_.state() == Replay::Idle)
 							replay_.startRecording(&soldier_);
@@ -137,7 +137,7 @@ void Testing::event(const Event &evt)
 					}
 					break;
 
-					case Keyboard::F12:
+					case sys::F12:
 					{
 						if (replay_.state() == Replay::Idle)
 						{
