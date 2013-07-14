@@ -1,5 +1,7 @@
 #pragma once
 
+#include <g13/math.h>
+
 namespace g13 {
 namespace cmp {
 

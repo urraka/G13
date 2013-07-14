@@ -3,6 +3,7 @@
 #include "fixed.h"
 #include "vec2.h"
 
+namespace math {
 namespace fpm {
 
 class line
@@ -16,4 +17,4 @@ public:
 	line(fixed x1, fixed y1, fixed x2, fixed y2) : p1(x1, y1), p2(x2, y2) {}
 };
 
-} // fpm
+}} // math::fpm

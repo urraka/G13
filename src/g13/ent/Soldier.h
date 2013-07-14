@@ -1,13 +1,12 @@
 #pragma once
 
 #include <g13/g13.h>
+#include <g13/math.h>
 #include <g13/Collision.h>
 #include <g13/cmp/SoldierInput.h>
 #include <g13/cmp/SoldierPhysics.h>
 #include <g13/cmp/SoldierGraphics.h>
 #include <g13/cmp/SoldierState.h>
-
-#include "../../Math/math.h"
 
 namespace g13 {
 namespace ent {

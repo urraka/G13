@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Math/math.h"
 #include <g13/g13.h>
+#include <g13/math.h>
 
 namespace g13 {
 namespace ent {
@@ -37,7 +37,8 @@ private:
 	float zoomVelocity_;
 	float zoomTarget_;
 	ZoomType zoomType_;
-	ivec2 viewport_;
+	float width_;
+	float height_;
 	const vec2 *target_;
 	math::interpolable<vec2> position_;
 	vec2 velocity_;

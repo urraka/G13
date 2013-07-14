@@ -2,9 +2,14 @@
 
 #include "fixed.h"
 
-namespace fpm { class vec2; }
-std::ostream& operator<<(std::ostream & stream, fpm::vec2 const & x);
+namespace math {
+namespace fpm {
+	class vec2;
+}}
 
+std::ostream& operator<<(std::ostream & stream, math::fpm::vec2 const & x);
+
+namespace math {
 namespace fpm {
 
 class vec2
@@ -32,4 +37,4 @@ public:
 	bool operator!=(vec2 const & rhs) const { return x != rhs.x || y != rhs.y; }
 };
 
-} // fpm
+}} // math::fpm

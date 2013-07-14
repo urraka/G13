@@ -3,6 +3,7 @@
 #include "fixed.h"
 #include "vec2.h"
 
+namespace math {
 namespace fpm {
 
 class rect
@@ -26,4 +27,4 @@ public:
 	rect& operator-=(vec2 const & rhs) { tl -= rhs; br -= rhs; return *this; }
 };
 
-} // fpm
+}} // math::fpm

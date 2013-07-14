@@ -23,7 +23,7 @@ void Soldier::update(Time dt, cmp::SoldierInput *inpt)
 void Soldier::reset(fixvec2 pos)
 {
 	physics.reset(pos);
-	graphics.position.set(math::from_fixed(pos));
+	graphics.position.set(from_fixed(pos));
 }
 
 void Soldier::map(const Collision::Map *map)

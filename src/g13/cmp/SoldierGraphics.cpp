@@ -15,7 +15,7 @@ SoldierGraphics::SoldierGraphics()
 void SoldierGraphics::update(Time dt, const SoldierState &state)
 {
 	position.update();
-	position.current = math::from_fixed(state.position);
+	position.current = from_fixed(state.position);
 
 	int notMoving = Standing;
 	int moving = Walking;

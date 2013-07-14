@@ -108,7 +108,7 @@ void Player::update(Time dt, uint32_t tick)
 						}
 					#endif
 
-					fixvec2 pos = math::to_fixed(soldier_.graphics.position.current);
+					fixvec2 pos = to_fixed(soldier_.graphics.position.current);
 					fixvec2 diff = dest - pos;
 					fixed length = fpm::length(diff);
 

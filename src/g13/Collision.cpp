@@ -37,7 +37,7 @@ Collision::Hull& Collision::Hull::operator= (const Hull &hull)
 	return *this;
 }
 
-void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
+void Collision::Map::create(const std::vector< std::vector<glm::ivec2> > &lineStrips)
 {
 	size_t nTotalNodes = 0;
 
@@ -50,7 +50,7 @@ void Collision::Map::create(const std::vector< std::vector<ivec2> > &lineStrips)
 
 	for (size_t i = 0; i < lineStrips.size(); i++)
 	{
-		const std::vector<ivec2> &strip = lineStrips[i];
+		const std::vector<glm::ivec2> &strip = lineStrips[i];
 
 		if (strip.size() == 0)
 			continue;

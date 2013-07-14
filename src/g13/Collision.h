@@ -1,7 +1,7 @@
 #pragma once
 
+#include <g13/math.h>
 #include <vector>
-#include "../Math/math.h"
 
 namespace g13 {
 
@@ -44,7 +44,7 @@ public:
 	class Map
 	{
 	public:
-		void create(const std::vector< std::vector<ivec2> > &lineStrips);
+		void create(const std::vector< std::vector<glm::ivec2> > &lineStrips);
 		const std::vector<const Collision::Node*> &retrieve(const fixrect &rc) const;
 
 	private:

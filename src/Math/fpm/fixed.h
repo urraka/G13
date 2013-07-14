@@ -3,9 +3,14 @@
 #include <stdint.h>
 #include <ostream>
 
-namespace fpm { class fixed; }
-std::ostream& operator<<(std::ostream & stream, fpm::fixed const & n);
+namespace math {
+namespace fpm {
+	class fixed;
+}}
 
+std::ostream& operator<<(std::ostream & stream, math::fpm::fixed const & n);
+
+namespace math {
 namespace fpm {
 
 class fixed
@@ -87,7 +92,7 @@ public:
 	friend fixed max  (fixed const & x, fixed const & y);
 	friend fixed fmod (fixed const & x, fixed const & y);
 
-	friend std::ostream& (::operator<<)(std::ostream & stream, fpm::fixed const & n);
+	friend std::ostream& (::operator<<)(std::ostream & stream, math::fpm::fixed const & n);
 };
 
-} // fpm
+}} // math::fpm

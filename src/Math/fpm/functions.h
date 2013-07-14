@@ -5,8 +5,9 @@
 #include "rect.h"
 #include "line.h"
 
-namespace fpm
-{
+namespace math {
+namespace fpm {
+
 	// fixed
 	fixed sign (fixed const & x);
 	fixed fabs (fixed const & x);
@@ -44,4 +45,5 @@ namespace fpm
 	vec2  midpoint    (line const & l);
 	rect  bounds      (line const & l);
 	bool  intersection(line const & A, line const & B, vec2 *result);
-}
+
+}} // math::fpm

@@ -1,65 +1,35 @@
-#include "math.h"
+#include "triangulate.h"
 
 #include <iostream>
 #include <assert.h>
 #include <list>
 
-namespace {
+namespace math {
+
+using std::vector;
+using std::list;
+
+typedef glm::vec2 vec2;
 
 struct vertex_t
 {
 	vertex_t *prev;
 	vertex_t *next;
 	uint16_t index;
-	float winding_value;
-	bool reflex;
+	float    winding_value;
+	bool     reflex;
 };
 
-static inline float winding_value(const std::vector<vec2> &polygon, const vertex_t &vertex)
-{
-	const vec2 &a = polygon[vertex.prev->index];
-	const vec2 &b = polygon[vertex.index];
-	const vec2 &c = polygon[vertex.next->index];
+static float winding_value(const vector<vec2> &polygon, const vertex_t &vertex);
+static bool is_ear_tip(const vector<vec2> &polygon, const vertex_t &v, const list<vertex_t*> &reflex);
+static bool triangle_contains(const vec2 &a, const vec2 &b, const vec2 &c, const vec2 &point);
 
-	return (b.x - a.x) * (c.y - b.y) - (c.x - b.x) * (b.y - a.y);
-}
-
-static inline bool is_ear_tip(const std::vector<vec2> &polygon, const vertex_t &vertex, const std::list<vertex_t*> &reflexVertices)
-{
-	if (vertex.reflex)
-		return false;
-
-	const vec2 &a = polygon[vertex.prev->index];
-	const vec2 &b = polygon[vertex.index];
-	const vec2 &c = polygon[vertex.next->index];
-
-	Triangle triangle(a, b, c);
-	std::list<vertex_t*>::const_iterator it;
-
-	for (it = reflexVertices.begin(); it != reflexVertices.end(); it++)
-	{
-		uint16_t index = (*it)->index;
-
-		if (index == vertex.prev->index || index == vertex.next->index)
-			continue;
-
-		if (triangle.contains(polygon[index]))
-			return false;
-	}
-
-	return true;
-}
-
-} // unnnamed
-
-namespace math {
-
-std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon)
+vector<uint16_t> triangulate(const vector<vec2> &polygon)
 {
 	assert(polygon.size() <= 0x10000);
 
 	const size_t N = polygon.size();
-	std::vector<uint16_t> triangles;
+	vector<uint16_t> triangles;
 
 	if (N <= 2)
 		return triangles;
@@ -76,7 +46,7 @@ std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon)
 	int cwCount = 0;
 	int ccwCount = 0;
 
-	std::vector<vertex_t> vertices(N);
+	vector<vertex_t> vertices(N);
 
 	for (size_t i = 1; i <= N; i++)
 	{
@@ -100,7 +70,7 @@ std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon)
 	const float mult = (ccwCount - cwCount > 0) ? 1.0f : -1.0f;
 	#define is_reflex(v) ((v).winding_value * mult <= 0.0f)
 
-	std::list<vertex_t*> reflexVertices;
+	list<vertex_t*> reflexVertices;
 
 	for (size_t i = 0; i < N; i++)
 	{
@@ -169,6 +139,51 @@ std::vector<uint16_t> triangulate(const std::vector<vec2> &polygon)
 	return triangles;
 
 	#undef is_reflex
+}
+
+float winding_value(const vector<vec2> &polygon, const vertex_t &vertex)
+{
+	const vec2 &a = polygon[vertex.prev->index];
+	const vec2 &b = polygon[vertex.index];
+	const vec2 &c = polygon[vertex.next->index];
+
+	return (b.x - a.x) * (c.y - b.y) - (c.x - b.x) * (b.y - a.y);
+}
+
+bool is_ear_tip(const vector<vec2> &polygon, const vertex_t &vertex, const list<vertex_t*> &reflexVertices)
+{
+	if (vertex.reflex)
+		return false;
+
+	const vec2 &a = polygon[vertex.prev->index];
+	const vec2 &b = polygon[vertex.index];
+	const vec2 &c = polygon[vertex.next->index];
+
+	list<vertex_t*>::const_iterator it;
+
+	for (it = reflexVertices.begin(); it != reflexVertices.end(); it++)
+	{
+		uint16_t index = (*it)->index;
+
+		if (index == vertex.prev->index || index == vertex.next->index)
+			continue;
+
+		if (triangle_contains(a, b, c, polygon[index]))
+			return false;
+	}
+
+	return true;
+}
+
+bool triangle_contains(const vec2 &a, const vec2 &b, const vec2 &c, const vec2 &point)
+{
+	float A = 0.5f * (-b.y * c.x + a.y * (-b.x + c.x) + a.x * (b.y - c.y) + b.x * c.y);
+	float sign = A < 0.0f ? -1.0f : 1.0f;
+
+	float s = (a.y * c.x - a.x * c.y + (c.y - a.y) * point.x + (a.x - c.x) * point.y) * sign;
+	float t = (a.x * b.y - a.y * b.x + (a.y - b.y) * point.x + (b.x - a.x) * point.y) * sign;
+
+	return s >= 0.0f && t >= 0.0f && (s + t) <= (2.0f * A * sign);
 }
 
 } // math

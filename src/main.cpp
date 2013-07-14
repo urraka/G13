@@ -1,5 +1,4 @@
 #include <g13/g13.h>
-#include <sys/sys.h>
 
 int main(int argc, char *argv[])
 {

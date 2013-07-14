@@ -6,7 +6,6 @@ Networking
   - Client side prediction is not correcting if out of sync.
 
 Game
-  - Remove Game and Debugger class and turn them into global functions in g13 namespace.
   - Figure out how to simplify debug output.
   - Replace network.txt with config.cfg and move it ro root directory.
   - Separate collision map from map rendering stuff.
@@ -16,19 +15,13 @@ Game
   - Consider making components private with methods to access as const.
 
 Graphics
-  - Test if all the refactoring works on linux/osx/ios.
   - Find the proper way to choose the mipmap generation method.
   - Add ability to set own mipmaps.
   - Add text rendering.
 
 General
-  - Modules: sys, gfx, math, hlp, g13.
-  - Move fpm namespace inside math namespace.
-  - Each directory under src/ should be named after a namespace.
-  - Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
+  - Test if all the refactoring works on linux/osx/ios.
   - Consider making each module a library to include into the game.
-  - Move platform.h away from system.
-  - Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 System
@@ -39,11 +32,19 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
-  - Replace using directives with typedefs.
   - Add some overflow checks in fpm functions (example: in length(), if (x.x or x.y > 175 warning! 175*175 = 30625))
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Modules: sys, gfx, math, hlp, g13.
+  x Move fpm namespace inside math namespace.
+  x Each directory under src/ should be named after a namespace.
+  x Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
+  x Move platform.h away from system.
+  x Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
+  x Replace using directives with typedefs.
+  x Add g13/math.h
+  x Remove Game class and turn it into global functions in g13 namespace.
   x Move all game classes into g13 namespace.
   x Clock goes away, just do sys::time(), sys::milliseconds(), etc.
   x Add all external includes to project and all libs compiled for the different systems.

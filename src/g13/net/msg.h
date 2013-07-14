@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../Math/math.h"
-
 #include "Player.h"
 #include "Multiplayer.h"
+
+#include <g13/math.h>
 
 #include <assert.h>
 #include <stdint.h>

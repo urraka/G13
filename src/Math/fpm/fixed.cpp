@@ -1,6 +1,7 @@
 #include <fix16.h>
 #include "fixed.h"
 
+namespace math {
 namespace fpm {
 
 const fixed fixed::max     (fix16_maximum , true);
@@ -57,9 +58,9 @@ fixed& fixed::operator-=(fixed const & rhs) { value_ = fix16_sub(value_, rhs.val
 fixed& fixed::operator*=(fixed const & rhs) { value_ = fix16_mul(value_, rhs.value_);        return *this; }
 fixed& fixed::operator/=(fixed const & rhs) { value_ = fix16_div(value_, rhs.value_);        return *this; }
 
-} // fpm
+}} // math::fpm
 
-std::ostream& operator<<(std::ostream & stream, fpm::fixed const & n)
+std::ostream& operator<<(std::ostream & stream, math::fpm::fixed const & n)
 {
 	char buf[13];
 	fix16_to_str(n.value_, buf, std::min(5, (int)stream.precision()));

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../Math/math.h"
 #include "SoldierState.h"
 
 #include <g13/g13.h>
+#include <g13/math.h>
 #include <g13/Animation.h>
 
 #include <gfx/Sprite.h>

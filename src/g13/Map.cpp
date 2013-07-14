@@ -1,10 +1,13 @@
 #include "g13.h"
 #include "Map.h"
 
+#include <math/triangulate.h>
 #include <gfx/gfx.h>
 #include <set>
 
 namespace g13 {
+
+typedef glm::ivec2 ivec2;
 
 static std::vector< std::vector<ivec2> > line_strips();
 

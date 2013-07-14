@@ -1,5 +1,7 @@
 #include "Camera.h"
 
+#include <glm/gtx/transform.hpp>
+
 namespace g13 {
 namespace ent {
 
@@ -53,14 +55,15 @@ void Camera::target(const vec2 *target)
 
 void Camera::viewport(int width, int height)
 {
-	viewport_ = vec2(width, height);
+	width_ = width;
+	height_ = height;
 }
 
 mat4 Camera::matrix(float framePercent, MatrixMode mode)
 {
 	const float worldUnitsPerPixel = 1.0f;
 	const float initialWidth = 1200.0f; // in world units
-	const float initialScale = viewport_.x * worldUnitsPerPixel / initialWidth;
+	const float initialScale = width_ * worldUnitsPerPixel / initialWidth;
 
 	vec2 position = position_.value(framePercent);
 	float scale = initialScale * glm::exp(maxZoom_ * zoom_.value(framePercent));
@@ -69,10 +72,10 @@ mat4 Camera::matrix(float framePercent, MatrixMode mode)
 	{
 		return glm::translate(position.x, position.y, 0.0f) *
 			glm::scale(1.0f / scale, 1.0f / scale, 1.0f) *
-			glm::translate(-viewport_.x / 2.0f, -viewport_.y / 2.0f, 0.0f);
+			glm::translate(-width_ / 2.0f, -height_ / 2.0f, 0.0f);
 	}
 
-	return glm::translate(viewport_.x / 2.0f, viewport_.y / 2.0f, 0.0f) *
+	return glm::translate(width_ / 2.0f, height_ / 2.0f, 0.0f) *
 		glm::scale(scale, scale, 1.0f) *
 		glm::translate(-position.x, -position.y, 0.0f);
 }

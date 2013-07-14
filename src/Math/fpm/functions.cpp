@@ -8,6 +8,7 @@
 
 #include <assert.h>
 
+namespace math {
 namespace fpm {
 
 fixed sign (fixed const & x)                  { return x.value_ > fixed::zero.value_ ? fixed::one : x.value_ < fixed::zero.value_ ? -fixed::one : fixed::zero; }
@@ -128,4 +129,4 @@ bool intersection(line const & A, line const & B, vec2 *result)
 	return true;
 }
 
-} // fpm
+}} // math::fpm
