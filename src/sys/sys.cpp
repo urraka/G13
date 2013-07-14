@@ -201,7 +201,6 @@ void initialize()
 
 		glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 		glfwWindowHint(GLFW_SAMPLES, sys.samples);
-		// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
 		sys.window = glfwCreateWindow(w, h, title, monitor, 0);
 

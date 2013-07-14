@@ -12,7 +12,7 @@ namespace sys {
 enum CallbackType   { Initialize, Display, Terminate };
 enum TimeConversion { Seconds = 1000000, Milliseconds = 1000 };
 
-// types
+// typedefs
 typedef uint64_t Time;
 typedef void (*Callback)();
 

@@ -2,7 +2,7 @@
 	"folders": [
 		{
 			"path": ".",
-			"folder_exclude_patterns": ["bin"]
+			"folder_exclude_patterns": ["bin", "include", "lib", "proj"]
 		}
 	],
 	"build_systems": [
