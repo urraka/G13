@@ -5,12 +5,8 @@
 
 namespace g13 {
 
-typedef sys::Time          Time;
-typedef sys::Event         Event;
-typedef sys::ResizeEvent   ResizeEvent;
-typedef sys::CharEvent     CharEvent;
-typedef sys::MouseEvent    MouseEvent;
-typedef sys::KeyboardEvent KeyboardEvent;
+typedef sys::Time  Time;
+typedef sys::Event Event;
 
 extern Debugger *dbg;
 

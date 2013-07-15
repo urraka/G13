@@ -65,21 +65,13 @@ void display()
 
 		switch (event->type)
 		{
-			case sys::Resize:
-			{
-				ResizeEvent *resize = (ResizeEvent*)event;
-				gfx::viewport(resize->width, resize->height, resize->rotation);
-			}
-			break;
+			case Event::Resized:
+				gfx::viewport(event->size.fboWidth, event->size.fboHeight, event->size.rotation);
+				break;
 
-			case sys::Keyboard:
-			{
-				KeyboardEvent *keyboard = (KeyboardEvent*)event;
-
-				if (keyboard->pressed)
-					dbg->onKeyPressed(keyboard->key);
-			}
-			break;
+			case Event::KeyPressed:
+				dbg->onKeyPressed(event->key.code);
+				break;
 
 			default: break;
 		}

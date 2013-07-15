@@ -340,17 +340,8 @@ void Client::draw(float framePercent)
 
 void Client::event(Event *evt)
 {
-	switch (evt->type)
-	{
-		case sys::Resize:
-		{
-			ResizeEvent *resize = (ResizeEvent*)evt;
-			onResize(resize->width, resize->height);
-		}
-		break;
-
-		default: break;
-	}
+	if (evt->type == Event::Resized)
+		onResize(evt->size.fboWidth, evt->size.fboHeight);
 }
 
 void Client::onResize(int width, int height)

@@ -53,7 +53,7 @@ struct System
 
 	bool                initialized;
 	int                 pollIndex;
-	std::vector<Event*> events;
+	std::vector<Event>  events;
 	Callbacks           callbacks;
 	GLFWwindow         *window;
 	std::string         title;
@@ -79,26 +79,21 @@ struct System
 
 static System sys;
 
-template<typename T> static std::vector<T> &event_storage()
-{
-	static std::vector<T> e;
-	return e;
-}
-
-template<typename T> static void push_event(const T &event)
-{
-	event_storage<T>().push_back(event);
-	sys.events.push_back(&event_storage<T>().back());
-}
-
 static void clear_events();
-static void cb_size(GLFWwindow *window, int width, int height);
-static void cb_keyboard(GLFWwindow *window, int key, int code, int action, int mods);
-static void cb_mouse(GLFWwindow *window, int button, int action, int mods);
-static void cb_char(GLFWwindow *window, unsigned int ch);
+static void push_event(const Event &event);
 
 #ifdef IOS
 	static void cb_orientation();
+#else
+	static void cb_size(GLFWwindow *window, int width, int height);
+	static void cb_framebuffer(GLFWwindow *window, int width, int height);
+	static void cb_keyboard(GLFWwindow *window, int key, int scancode, int action, int mods);
+	static void cb_mouse(GLFWwindow *window, int button, int action, int mods);
+	static void cb_char(GLFWwindow *window, unsigned int ch);
+	static void cb_mousemove(GLFWwindow *window, double x, double y);
+	static void cb_mouseenter(GLFWwindow *window, int entered);
+	static void cb_scroll(GLFWwindow *window, double xoffset, double yoffset);
+	static void cb_focus(GLFWwindow *window, int focused);
 #endif
 
 // -----------------------------------------------------------------------------
@@ -238,14 +233,23 @@ void initialize()
 		if (glewInit() != GLEW_OK)
 			std::cerr << "Error initializing GLEW." << std::endl;
 
-		glfwSetWindowSizeCallback (sys.window, cb_size);
-		glfwSetCharCallback       (sys.window, cb_char);
-		glfwSetMouseButtonCallback(sys.window, cb_mouse);
-		glfwSetKeyCallback        (sys.window, cb_keyboard);
+		glfwSetWindowSizeCallback     (sys.window, cb_size);
+		glfwSetCharCallback           (sys.window, cb_char);
+		glfwSetMouseButtonCallback    (sys.window, cb_mouse);
+		glfwSetKeyCallback            (sys.window, cb_keyboard);
+		glfwSetCursorPosCallback      (sys.window, cb_mousemove);
+		glfwSetCursorEnterCallback    (sys.window, cb_mouseenter);
+		glfwSetScrollCallback         (sys.window, cb_scroll);
+		glfwSetWindowFocusCallback    (sys.window, cb_focus);
+		glfwSetFramebufferSizeCallback(sys.window, cb_framebuffer);
 	#endif
 
 	sys.initialized = true;
 }
+
+// -----------------------------------------------------------------------------
+// Exit
+// -----------------------------------------------------------------------------
 
 void exit()
 {
@@ -256,15 +260,19 @@ void exit()
 	#endif
 }
 
-// -----------------------------------------------------------------------------
-// State
-// -----------------------------------------------------------------------------
-
 bool exiting()
 {
-	assert(sys.initialized);
-	return glfwWindowShouldClose(sys.window);
+	#ifdef IOS
+		return false;
+	#else
+		assert(sys.initialized);
+		return glfwWindowShouldClose(sys.window);
+	#endif
 }
+
+// -----------------------------------------------------------------------------
+// Screen/window
+// -----------------------------------------------------------------------------
 
 void fullscreen(bool enable)
 {
@@ -398,17 +406,24 @@ void window_size(int *width, int *height)
 	assert(sys.initialized);
 
 	#if defined(IOS)
-		#define get_size(wnd, w, h) iosGetWindowSize(w, h)
+		if (std::abs(window_rotation()) == 90)
+			iosGetWindowSize(height, width);
+		else
+			iosGetWindowSize(width, height);
 	#else
-		#define get_size(wnd, w, h) glfwGetWindowSize(wnd, w, h)
+		glfwGetWindowSize(sys.window, width, height);
 	#endif
+}
 
-	if (std::abs(window_rotation()) == 90)
-		get_size(sys.window, height, width);
-	else
-		get_size(sys.window, width, height);
+void framebuffer_size(int *width, int *height)
+{
+	assert(sys.initialized);
 
-	#undef get_size
+	#if defined(IOS)
+		window_size(width, height);
+	#else
+		glfwGetFramebufferSize(sys.window, width, height);
+	#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -424,6 +439,8 @@ bool pressed(int code)
 			return glfwGetMouseButton(sys.window, code - MouseButton1) == GLFW_PRESS;
 		else
 			return glfwGetKey(sys.window, code) == GLFW_PRESS;
+	#else
+		return false;
 	#endif
 }
 
@@ -433,6 +450,8 @@ void mouse(double *x, double *y)
 
 	#ifndef IOS
 		glfwGetCursorPos(sys.window, x, y);
+	#else
+		*x = *y = 0;
 	#endif
 }
 
@@ -475,56 +494,160 @@ Event *poll_events()
 		return 0;
 	}
 
-	return sys.events[sys.pollIndex++];
+	return &sys.events[sys.pollIndex++];
 }
 
 void clear_events()
 {
-	event_storage<ResizeEvent  >().clear();
-	event_storage<KeyboardEvent>().clear();
-	event_storage<MouseEvent   >().clear();
-	event_storage<CharEvent    >().clear();
-
 	sys.events.clear();
 	sys.pollIndex = 0;
 }
 
-#ifdef IOS
-	void cb_orientation()
-	{
-		cb_size(sys.window, 0, 0);
-	}
-#endif
-
-void cb_size(GLFWwindow *window, int width, int height)
+void push_event(const Event &event)
 {
-	ResizeEvent event;
-	event.rotation = window_rotation();
-	window_size(&event.width, &event.height);
+	sys.events.push_back(event);
+}
+
+// -----------------------------------------------------------------------------
+// Event callbacks
+// -----------------------------------------------------------------------------
+
+#ifdef IOS
+
+void cb_orientation()
+{
+	Event event;
+
+	event.type = Event::Resized;
+	event.size.rotation = window_rotation();
+
+	window_size(&event.size.width, &event.size.height);
+
 	push_event(event);
 }
 
-void cb_keyboard(GLFWwindow *window, int key, int code, int action, int mods)
+#else
+
+void cb_size(GLFWwindow *window, int width, int height)
 {
-	KeyboardEvent event;
-	event.key = key;
-	event.pressed = action == GLFW_PRESS;
+	Event event;
+
+	event.type = Event::Resized;
+	event.size.rotation = 0;
+	event.size.width = width;
+	event.size.height = height;
+
+	glfwGetFramebufferSize(sys.window, &event.size.fboWidth, &event.size.fboHeight);
+
+	push_event(event);
+}
+
+void cb_framebuffer(GLFWwindow *window, int width, int height)
+{
+	Event event;
+
+	event.type = Event::Resized;
+	event.size.rotation = 0;
+	event.size.fboWidth = width;
+	event.size.fboHeight = height;
+
+	glfwGetWindowSize(sys.window, &event.size.width, &event.size.height);
+
+	push_event(event);
+}
+
+void cb_keyboard(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+	Event event;
+
+	switch (action)
+	{
+		case GLFW_PRESS  : event.type = Event::KeyPressed;  break;
+		case GLFW_RELEASE: event.type = Event::KeyReleased; break;
+		case GLFW_REPEAT : event.type = Event::KeyRepeat;   break;
+		default: return;
+	}
+
+	event.key.code     = key;
+	event.key.scancode = scancode;
+	event.key.shift    = mods & GLFW_MOD_SHIFT;
+	event.key.ctrl     = mods & GLFW_MOD_CONTROL;
+	event.key.alt      = mods & GLFW_MOD_ALT;
+	event.key.super    = mods & GLFW_MOD_SUPER;
+
 	push_event(event);
 }
 
 void cb_mouse(GLFWwindow *window, int button, int action, int mods)
 {
-	MouseEvent event;
-	event.button = button + MouseButton1;
-	event.pressed = action == GLFW_PRESS;
+	Event event;
+
+	switch (action)
+	{
+		case GLFW_PRESS  : event.type = Event::MouseButtonPressed;  break;
+		case GLFW_RELEASE: event.type = Event::MouseButtonReleased; break;
+		default: return;
+	}
+
+	event.mouseButton.code  = button + MouseButton1;
+	event.mouseButton.shift = mods & GLFW_MOD_SHIFT;
+	event.mouseButton.ctrl  = mods & GLFW_MOD_CONTROL;
+	event.mouseButton.alt   = mods & GLFW_MOD_ALT;
+	event.mouseButton.super = mods & GLFW_MOD_SUPER;
+
 	push_event(event);
 }
 
 void cb_char(GLFWwindow *window, unsigned int ch)
 {
-	CharEvent event;
-	event.ch = ch;
+	Event event;
+
+	event.type = Event::TextEntered;
+	event.text.ch = ch;
+
 	push_event(event);
 }
+
+void cb_mousemove(GLFWwindow *window, double x, double y)
+{
+	Event event;
+
+	event.type = Event::MouseMoved;
+	event.mouseMove.x = x;
+	event.mouseMove.y = y;
+
+	push_event(event);
+}
+
+void cb_mouseenter(GLFWwindow *window, int entered)
+{
+	Event event;
+
+	event.type = entered == GL_TRUE ? Event::MouseEntered : Event::MouseLeft;
+
+	push_event(event);
+}
+
+void cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
+{
+	Event event;
+
+	event.type = Event::MouseWheelMoved;
+	event.mouseWheel.xoffset = xoffset;
+	event.mouseWheel.yoffset = yoffset;
+
+	push_event(event);
+}
+
+void cb_focus(GLFWwindow *window, int focused)
+{
+	Event event;
+
+	event.type = focused == GL_TRUE ? Event::FocusGained : Event::FocusLost;
+
+	push_event(event);
+}
+
+#endif
 
 } // sys

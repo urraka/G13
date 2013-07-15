@@ -1,41 +1,85 @@
 #pragma once
 
+#include <stdint.h>
+
 namespace sys {
 
-enum EventType { Keyboard, Mouse, Char, Resize };
-
-struct Event
+class Event
 {
-	Event(EventType t) : type(t) {}
+public:
+	struct SizeEvent
+	{
+		int width;
+		int height;
+		int fboWidth;
+		int fboHeight;
+		int rotation;
+	};
+
+	struct KeyEvent
+	{
+		int  code;
+		int  scancode;
+		bool shift;
+		bool ctrl;
+		bool alt;
+		bool super;
+	};
+
+	struct TextEvent
+	{
+		uint32_t ch;
+	};
+
+	struct MouseButtonEvent
+	{
+		int  code;
+		bool shift;
+		bool ctrl;
+		bool alt;
+		bool super;
+	};
+
+	struct MouseMoveEvent
+	{
+		double x;
+		double y;
+	};
+
+	struct MouseWheelEvent
+	{
+		double xoffset;
+		double yoffset;
+	};
+
+	enum EventType
+	{
+		FocusGained,
+		FocusLost,
+		Resized,
+		KeyPressed,
+		KeyReleased,
+		KeyRepeat,
+		TextEntered,
+		MouseButtonPressed,
+		MouseButtonReleased,
+		MouseMoved,
+		MouseWheelMoved,
+		MouseEntered,
+		MouseLeft
+	};
+
 	EventType type;
-};
 
-struct ResizeEvent : public Event
-{
-	ResizeEvent() : Event(Resize) {}
-	int width;
-	int height;
-	int rotation;
-};
-
-struct KeyboardEvent : public Event
-{
-	KeyboardEvent() : Event(Keyboard) {}
-	int  key;
-	bool pressed;
-};
-
-struct CharEvent : public Event
-{
-	CharEvent() : Event(Char) {}
-	int ch;
-};
-
-struct MouseEvent : public Event
-{
-	MouseEvent() : Event(Mouse) {}
-	int  button;
-	bool pressed;
+	union
+	{
+		SizeEvent        size;
+		KeyEvent         key;
+		TextEvent        text;
+		MouseButtonEvent mouseButton;
+		MouseMoveEvent   mouseMove;
+		MouseWheelEvent  mouseWheel;
+	};
 };
 
 } // sys

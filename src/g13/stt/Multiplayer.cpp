@@ -52,13 +52,8 @@ void Multiplayer::draw(float percent)
 
 void Multiplayer::event(Event *evt)
 {
-	if (evt->type == sys::Keyboard)
-	{
-		KeyboardEvent *keyboard = (KeyboardEvent*)evt;
-
-		if (keyboard->pressed)
-			onKeyPressed(keyboard->key);
-	}
+	if (evt->type == Event::KeyPressed)
+		onKeyPressed(evt->key.code);
 
 	client_->event(evt);
 }

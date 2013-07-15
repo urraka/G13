@@ -21,15 +21,16 @@ void callback(CallbackType type, Callback callback);
 int  run(int argc, char *argv[]);
 void initialize();
 void exit();
-
-// state
 bool exiting();
+
+// screen/window
 void fullscreen(bool enable);
 void vsync(int interval);
 void samples(int samples);
 int  window_rotation();
 void window_title(const char *title);
 void window_size(int *width, int *height);
+void framebuffer_size(int *width, int *height);
 void window_size(int width, int height);
 void window_size(float width, float height);
 void window_position(int x, int y);
