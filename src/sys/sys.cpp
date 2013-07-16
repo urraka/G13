@@ -94,6 +94,7 @@ static void push_event(const Event &event);
 	static void cb_mouseenter(GLFWwindow *window, int entered);
 	static void cb_scroll(GLFWwindow *window, double xoffset, double yoffset);
 	static void cb_focus(GLFWwindow *window, int focused);
+	static void cb_close(GLFWwindow *window);
 #endif
 
 // -----------------------------------------------------------------------------
@@ -132,7 +133,7 @@ int run(int argc, char *argv[])
 
 		if (sys.window != 0)
 		{
-			while (!exiting())
+			while (!glfwWindowShouldClose(sys.window))
 			{
 				sys.callbacks.display();
 				glfwSwapBuffers(sys.window);
@@ -234,14 +235,15 @@ void initialize()
 			std::cerr << "Error initializing GLEW." << std::endl;
 
 		glfwSetWindowSizeCallback     (sys.window, cb_size);
-		glfwSetCharCallback           (sys.window, cb_char);
-		glfwSetMouseButtonCallback    (sys.window, cb_mouse);
+		glfwSetFramebufferSizeCallback(sys.window, cb_framebuffer);
 		glfwSetKeyCallback            (sys.window, cb_keyboard);
+		glfwSetMouseButtonCallback    (sys.window, cb_mouse);
+		glfwSetCharCallback           (sys.window, cb_char);
 		glfwSetCursorPosCallback      (sys.window, cb_mousemove);
 		glfwSetCursorEnterCallback    (sys.window, cb_mouseenter);
 		glfwSetScrollCallback         (sys.window, cb_scroll);
 		glfwSetWindowFocusCallback    (sys.window, cb_focus);
-		glfwSetFramebufferSizeCallback(sys.window, cb_framebuffer);
+		glfwSetWindowCloseCallback    (sys.window, cb_close);
 	#endif
 
 	sys.initialized = true;
@@ -257,16 +259,6 @@ void exit()
 
 	#ifndef IOS
 		glfwSetWindowShouldClose(sys.window, GL_TRUE);
-	#endif
-}
-
-bool exiting()
-{
-	#ifdef IOS
-		return false;
-	#else
-		assert(sys.initialized);
-		return glfwWindowShouldClose(sys.window);
 	#endif
 }
 
@@ -622,9 +614,7 @@ void cb_mousemove(GLFWwindow *window, double x, double y)
 void cb_mouseenter(GLFWwindow *window, int entered)
 {
 	Event event;
-
 	event.type = entered == GL_TRUE ? Event::MouseEntered : Event::MouseLeft;
-
 	push_event(event);
 }
 
@@ -642,9 +632,14 @@ void cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
 void cb_focus(GLFWwindow *window, int focused)
 {
 	Event event;
-
 	event.type = focused == GL_TRUE ? Event::FocusGained : Event::FocusLost;
+	push_event(event);
+}
 
+void cb_close(GLFWwindow *window)
+{
+	Event event;
+	event.type = Event::Closed;
 	push_event(event);
 }
 

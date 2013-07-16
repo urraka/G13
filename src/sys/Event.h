@@ -54,6 +54,7 @@ public:
 
 	enum EventType
 	{
+		Closed,
 		FocusGained,
 		FocusLost,
 		Resized,

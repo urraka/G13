@@ -73,11 +73,11 @@ void display()
 				dbg->onKeyPressed(event->key.code);
 				break;
 
+			case Event::Closed:
+				return;
+
 			default: break;
 		}
-
-		if (sys::exiting())
-			return;
 	}
 
 	state->draw(accumulator / (double)dt);

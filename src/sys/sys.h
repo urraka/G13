@@ -3,7 +3,7 @@
 #include "platform.h"
 #include "mouse.h"
 #include "keyboard.h"
-#include "events.h"
+#include "Event.h"
 #include <stdint.h>
 
 namespace sys {
@@ -21,7 +21,6 @@ void callback(CallbackType type, Callback callback);
 int  run(int argc, char *argv[]);
 void initialize();
 void exit();
-bool exiting();
 
 // screen/window
 void fullscreen(bool enable);
