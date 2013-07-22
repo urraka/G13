@@ -126,17 +126,6 @@ void Texture::update(int x, int y, int width, int height, uint8_t *data)
 		generateMipmap();
 }
 
-void Texture::copy(uint8_t *buffer, size_t size)
-{
-	assert(id_ != 0);
-	assert(size >= (size_t)(width_ * height_ * channels_));
-
-	gfx::bind(this);
-
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glGetTexImage(GL_TEXTURE_2D, 0, format_, GL_UNSIGNED_BYTE, buffer);
-}
-
 void Texture::create(uint8_t *data)
 {
 	assert(id_ == 0);

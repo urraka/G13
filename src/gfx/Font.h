@@ -60,6 +60,7 @@ public:
 	private:
 		std::vector<Node> nodes_;
 		Texture *texture_;
+		uint8_t *buffer_;
 
 		bool fits(int index, int width, int height, int *y);
 		void merge();

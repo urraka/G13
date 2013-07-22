@@ -22,6 +22,7 @@ Graphics
     x Let atlas handle its own size and enlarging.
     x Glyph default values.
     - Check if there's a more efficient technique for copying from one texture to another.
+    - Font->kerning()
   / Store max texture size.
     - Double check if done right.
   - Add global_opacity to shaders and gfx::opacity() to set it.

@@ -227,7 +227,7 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 // Font::Atlas
 // -----------------------------------------------------------------------------
 
-Font::Atlas::Atlas() : texture_(0)
+Font::Atlas::Atlas() : texture_(0), buffer_(0)
 {
 	int width  = 128;
 	int height = 128;
@@ -241,12 +241,10 @@ Font::Atlas::Atlas() : texture_(0)
 		return;
 	}
 
-	uint8_t *data = new uint8_t[width * height];
-	memset(data, 0, width * height);
+	buffer_ = new uint8_t[width * height];
+	memset(buffer_, 0, width * height);
 
-	texture_->update(0, 0, width, height, data);
-
-	delete[] data;
+	texture_->update(0, 0, width, height, buffer_);
 
 	nodes_.push_back(Node(1, 1, width - 1)); // 1px top-left padding
 }
@@ -255,11 +253,30 @@ Font::Atlas::~Atlas()
 {
 	if (texture_ != 0)
 		delete texture_;
+
+	if (buffer_ != 0)
+		delete[] buffer_;
 }
 
 void Font::Atlas::set(const Region &region, uint8_t *data)
 {
 	assert(texture_ != 0);
+	assert(region.x >= 0 && region.y >= 0 && region.width > 0 && region.height > 0);
+	assert(region.x + region.width <= texture_->width() && region.y + region.height <= texture_->height());
+
+	int width = texture_->width();
+
+	uint8_t *src = data;
+	uint8_t *dst = &buffer_[region.y * width];
+
+	for (int y = 0; y < region.height; y++)
+	{
+		for (int x = 0; x < region.width; x++)
+			dst[region.x + x] = src[x];
+
+		src += region.width;
+		dst += width;
+	}
 
 	texture_->update(region.x, region.y, region.width, region.height, data);
 }
@@ -379,7 +396,7 @@ bool Font::Atlas::enlarge()
 	else
 		newWidth *= 2;
 
-	if (newWidth > context->maxTextureWidth || newHeight > context->maxTextureHeight)
+	if (newWidth > context->maxTextureSize || newHeight > context->maxTextureSize)
 		return false;
 
 	Texture *tx = new Texture(newWidth, newHeight, 1, false);
@@ -390,27 +407,40 @@ bool Font::Atlas::enlarge()
 		return false;
 	}
 
-	const size_t bufferSize = width * height;
-	uint8_t *buffer = new uint8_t[bufferSize];
+	delete texture_;
+	texture_ = tx;
 
-	texture_->copy(buffer, bufferSize);
-	tx->update(0, 0, width, height, buffer);
-
-	memset(buffer, 0, bufferSize);
+	uint8_t *buffer = new uint8_t[newWidth * newHeight];
 
 	if (width > height)
 	{
-		tx->update(0, height, width, height, buffer);
+		memcpy(buffer, buffer_, width * height);
+		memset(&buffer[width * height], 0, width * height);
 	}
 	else
 	{
-		tx->update(width, 0, width, height, buffer);
+		uint8_t *src = buffer_;
+		uint8_t *dst = buffer;
+
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+				dst[x] = src[x];
+
+			memset(&dst[width], 0, width);
+
+			src += width;
+			dst += newWidth;
+		}
+
+		// keep top padding
 		nodes_.push_back(Node(width, 1, width));
 	}
 
-	delete[] buffer;
-	delete texture_;
-	texture_ = tx;
+	delete[] buffer_;
+	buffer_ = buffer;
+
+	texture_->update(0, 0, newWidth, newHeight, buffer_);
 
 	return true;
 }

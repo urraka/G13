@@ -32,8 +32,7 @@ void initialize()
 
 	FT_Init_FreeType(&context->freetype);
 
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &context->maxTextureWidth);
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &context->maxTextureHeight);
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &context->maxTextureSize);
 
 	bgcolor(Color(0, 0, 0));
 
