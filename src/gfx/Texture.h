@@ -3,6 +3,7 @@
 #include "gl.h"
 #include "enums.h"
 #include <stdint.h>
+#include <stddef.h>
 
 namespace gfx {
 
@@ -20,6 +21,7 @@ public:
 	void wrap(TexWrap wrap, TexWrapAxis axis = WrapBoth);
 
 	void update(int x, int y, int width, int height, uint8_t *data);
+	void copy(uint8_t *buffer, size_t size);
 
 	GLuint id() const;
 	int width() const;

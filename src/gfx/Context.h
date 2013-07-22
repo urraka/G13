@@ -24,7 +24,9 @@ struct Context
 			unit(0),
 			matrix(1.0f),
 			projection(1.0f),
-			freetype(0)
+			freetype(0),
+			maxTextureWidth(0),
+			maxTextureHeight(0)
 	{}
 
 	Shader  *shader;
@@ -41,6 +43,9 @@ struct Context
 	glm::mat4 projection;
 
 	FT_Library freetype;
+
+	int maxTextureWidth;
+	int maxTextureHeight;
 };
 
 extern Context *const context;

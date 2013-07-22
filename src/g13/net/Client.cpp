@@ -29,12 +29,7 @@ Client::Client()
 	// load resources
 
 	font = new gfx::Font("data/ObelixPro.ttf");
-	font->size(16);
-	const gfx::Font::Glyph *glyph = font->glyph('A', false);
 
-	fontSprite.texture = font->texture(glyph);
-	fontSprite.width  = (float)fontSprite.texture->width();
-	fontSprite.height = (float)fontSprite.texture->height();
 	fontSprite.u[1] = 1.0f;
 	fontSprite.v[1] = 1.0f;
 
@@ -351,8 +346,16 @@ void Client::draw(float framePercent)
 		gfx::draw(spriteBatch_);
 	}
 
-	gfx::matrix(mat4(1.0f));
-	gfx::draw(fontSprite);
+	fontSprite.texture = font->texture(0);
+
+	if (fontSprite.texture != 0)
+	{
+		fontSprite.width  = (float)fontSprite.texture->width();
+		fontSprite.height = (float)fontSprite.texture->height();
+
+		gfx::matrix(mat4(1.0f));
+		gfx::draw(fontSprite);
+	}
 }
 
 void Client::event(Event *evt)
@@ -362,7 +365,7 @@ void Client::event(Event *evt)
 
 	if (evt->type == Event::TextEntered)
 	{
-		font->size(10 + rand() % 15);
+		font->size(10 + rand() % 30);
 		font->glyph(evt->text.ch, false);
 	}
 }

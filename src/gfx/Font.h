@@ -14,24 +14,28 @@ class Font
 public:
 	struct Glyph
 	{
+		Glyph()
+			:	advance(0),
+				atlas(0),
+				x(0), y(0), w(0), h(0),
+				u0(0), v0(0), u1(0), v1(0) {}
+
 		int advance;        // horizontal offset to next character
 		int atlas;          // page->atlas[ atlas ]
 		int x, y, w, h;     // glyph bounds relative to baseline
-		int tx, ty, tw, th; // non-normalized texcoords (texture size can change)
+		int u0, v0, u1, v1; // non-normalized texcoords (texture size can change)
 	};
 
 	class Atlas
 	{
 	public:
-		Atlas(int width, int height);
+		Atlas();
 		~Atlas();
 
 		struct Region
 		{
 			Region() : x(0), y(0), width(0), height(0) {}
 			Region(int X, int Y, int W, int H) : x(X), y(Y), width(W), height(H) {}
-
-			bool isnull() { return width == 0 || height == 0; }
 
 			int x;
 			int y;
@@ -59,13 +63,14 @@ public:
 
 		bool fits(int index, int width, int height, int *y);
 		void merge();
+		bool enlarge();
 	};
 
 	Font(const char *filename);
 	~Font();
 
 	void size(uint32_t fontsize);
-	Texture *texture(const Glyph *glyph);
+	Texture *texture(int atlas);
 	const Glyph *glyph(uint32_t codepoint, bool bold);
 
 private:

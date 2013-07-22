@@ -63,11 +63,14 @@ void Font::size(uint32_t size)
 	currentTable_ = table;
 }
 
-Texture *Font::texture(const Glyph *glyph)
+Texture *Font::texture(int atlas)
 {
-	assert(glyph->atlas >= 0 && glyph->atlas < (int)atlases_.size());
+	assert(atlas >= 0);
 
-	return atlases_[glyph->atlas]->texture();
+	if (atlas < (int)atlases_.size())
+		return atlases_[atlas]->texture();
+
+	return 0;
 }
 
 const Font::Glyph *Font::glyph(uint32_t codepoint, bool bold)
@@ -138,8 +141,8 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 	const int padding = 1;
 	const int width  = bitmap.width;
 	const int height = bitmap.rows;
-	const int wBounds = width  + 2 * padding;
-	const int hBounds = height + 2 * padding;
+	const int wBounds = width  + padding; // bottom-right padding
+	const int hBounds = height + padding;
 
 	Atlas *atlas = 0;
 	Atlas::Region region;
@@ -150,19 +153,9 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 		region = atlas->region(wBounds, hBounds);
 	}
 
-	// TODO: resize atlas, create new if unable to do it
-
-	if (region.isnull())
+	if (region.width == 0)
 	{
-		int w = 512;
-		int h = 512;
-
-		while (w < wBounds) w *= 2;
-		while (h < hBounds) h *= 2;
-
-		// TODO: check max texture width/height
-
-		atlas = new Atlas(w, h);
+		atlas = new Atlas();
 
 		if (atlas->texture() == 0)
 		{
@@ -173,7 +166,7 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 		atlases_.push_back(atlas);
 		region = atlas->region(wBounds, hBounds);
 
-		if (region.isnull())
+		if (region.width == 0)
 			return Glyph();
 	}
 
@@ -184,10 +177,11 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 	glyph.w =  wBounds;
 	glyph.h =  hBounds;
 
-	glyph.tx = region.x;
-	glyph.ty = region.y;
-	glyph.tw = region.width;
-	glyph.th = region.height;
+	// extend region to contain the top-left padding
+	glyph.u0 = region.x - padding;
+	glyph.v0 = region.y - padding;
+	glyph.u1 = glyph.u0 + region.width  + padding;
+	glyph.v1 = glyph.v0 + region.height + padding;
 
 	glyph.advance = (desc->advance.x >> 16) + bold ? (weight >> 6) : 0;
 
@@ -219,10 +213,8 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 		}
 	}
 
-	region.x += padding;
-	region.y += padding;
-	region.width -= padding * 2;
-	region.height -= padding * 2;
+	region.width -= padding;
+	region.height -= padding;
 
 	atlas->set(region, data);
 
@@ -235,8 +227,11 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 // Font::Atlas
 // -----------------------------------------------------------------------------
 
-Font::Atlas::Atlas(int width, int height) : texture_(0)
+Font::Atlas::Atlas() : texture_(0)
 {
+	int width  = 128;
+	int height = 128;
+
 	texture_ = new Texture(width, height, 1, false);
 
 	if (texture_->id() == 0)
@@ -253,7 +248,7 @@ Font::Atlas::Atlas(int width, int height) : texture_(0)
 
 	delete[] data;
 
-	nodes_.push_back(Node(0, 0, width));
+	nodes_.push_back(Node(1, 1, width - 1)); // 1px top-left padding
 }
 
 Font::Atlas::~Atlas()
@@ -276,7 +271,7 @@ Texture *Font::Atlas::texture()
 
 Font::Atlas::Region Font::Atlas::region(int width, int height)
 {
-	Region region(0, 0, width, height);
+	Region reg(0, 0, width, height);
 
 	int y;
 	int bestIndex = -1;
@@ -293,16 +288,21 @@ Font::Atlas::Region Font::Atlas::region(int width, int height)
 				bestWidth = nodes_[i].width;
 				bestHeight = y + height;
 
-				region.x = nodes_[i].x;
-				region.y = y;
+				reg.x = nodes_[i].x;
+				reg.y = y;
 			}
 		}
 	}
 
 	if (bestIndex == -1)
-		return Region();
+	{
+		if (enlarge())
+			return region(width, height);
+		else
+			return Region();
+	}
 
-	nodes_.insert(nodes_.begin() + bestIndex, Node(region.x, region.y + height, width));
+	nodes_.insert(nodes_.begin() + bestIndex, Node(reg.x, reg.y + height, width));
 
 	for (size_t i = bestIndex + 1; i < nodes_.size(); i++)
 	{
@@ -325,7 +325,7 @@ Font::Atlas::Region Font::Atlas::region(int width, int height)
 
 	merge();
 
-	return region;
+	return reg;
 }
 
 bool Font::Atlas::fits(int index, int width, int height, int *y)
@@ -364,6 +364,55 @@ void Font::Atlas::merge()
 			nodes_.erase(nodes_.begin() + (i-- + 1));
 		}
 	}
+}
+
+bool Font::Atlas::enlarge()
+{
+	int width = texture_->width();
+	int height = texture_->height();
+
+	int newWidth = width;
+	int newHeight = height;
+
+	if (width > height)
+		newHeight *= 2;
+	else
+		newWidth *= 2;
+
+	if (newWidth > context->maxTextureWidth || newHeight > context->maxTextureHeight)
+		return false;
+
+	Texture *tx = new Texture(newWidth, newHeight, 1, false);
+
+	if (tx->id() == 0)
+	{
+		delete tx;
+		return false;
+	}
+
+	const size_t bufferSize = width * height;
+	uint8_t *buffer = new uint8_t[bufferSize];
+
+	texture_->copy(buffer, bufferSize);
+	tx->update(0, 0, width, height, buffer);
+
+	memset(buffer, 0, bufferSize);
+
+	if (width > height)
+	{
+		tx->update(0, height, width, height, buffer);
+	}
+	else
+	{
+		tx->update(width, 0, width, height, buffer);
+		nodes_.push_back(Node(width, 1, width));
+	}
+
+	delete[] buffer;
+	delete texture_;
+	texture_ = tx;
+
+	return true;
 }
 
 } // gfx

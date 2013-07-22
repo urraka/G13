@@ -18,8 +18,12 @@ Game
 
 Graphics
   - Add text rendering.
-    - Remove Font::Page, mix all sizes in same atlas.
-  - Store max texture size.
+    x Remove Font::Page, mix all sizes in same atlas.
+    x Let atlas handle its own size and enlarging.
+    x Glyph default values.
+    - Check if there's a more efficient technique for copying from one texture to another.
+  / Store max texture size.
+    - Double check if done right.
   - Add global_opacity to shaders and gfx::opacity() to set it.
   x Find the proper way to choose the mipmap generation method.
   - Add ability to set own mipmaps.
