@@ -17,7 +17,9 @@ namespace gfx {
 // -----------------------------------------------------------------------------
 
 Font::Font(const char *filename)
-	:	face_(0)
+	:	face_(0),
+		currentTable_(0),
+		currentSize_(0)
 {
 	FT_Face face;
 
@@ -41,18 +43,192 @@ Font::~Font()
 	if (face_ != 0)
 		FT_Done_Face((FT_Face)face_);
 
-	for (PageTable::iterator i = pages_.begin(); i != pages_.end(); ++i)
+	for (PageTable::iterator i = glyphs_.begin(); i != glyphs_.end(); ++i)
 		delete i->second;
+
+	for (size_t i = 0; i < atlases_.size(); i++)
+		delete atlases_[i];
 }
 
-Font::Page *Font::page(uint32_t fontsize)
+void Font::size(uint32_t size)
 {
-	Page *&page = pages_[fontsize]; // will insert the first time
+	assert(size > 0);
 
-	if (page == 0)
-		page = new Page(face_, fontsize);
+	GlyphTable *&table = glyphs_[size]; // will insert the first time
 
-	return page;
+	if (table == 0)
+		table = new GlyphTable();
+
+	currentSize_ = size;
+	currentTable_ = table;
+}
+
+Texture *Font::texture(const Glyph *glyph)
+{
+	assert(glyph->atlas >= 0 && glyph->atlas < (int)atlases_.size());
+
+	return atlases_[glyph->atlas]->texture();
+}
+
+const Font::Glyph *Font::glyph(uint32_t codepoint, bool bold)
+{
+	assert(currentTable_ != 0);
+
+	uint32_t key = codepoint | (bold ? (1U << 31) : 0);
+
+	GlyphTable::iterator i = currentTable_->find(key);
+
+	if (i == currentTable_->end())
+		i = currentTable_->insert(std::make_pair(key, load(codepoint, bold))).first;
+
+	return &i->second;
+}
+
+Font::Glyph Font::load(uint32_t codepoint, bool bold)
+{
+	struct GlyphAutoRelease
+	{
+		FT_Glyph *glyph;
+		GlyphAutoRelease(FT_Glyph *g) : glyph(g) {}
+		~GlyphAutoRelease() { FT_Done_Glyph(*glyph); }
+	};
+
+	Glyph glyph;
+
+	FT_Face face = (FT_Face)face_;
+
+	if (face == 0)
+		return Glyph();
+
+	if (currentSize_ != face->size->metrics.x_ppem)
+	{
+		if (FT_Set_Pixel_Sizes(face, 0, currentSize_) != 0)
+			return Glyph();
+	}
+
+	if (FT_Load_Char(face, codepoint, FT_LOAD_TARGET_NORMAL) != 0)
+		return Glyph();
+
+	FT_Glyph desc;
+
+	if (FT_Get_Glyph(face->glyph, &desc) != 0)
+		return Glyph();
+
+	GlyphAutoRelease glyphAutoRelease(&desc);
+
+	FT_Pos weight = 1 << 6;
+	bool outline = (desc->format == FT_GLYPH_FORMAT_OUTLINE);
+
+	if (bold && outline)
+	{
+		FT_OutlineGlyph outlineGlyph = (FT_OutlineGlyph)desc;
+		FT_Outline_Embolden(&outlineGlyph->outline, weight);
+	}
+
+	FT_Glyph_To_Bitmap(&desc, FT_RENDER_MODE_NORMAL, 0, 1);
+	FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)desc;
+	FT_Bitmap& bitmap = bitmapGlyph->bitmap;
+
+	if (bold && !outline)
+		FT_Bitmap_Embolden(context->freetype, &bitmap, weight, weight);
+
+	if (bitmap.width <= 0 || bitmap.rows <= 0)
+		return Glyph();
+
+	const int padding = 1;
+	const int width  = bitmap.width;
+	const int height = bitmap.rows;
+	const int wBounds = width  + 2 * padding;
+	const int hBounds = height + 2 * padding;
+
+	Atlas *atlas = 0;
+	Atlas::Region region;
+
+	if (atlases_.size() > 0)
+	{
+		atlas = atlases_.back();
+		region = atlas->region(wBounds, hBounds);
+	}
+
+	// TODO: resize atlas, create new if unable to do it
+
+	if (region.isnull())
+	{
+		int w = 512;
+		int h = 512;
+
+		while (w < wBounds) w *= 2;
+		while (h < hBounds) h *= 2;
+
+		// TODO: check max texture width/height
+
+		atlas = new Atlas(w, h);
+
+		if (atlas->texture() == 0)
+		{
+			delete atlas;
+			return Glyph();
+		}
+
+		atlases_.push_back(atlas);
+		region = atlas->region(wBounds, hBounds);
+
+		if (region.isnull())
+			return Glyph();
+	}
+
+	glyph.atlas = (int)atlases_.size() - 1;
+
+	glyph.x =  bitmapGlyph->left - padding;
+	glyph.y = -bitmapGlyph->top  - padding;
+	glyph.w =  wBounds;
+	glyph.h =  hBounds;
+
+	glyph.tx = region.x;
+	glyph.ty = region.y;
+	glyph.tw = region.width;
+	glyph.th = region.height;
+
+	glyph.advance = (desc->advance.x >> 16) + bold ? (weight >> 6) : 0;
+
+	uint8_t *data = new uint8_t[width * height];
+
+	const uint8_t *src = bitmap.buffer;
+	uint8_t *dst = data;
+
+	if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+				dst[x] = ((src[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
+
+			src += bitmap.pitch;
+			dst += width;
+		}
+	}
+	else
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+				dst[x] = src[x];
+
+			src += bitmap.pitch;
+			dst += width;
+		}
+	}
+
+	region.x += padding;
+	region.y += padding;
+	region.width -= padding * 2;
+	region.height -= padding * 2;
+
+	atlas->set(region, data);
+
+	delete[] data;
+
+	return glyph;
 }
 
 // -----------------------------------------------------------------------------
@@ -188,181 +364,6 @@ void Font::Atlas::merge()
 			nodes_.erase(nodes_.begin() + (i-- + 1));
 		}
 	}
-}
-
-// -----------------------------------------------------------------------------
-// Font::Page
-// -----------------------------------------------------------------------------
-
-Font::Page::Page(void *face, uint32_t fontsize) : face_(face), fontsize_(fontsize) {}
-
-Font::Page::~Page()
-{
-	for (size_t i = 0; i < atlases_.size(); i++)
-		delete atlases_[i];
-}
-
-const Font::Glyph *Font::Page::glyph(uint32_t codepoint, bool bold)
-{
-	uint32_t key = codepoint | (bold ? (1U << 31) : 0);
-
-	GlyphTable::iterator i = glyphs_.find(key);
-
-	if (i == glyphs_.end())
-		i = glyphs_.insert(std::make_pair(key, load(codepoint, bold))).first;
-
-	return &i->second;
-}
-
-Texture *Font::Page::texture(int atlas)
-{
-	assert(atlas >= 0 && atlas < (int)atlases_.size());
-	return atlases_[atlas]->texture();
-}
-
-Font::Glyph Font::Page::load(uint32_t codepoint, bool bold)
-{
-	struct GlyphAutoRelease
-	{
-		FT_Glyph *glyph;
-		GlyphAutoRelease(FT_Glyph *g) : glyph(g) {}
-		~GlyphAutoRelease() { FT_Done_Glyph(*glyph); }
-	};
-
-	Glyph glyph;
-
-	FT_Face face = (FT_Face)face_;
-
-	if (face == 0)
-		return Glyph();
-
-	if (fontsize_ != face->size->metrics.x_ppem)
-	{
-		if (FT_Set_Pixel_Sizes(face, 0, fontsize_) != 0)
-			return Glyph();
-	}
-
-	if (FT_Load_Char(face, codepoint, FT_LOAD_TARGET_NORMAL) != 0)
-		return Glyph();
-
-	FT_Glyph desc;
-
-	if (FT_Get_Glyph(face->glyph, &desc) != 0)
-		return Glyph();
-
-	GlyphAutoRelease glyphAutoRelease(&desc);
-
-	FT_Pos weight = 1 << 6;
-	bool outline = (desc->format == FT_GLYPH_FORMAT_OUTLINE);
-
-	if (bold && outline)
-	{
-		FT_OutlineGlyph outlineGlyph = (FT_OutlineGlyph)desc;
-		FT_Outline_Embolden(&outlineGlyph->outline, weight);
-	}
-
-	FT_Glyph_To_Bitmap(&desc, FT_RENDER_MODE_NORMAL, 0, 1);
-	FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)desc;
-	FT_Bitmap& bitmap = bitmapGlyph->bitmap;
-
-	if (bold && !outline)
-		FT_Bitmap_Embolden(context->freetype, &bitmap, weight, weight);
-
-	if (bitmap.width <= 0 || bitmap.rows <= 0)
-		return Glyph();
-
-	const int padding = 1;
-	const int width  = bitmap.width;
-	const int height = bitmap.rows;
-	const int wBounds = width  + 2 * padding;
-	const int hBounds = height + 2 * padding;
-
-	Atlas *atlas = 0;
-	Atlas::Region region;
-
-	if (atlases_.size() > 0)
-	{
-		atlas = atlases_.back();
-		region = atlas->region(wBounds, hBounds);
-	}
-
-	// TODO: resize atlas, create new if unable to do it
-
-	if (region.isnull())
-	{
-		int w = 512;
-		int h = 512;
-
-		while (w < wBounds) w *= 2;
-		while (h < hBounds) h *= 2;
-
-		// TODO: check max texture width/height
-
-		atlas = new Atlas(w, h);
-
-		if (atlas->texture() == 0)
-		{
-			delete atlas;
-			return Glyph();
-		}
-
-		atlases_.push_back(atlas);
-		region = atlas->region(wBounds, hBounds);
-
-		if (region.isnull())
-			return Glyph();
-	}
-
-	glyph.x =  bitmapGlyph->left - padding;
-	glyph.y = -bitmapGlyph->top  - padding;
-	glyph.w =  wBounds;
-	glyph.h =  hBounds;
-
-	glyph.tx = region.x;
-	glyph.ty = region.y;
-	glyph.tw = region.width;
-	glyph.th = region.height;
-
-	glyph.advance = (desc->advance.x >> 16) + bold ? (weight >> 6) : 0;
-
-	uint8_t *data = new uint8_t[width * height];
-
-	const uint8_t *src = bitmap.buffer;
-	uint8_t *dst = data;
-
-	if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
-	{
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-				dst[x] = ((src[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
-
-			src += bitmap.pitch;
-			dst += width;
-		}
-	}
-	else
-	{
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-				dst[x] = src[x];
-
-			src += bitmap.pitch;
-			dst += width;
-		}
-	}
-
-	region.x += padding;
-	region.y += padding;
-	region.width -= padding * 2;
-	region.height -= padding * 2;
-
-	atlas->set(region, data);
-
-	delete[] data;
-
-	return glyph;
 }
 
 } // gfx

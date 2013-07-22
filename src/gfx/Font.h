@@ -12,10 +12,6 @@ class Texture;
 class Font
 {
 public:
-	// -----------------------------------------------------------------------------
-	// Glyph
-	// -----------------------------------------------------------------------------
-
 	struct Glyph
 	{
 		int advance;        // horizontal offset to next character
@@ -23,10 +19,6 @@ public:
 		int x, y, w, h;     // glyph bounds relative to baseline
 		int tx, ty, tw, th; // non-normalized texcoords (texture size can change)
 	};
-
-	// -----------------------------------------------------------------------------
-	// Atlas
-	// -----------------------------------------------------------------------------
 
 	class Atlas
 	{
@@ -69,45 +61,25 @@ public:
 		void merge();
 	};
 
-	// -----------------------------------------------------------------------------
-	// Page
-	// -----------------------------------------------------------------------------
-
-	class Page
-	{
-	public:
-		Page(void *face, uint32_t fontsize);
-		~Page();
-
-		const Glyph *glyph(uint32_t codepoint, bool bold);
-		Texture *texture(int atlas);
-
-	private:
-		typedef std::map<uint32_t, Glyph> GlyphTable;
-		typedef std::vector<Atlas*>       AtlasArray;
-
-		void      *face_;
-		uint32_t   fontsize_;
-		GlyphTable glyphs_;
-		AtlasArray atlases_;
-
-		Glyph load(uint32_t codepoint, bool bold);
-	};
-
-	// -----------------------------------------------------------------------------
-	// Font
-	// -----------------------------------------------------------------------------
-
 	Font(const char *filename);
 	~Font();
 
-	Page *page(uint32_t size);
+	void size(uint32_t fontsize);
+	Texture *texture(const Glyph *glyph);
+	const Glyph *glyph(uint32_t codepoint, bool bold);
 
 private:
-	typedef std::map<uint32_t, Page*> PageTable;
+	typedef std::map<uint32_t, Glyph>       GlyphTable;
+	typedef std::map<uint32_t, GlyphTable*> PageTable;
 
 	void *face_;
-	PageTable pages_;
+	PageTable glyphs_;
+	std::vector<Atlas*> atlases_;
+
+	GlyphTable *currentTable_;
+	uint32_t    currentSize_;
+
+	Glyph load(uint32_t codepoint, bool bold);
 };
 
 } // gfx

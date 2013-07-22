@@ -29,12 +29,10 @@ Client::Client()
 	// load resources
 
 	font = new gfx::Font("data/ObelixPro.ttf");
-	gfx::Font::Page *page = font->page(16);
+	font->size(16);
+	const gfx::Font::Glyph *glyph = font->glyph('A', false);
 
-	for (uint32_t ch = 'A'; ch <= 'Z'; ch++)
-		page->glyph(ch, false);
-
-	fontSprite.texture = page->texture(0);
+	fontSprite.texture = font->texture(glyph);
 	fontSprite.width  = (float)fontSprite.texture->width();
 	fontSprite.height = (float)fontSprite.texture->height();
 	fontSprite.u[1] = 1.0f;
@@ -363,7 +361,10 @@ void Client::event(Event *evt)
 		onResize(evt->size.fboWidth, evt->size.fboHeight);
 
 	if (evt->type == Event::TextEntered)
-		font->page(16)->glyph(evt->text.ch, false);
+	{
+		font->size(10 + rand() % 15);
+		font->glyph(evt->text.ch, false);
+	}
 }
 
 void Client::onResize(int width, int height)
