@@ -1,4 +1,5 @@
 #include "g13.h"
+#include "res.h"
 #include "stt/State.h"
 #include "stt/Multiplayer.h"
 
@@ -7,7 +8,9 @@
 
 namespace g13 {
 
-Debugger *dbg = 0;
+#ifdef DEBUG
+	Debugger *dbg = 0;
+#endif
 
 static stt::State *state = 0;
 
@@ -32,13 +35,15 @@ void initialize()
 
 	sys::samples(4);
 	sys::fullscreen(false);
+	//sys::cursor_mode(sys::Disabled);
 	sys::window_title("G13");
-	sys::window_size(0.45f, 0.45f);
-	sys::window_position(0.5f, 0.5f);
+	sys::window_size(0.5f, 0.5f);
+	sys::window_position(0.25f, 0.25f);
 	sys::vsync(1);
 
 	sys::initialize();
 	gfx::initialize();
+	res::initialize();
 
 	int width;
 	int height;
@@ -51,6 +56,24 @@ void initialize()
 
 	state = new stt::Multiplayer();
 	time = sys::time();
+}
+
+// -----------------------------------------------------------------------------
+// Terminate
+// -----------------------------------------------------------------------------
+
+void terminate()
+{
+	#ifdef DEBUG
+		delete dbg;
+	#endif
+
+	if (state != 0)
+		delete state;
+
+	res::terminate();
+	gfx::terminate();
+	enet_deinitialize();
 }
 
 // -----------------------------------------------------------------------------
@@ -69,9 +92,11 @@ void display()
 				gfx::viewport(event->size.fboWidth, event->size.fboHeight, event->size.rotation);
 				break;
 
-			case Event::KeyPressed:
-				dbg->onKeyPressed(event->key.code);
-				break;
+			#ifdef DEBUG
+				case Event::KeyPressed:
+					dbg->onKeyPressed(event->key.code);
+					break;
+			#endif
 
 			case Event::Closed:
 				return;
@@ -115,23 +140,6 @@ void display()
 	}
 
 	fps_count++;
-}
-
-// -----------------------------------------------------------------------------
-// Terminate
-// -----------------------------------------------------------------------------
-
-void terminate()
-{
-	#ifdef DEBUG
-		delete dbg;
-	#endif
-
-	if (state != 0)
-		delete state;
-
-	gfx::terminate();
-	enet_deinitialize();
 }
 
 } // g13

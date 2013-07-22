@@ -8,7 +8,9 @@ namespace g13 {
 typedef sys::Time  Time;
 typedef sys::Event Event;
 
-extern Debugger *dbg;
+#ifdef DEBUG
+	extern Debugger *dbg;
+#endif
 
 void initialize();
 void display();

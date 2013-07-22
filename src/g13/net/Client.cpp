@@ -2,6 +2,7 @@
 #include "msg.h"
 
 #include <g13/g13.h>
+#include <g13/res.h>
 #include <g13/Map.h>
 
 #include <gfx/gfx.h>
@@ -11,6 +12,9 @@
 
 namespace g13 {
 namespace net {
+
+static gfx::Font *font = 0;
+static gfx::Sprite fontSprite;
 
 Client::Client()
 	:	state_(Disconnected),
@@ -24,24 +28,36 @@ Client::Client()
 
 	// load resources
 
+	font = new gfx::Font("data/ObelixPro.ttf");
+	gfx::Font::Page *page = font->page(16);
+
+	for (uint32_t ch = 'A'; ch <= 'Z'; ch++)
+		page->glyph(ch, false);
+
+	fontSprite.texture = page->texture(0);
+	fontSprite.width  = (float)fontSprite.texture->width();
+	fontSprite.height = (float)fontSprite.texture->height();
+	fontSprite.u[1] = 1.0f;
+	fontSprite.v[1] = 1.0f;
+
 	background_ = new gfx::VBO();
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
 	background_->mode(gfx::TriangleFan);
 
-	texture_ = new gfx::Texture("data/guy.png");
+	texture_ = res::texture(res::Soldier);
 	spriteBatch_ = new gfx::SpriteBatch(MaxPlayers);
 	spriteBatch_->texture(texture_);
 
 	int w, h;
-	sys::window_size(&w, &h);
+	sys::framebuffer_size(&w, &h);
 	onResize(w, h);
 }
 
 Client::~Client()
 {
+	delete font;
 	delete background_;
 	delete spriteBatch_;
-	delete texture_;
 }
 
 bool Client::connect(const char *host, int port)
@@ -336,12 +352,18 @@ void Client::draw(float framePercent)
 
 		gfx::draw(spriteBatch_);
 	}
+
+	gfx::matrix(mat4(1.0f));
+	gfx::draw(fontSprite);
 }
 
 void Client::event(Event *evt)
 {
 	if (evt->type == Event::Resized)
 		onResize(evt->size.fboWidth, evt->size.fboHeight);
+
+	if (evt->type == Event::TextEntered)
+		font->page(16)->glyph(evt->text.ch, false);
 }
 
 void Client::onResize(int width, int height)

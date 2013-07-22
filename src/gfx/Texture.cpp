@@ -5,21 +5,44 @@
 
 namespace gfx {
 
-Texture::Texture(const char *filename)
+Texture::Texture(const char *filename, bool mipmap)
 	:	id_(0),
 		width_(0),
-		height_(0)
+		height_(0),
+		channels_(0),
+		mipmap_(mipmap),
+		format_(0)
 {
 	Image image(filename);
-	init(&image);
+
+	width_ = image.width();
+	height_ = image.height();
+	channels_ = image.format() == RGB ? 3 : 4;
+	format_ = format();
+
+	create(image.data());
 }
 
-Texture::Texture(Image *image)
+Texture::Texture(Image *image, bool mipmap)
 	:	id_(0),
-		width_(0),
-		height_(0)
+		width_(image->width()),
+		height_(image->height()),
+		channels_(image->format() == RGB ? 3 : 4),
+		mipmap_(mipmap),
+		format_(format())
 {
-	init(image);
+	create(image->data());
+}
+
+Texture::Texture(int width, int height, int channels, bool mipmap)
+	:	id_(0),
+		width_(width),
+		height_(height),
+		channels_(channels),
+		mipmap_(mipmap),
+		format_(format())
+{
+	create(0);
 }
 
 Texture::~Texture()
@@ -85,37 +108,68 @@ int Texture::height() const
 	return height_;
 }
 
-void Texture::init(Image *image)
+int Texture::channels() const
 {
-	assert(image->data() != 0);
+	return channels_;
+}
 
-	width_ = image->width();
-	height_ = image->height();
+void Texture::update(int x, int y, int width, int height, uint8_t *data)
+{
+	assert(id_ != 0);
 
-	uint8_t *data = image->data();
-	GLenum format = image->format() == RGB ? GL_RGB : GL_RGBA;
+	gfx::bind(this);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format_, GL_UNSIGNED_BYTE, data);
+
+	if (mipmap_)
+		generateMipmap();
+}
+
+void Texture::create(uint8_t *data)
+{
+	assert(id_ == 0);
 
 	glGenTextures(1, &id_);
 	glBindTexture(GL_TEXTURE_2D, id_);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	#ifndef GLES2
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-	#endif
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap_ ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width_, height_, 0, format, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_, GL_UNSIGNED_BYTE, data);
 
-	#ifdef GLES2
-		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	#endif
+	// TODO: detect failure?
+
+	if (mipmap_)
+		generateMipmap();
 
 	context->texture[context->unit] = this;
+}
+
+void Texture::generateMipmap()
+{
+	glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+
+	#ifdef GLES2
+		glGenerateMipmap(GL_TEXTURE_2D);
+	#else
+		glGenerateMipmapEXT(GL_TEXTURE_2D);
+	#endif
+}
+
+GLenum Texture::format() const
+{
+	switch (channels_)
+	{
+		case 1: return GL_ALPHA;
+		case 3: return GL_RGB;
+		case 4: return GL_RGBA;
+
+		default: assert(false);
+	}
 }
 
 } // gfx

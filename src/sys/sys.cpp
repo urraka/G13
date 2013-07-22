@@ -36,6 +36,7 @@ struct System
 			pollIndex(0),
 			window(0),
 			title("OpenGL Application"),
+			cursorMode(Normal),
 			sizeMode(Relative),
 			posMode(Relative),
 			width(0),
@@ -56,7 +57,10 @@ struct System
 	std::vector<Event>  events;
 	Callbacks           callbacks;
 	GLFWwindow         *window;
+
+	// initial state
 	std::string         title;
+	CursorMode          cursorMode;
 	MetricsMode         sizeMode;
 	MetricsMode         posMode;
 	int                 width;
@@ -210,6 +214,21 @@ void initialize()
 		glfwShowWindow(sys.window);
 		glfwMakeContextCurrent(sys.window);
 		glfwSwapInterval(sys.vsync);
+
+		switch (sys.cursorMode)
+		{
+			case Normal:
+				glfwSetInputMode(sys.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				break;
+
+			case Hidden:
+				glfwSetInputMode(sys.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				break;
+
+			case Disabled:
+				glfwSetInputMode(sys.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				break;
+		}
 
 		#ifdef DEBUG
 			int mayor   = glfwGetWindowAttrib(sys.window, GLFW_CONTEXT_VERSION_MAJOR);
@@ -444,6 +463,33 @@ void mouse(double *x, double *y)
 		glfwGetCursorPos(sys.window, x, y);
 	#else
 		*x = *y = 0;
+	#endif
+}
+
+void cursor_mode(CursorMode mode)
+{
+	#ifndef IOS
+		if (sys.initialized)
+		{
+			switch (mode)
+			{
+				case Normal:
+					glfwSetInputMode(sys.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+					break;
+
+				case Hidden:
+					glfwSetInputMode(sys.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+					break;
+
+				case Disabled:
+					glfwSetInputMode(sys.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+					break;
+			}
+		}
+		else
+		{
+			sys.cursorMode = mode;
+		}
 	#endif
 }
 

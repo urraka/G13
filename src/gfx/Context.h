@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 namespace gfx {
 
@@ -21,7 +23,8 @@ struct Context
 			attr(0),
 			unit(0),
 			matrix(1.0f),
-			projection(1.0f)
+			projection(1.0f),
+			freetype(0)
 	{}
 
 	Shader  *shader;
@@ -36,6 +39,8 @@ struct Context
 
 	glm::mat4 matrix;
 	glm::mat4 projection;
+
+	FT_Library freetype;
 };
 
 extern Context *const context;

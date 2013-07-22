@@ -25,6 +25,13 @@ void invalidate_matrix();
 
 void initialize()
 {
+	#ifndef GLES2
+		if (glGenerateMipmap != 0)
+			glGenerateMipmapEXT = glGenerateMipmap;
+	#endif
+
+	FT_Init_FreeType(&context->freetype);
+
 	bgcolor(Color(0, 0, 0));
 
 	glEnable(GL_BLEND);
@@ -43,6 +50,9 @@ void initialize()
 
 void terminate()
 {
+	if (context->freetype)
+		FT_Done_FreeType(context->freetype);
+
 	delete vboSprite;
 	delete ColorShader;
 	delete SpriteShader;

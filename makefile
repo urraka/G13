@@ -74,11 +74,12 @@ ifeq ($(platform),win32)
   lib += lib/win32/libz.a
   lib += lib/win32/libfixmath.a
   lib += lib/win32/libenet.a
+  lib += lib/win32/libfreetype.a
   lib += -lgdi32 -lopengl32 -lws2_32 -lwinmm
   def += -DWIN32 -DGLEW_STATIC
-  opt += -s -static-libgcc -static-libstdc++
+  opt += -static-libgcc -static-libstdc++
   ifeq ($(debug),no)
-    opt += -mwindows
+    opt += -s -mwindows
   endif
 endif
 
@@ -86,15 +87,18 @@ ifeq ($(platform),linux)
   out-dir := bin/linux$(out-dir-suffix)
   out := $(out-dir)/G13
   lib += lib/linux/libGLEW.a
-  lib += lib/linux/libglfw.a
+  lib += lib/linux/libglfw3.a
   lib += lib/linux/libpng15.a
   lib += lib/linux/libz.a
   lib += lib/linux/libfixmath.a
   lib += lib/linux/libenet.a
-  lib += -lXrandr -lGL
+  lib += lib/linux/libfreetype.a
+  lib += -lpthread -lXi -lX11 -lXxf86vm -lXrandr -lGL
   inc += -Iinclude
   def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
-  opt += -s
+  ifeq ($(debug),no)
+    opt += -s
+  endif
 endif
 
 ifeq ($(platform),osx)
@@ -102,11 +106,12 @@ ifeq ($(platform),osx)
   out-dir := bin/osx$(out-dir-suffix)
   out := $(out-dir)/G13
   lib += lib/osx/libGLEW.a
-  lib += lib/osx/libglfw.a
+  lib += lib/osx/libglfw3.a
   lib += lib/osx/libpng15.a
   lib += lib/osx/libz.a
   lib += lib/osx/libfixmath.a
   lib += lib/osx/libenet.a
+  lib += lib/osx/libfreetype.a
   lib += -framework OpenGL -framework Cocoa -framework IOKit
   inc += -Iinclude
   def += -DOSX

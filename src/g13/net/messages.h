@@ -21,7 +21,7 @@ END
 
 MESSAGE(Input)
 	uint32_t tick;
-	uint8_t input;
+	uint8_t  input;
 BEGIN
 	Integer(tick)
 	Bits(input, cmp::SoldierInput::MaxBits)

@@ -11,6 +11,7 @@ namespace sys {
 // enums
 enum CallbackType   { Initialize, Display, Terminate };
 enum TimeConversion { Seconds = 1000000, Milliseconds = 1000 };
+enum CursorMode     { Normal, Hidden, Disabled };
 
 // typedefs
 typedef uint64_t Time;
@@ -40,7 +41,8 @@ Event *poll_events();
 
 // input
 bool pressed(int code);
-void mouse(int *x, int *y);
+void mouse(double *x, double *y);
+void cursor_mode(CursorMode mode);
 
 // time
 Time time();

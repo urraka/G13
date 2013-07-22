@@ -125,7 +125,7 @@ uint8_t *load_image(const char *path, int *width, int *height, ImageFormat *form
 	png_bytep *rows = png_get_rows(png, info);
 
 	*format = (color == PNG_COLOR_TYPE_RGB_ALPHA ? RGBA : RGB);
-	int channels = (*format == GL_RGB ? 3 : 4);
+	int channels = (*format == RGB ? 3 : 4);
 	uint8_t *image = new uint8_t[*width * *height * channels];
 
 	for (int y = 0; y < *height; y++)

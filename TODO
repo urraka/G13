@@ -1,4 +1,5 @@
 Networking
+  - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
   - Server asserts when client tick > server tick. Make it kill the client.
   - The number of ticks that remote players are rendered behind is hardcoded, fix that.
@@ -6,6 +7,7 @@ Networking
   - Client side prediction is not correcting if out of sync.
 
 Game
+  - New soldier animations with ability to aim at arbitrary angles.
   - Figure out how to simplify debug output.
   - Replace network.txt with config.cfg and move it ro root directory.
   - Separate collision map from map rendering stuff.
@@ -15,9 +17,12 @@ Game
   - Consider making components private with methods to access as const.
 
 Graphics
-  - Find the proper way to choose the mipmap generation method.
-  - Add ability to set own mipmaps.
   - Add text rendering.
+    - Remove Font::Page, mix all sizes in same atlas.
+  - Store max texture size.
+  - Add global_opacity to shaders and gfx::opacity() to set it.
+  x Find the proper way to choose the mipmap generation method.
+  - Add ability to set own mipmaps.
 
 General
   - Test if all the refactoring works on linux/osx/ios.

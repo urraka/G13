@@ -12,6 +12,7 @@
 #include "Texture.h"
 #include "Sprite.h"
 #include "SpriteBatch.h"
+#include "Font.h"
 
 #include <stddef.h>
 #include <glm/glm.hpp>
