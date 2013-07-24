@@ -2,6 +2,7 @@
 #include "IBO.h"
 #include "VBO.h"
 #include "vertex.h"
+#include "gfx.h"
 #include <assert.h>
 
 namespace gfx {
@@ -85,6 +86,14 @@ Texture *SpriteBatch::texture() const
 size_t SpriteBatch::size() const
 {
 	return size_;
+}
+
+void SpriteBatch::draw(size_t offset, size_t count)
+{
+	assert(offset + count <= size_);
+
+	gfx::bind(texture_);
+	gfx::draw(vbo_, 6 * offset, 6 * count);
 }
 
 } // gfx

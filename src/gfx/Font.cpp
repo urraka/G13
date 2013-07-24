@@ -290,20 +290,24 @@ void Font::Atlas::set(const Region &region, uint8_t *data)
 {
 	assert(texture_ != 0);
 	assert(region.x >= 0 && region.y >= 0 && region.width > 0 && region.height > 0);
-	assert(region.x + region.width <= texture_->width() && region.y + region.height <= texture_->height());
+	assert(region.x + region.width <= texture_->width());
+	assert(region.y + region.height <= texture_->height());
 
-	int width = texture_->width();
-
-	uint8_t *src = data;
-	uint8_t *dst = &buffer_[region.y * width];
-
-	for (int y = 0; y < region.height; y++)
+	if (buffer_ != 0)
 	{
-		for (int x = 0; x < region.width; x++)
-			dst[region.x + x] = src[x];
+		int width = texture_->width();
 
-		src += region.width;
-		dst += width;
+		uint8_t *src = data;
+		uint8_t *dst = &buffer_[region.y * width];
+
+		for (int y = 0; y < region.height; y++)
+		{
+			for (int x = 0; x < region.width; x++)
+				dst[region.x + x] = src[x];
+
+			src += region.width;
+			dst += width;
+		}
 	}
 
 	texture_->update(region.x, region.y, region.width, region.height, data);
@@ -469,6 +473,14 @@ bool Font::Atlas::enlarge()
 	buffer_ = buffer;
 
 	texture_->update(0, 0, newWidth, newHeight, buffer_);
+
+	if (newWidth > newHeight)
+		newHeight *= 2;
+	else
+		newWidth *= 2;
+
+	if (newWidth > context->maxTextureSize || newHeight > context->maxTextureSize)
+		delete[] buffer_, buffer_ = 0;
 
 	return true;
 }

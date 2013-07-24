@@ -206,14 +206,14 @@ void Text::draw()
 	{
 		glm::vec4 color(color_.r / 255.f, color_.g / 255.f, color_.b / 255.f, color_.a / 255.f);
 
-		TextShader->uniform(context->shdrtext_color, color);
+		context->shdrtext->uniform(context->shdrtext_color, color);
 
 		for (size_t i = 0; i < drawData_.size(); i++)
 		{
 			Texture *tx = font_->texture(drawData_[i].atlas);
 			glm::vec2 texsize((float)tx->width(), (float)tx->height());
 
-			TextShader->uniform(context->shdrtext_texsize, texsize);
+			context->shdrtext->uniform(context->shdrtext_texsize, texsize);
 
 			gfx::bind(tx);
 			gfx::draw(drawData_[i].vbo, 0, drawData_[i].count * 6);

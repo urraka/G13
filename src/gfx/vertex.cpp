@@ -4,11 +4,12 @@
 
 #include "vertex.h"
 #include "attributes.h"
+#include "Context.h"
 #include "gfx.h"
 
 namespace gfx {
 
-static Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei stride, GLvoid *ptr);
+static Attribute attr(const char*, GLint, GLenum, GLboolean, GLsizei, GLvoid*);
 static Attributes color_attr();
 static Attributes sprite_attr();
 static Attributes text_attr();
@@ -84,24 +85,26 @@ template<> const Attributes *attributes<TextVertex>()
 
 template<> Shader *default_shader<ColorVertex>()
 {
-	return ColorShader;
+	return context->shdrcolor;
 }
 
 template<> Shader *default_shader<SpriteVertex>()
 {
-	return SpriteShader;
+	return context->shdrsprite;
 }
 
 template<> Shader *default_shader<TextVertex>()
 {
-	return TextShader;
+	return context->shdrtext;
 }
 
 VERTEX_INSTANCES();
 
 // -----------------------------------------------------------------------------
-// Helpers
+// Attributes definitions
 // -----------------------------------------------------------------------------
+
+#define add push_back
 
 Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei stride, GLvoid *ptr)
 {
@@ -119,37 +122,37 @@ Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei 
 
 Attributes color_attr()
 {
-	Attributes a(2);
+	Attributes a;
 
-	GLsizei sz = sizeof(ColorVertex);
+	const GLsizei sz = sizeof(ColorVertex);
 
-	a[0] = attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(ColorVertex, x));
-	a[1] = attr("in_color", 4, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(ColorVertex, r));
+	a.add(attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(ColorVertex, x)));
+	a.add(attr("in_color", 4, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(ColorVertex, r)));
 
 	return a;
 }
 
 Attributes sprite_attr()
 {
-	Attributes a(3);
+	Attributes a;
 
-	GLsizei sz = sizeof(SpriteVertex);
+	const GLsizei sz = sizeof(SpriteVertex);
 
-	a[0] = attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, x));
-	a[1] = attr("in_texcoords", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, u));
-	a[2] = attr("in_opacity", 1, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(SpriteVertex, opacity));
+	a.add(attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, x)));
+	a.add(attr("in_texcoords", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, u)));
+	a.add(attr("in_opacity", 1, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(SpriteVertex, opacity)));
 
 	return a;
 }
 
 Attributes text_attr()
 {
-	Attributes a(2);
+	Attributes a;
 
-	GLsizei sz = sizeof(TextVertex);
+	const GLsizei sz = sizeof(TextVertex);
 
-	a[0] = attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(TextVertex, x));
-	a[1] = attr("in_texcoords", 2, GL_UNSIGNED_SHORT, GL_FALSE, sz, (GLvoid*)offsetof(TextVertex, u));
+	a.add(attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(TextVertex, x)));
+	a.add(attr("in_texcoords", 2, GL_UNSIGNED_SHORT, GL_FALSE, sz, (GLvoid*)offsetof(TextVertex, u)));
 
 	return a;
 }

@@ -20,10 +20,6 @@
 
 namespace gfx {
 
-extern Shader *ColorShader;
-extern Shader *SpriteShader;
-extern Shader *TextShader;
-
 void initialize();
 void terminate();
 void viewport(int width, int height, int rotation);

@@ -34,6 +34,10 @@ private:
 	static IBO *ibo_;
 	static int refcount_;
 
+	void draw(size_t offset, size_t count);
+
+	friend void draw(SpriteBatch *spriteBatch);
+	friend void draw(SpriteBatch *spriteBatch, size_t count);
 	friend void draw(SpriteBatch *spriteBatch, size_t offset, size_t count);
 };
 

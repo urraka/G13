@@ -12,13 +12,11 @@ namespace gfx {
 static Context ctx_;
 Context *const context = &ctx_;
 
-Shader *ColorShader  = 0;
-Shader *SpriteShader = 0;
-Shader *TextShader   = 0;
-
-static VBO *vboSprite = 0;
-
-void invalidate_matrix();
+void invalidate_matrix()
+{
+	for (size_t i = 0; i < context->shaders.size(); i++)
+		context->shaders[i]->mvpModified_ = true;
+}
 
 // -----------------------------------------------------------------------------
 // General
@@ -40,21 +38,21 @@ void initialize()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	ColorShader = new Shader();
-	ColorShader->compile<ColorVertex>(glsl::color_vert, glsl::color_frag);
+	context->shdrcolor = new Shader();
+	context->shdrcolor->compile<ColorVertex>(glsl::color_vert, glsl::color_frag);
 
-	SpriteShader = new Shader();
-	SpriteShader->compile<SpriteVertex>(glsl::sprite_vert, glsl::sprite_frag);
+	context->shdrsprite = new Shader();
+	context->shdrsprite->compile<SpriteVertex>(glsl::sprite_vert, glsl::sprite_frag);
 
-	TextShader = new Shader();
-	TextShader->compile<TextVertex>(glsl::text_vert, glsl::text_frag);
+	context->shdrtext = new Shader();
+	context->shdrtext->compile<TextVertex>(glsl::text_vert, glsl::text_frag);
 
-	context->shdrtext_color = TextShader->location("color");
-	context->shdrtext_texsize = TextShader->location("texsize");
+	context->shdrtext_color = context->shdrtext->location("color");
+	context->shdrtext_texsize = context->shdrtext->location("texsize");
 
-	vboSprite = new VBO();
-	vboSprite->allocate<SpriteVertex>(4, Dynamic);
-	vboSprite->mode(TriangleFan);
+	context->vbosprite = new VBO();
+	context->vbosprite->allocate<SpriteVertex>(4, Dynamic);
+	context->vbosprite->mode(TriangleFan);
 }
 
 void terminate()
@@ -62,9 +60,10 @@ void terminate()
 	if (context->freetype)
 		FT_Done_FreeType(context->freetype);
 
-	delete vboSprite;
-	delete ColorShader;
-	delete SpriteShader;
+	delete context->vbosprite;
+	delete context->shdrcolor;
+	delete context->shdrsprite;
+	delete context->shdrtext;
 }
 
 void viewport(int width, int height, int rotation)
@@ -227,19 +226,17 @@ void draw(VBO *vbo, size_t offset, size_t count)
 
 void draw(SpriteBatch *spriteBatch)
 {
-	draw(spriteBatch, 0, spriteBatch->size());
+	spriteBatch->draw(0, spriteBatch->size());
 }
 
 void draw(SpriteBatch *spriteBatch, size_t count)
 {
-	assert(count <= spriteBatch->size());
-	draw(spriteBatch, 0, count);
+	spriteBatch->draw(0, count);
 }
 
 void draw(SpriteBatch *spriteBatch, size_t offset, size_t count)
 {
-	bind(spriteBatch->texture_);
-	draw(spriteBatch->vbo_, 6 * offset, 6 * count);
+	spriteBatch->draw(offset, count);
 }
 
 void draw(const Sprite &sprite)
@@ -248,9 +245,10 @@ void draw(const Sprite &sprite)
 
 	SpriteVertex v[4];
 	sprite.vertices(v);
-	vboSprite->set(v, 0, 4);
+	context->vbosprite->set(v, 0, 4);
+
 	bind(sprite.texture);
-	draw(vboSprite, 0, 4);
+	draw(context->vbosprite, 0, 4);
 }
 
 void draw(Text *text)
@@ -291,16 +289,6 @@ void scale(float width, float height)
 void transform(const glm::mat4 &m)
 {
 	matrix(context->matrix * m);
-}
-
-// -----------------------------------------------------------------------------
-// Private
-// -----------------------------------------------------------------------------
-
-void invalidate_matrix()
-{
-	for (size_t i = 0; i < context->shaders.size(); i++)
-		context->shaders[i]->mvpModified_ = true;
 }
 
 } // gfx

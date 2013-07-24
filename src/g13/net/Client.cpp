@@ -27,8 +27,8 @@ Client::Client()
 
 	text = new gfx::Text();
 	text->font(res::font(res::DefaultFont));
-	text->size(16);
-	text->color(gfx::Color(255, 0, 0));
+	text->size(24);
+	text->color(gfx::Color(255, 255, 255));
 	text->value("Mi abuelita come caca...\nLe gusta mucho.");
 
 	// load resources
@@ -347,7 +347,7 @@ void Client::draw(float framePercent)
 	}
 
 	gfx::matrix(mat4(1.0f));
-	gfx::translate(20.0f, 40.0f);
+	gfx::translate(10.0f, 30.0f);
 	gfx::draw(text);
 }
 

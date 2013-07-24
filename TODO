@@ -8,7 +8,6 @@ Networking
 
 Game
   - New soldier animations with ability to aim at arbitrary angles.
-  - Figure out how to simplify debug output.
   - Replace network.txt with config.cfg and move it ro root directory.
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
@@ -17,18 +16,7 @@ Game
   - Consider making components private with methods to access as const.
 
 Graphics
-  - Add text rendering.
-    x Remove Font::Page, mix all sizes in same atlas.
-    x Let atlas handle its own size and enlarging.
-    x Glyph default values.
-    - Check if there's a more efficient technique for copying from one texture to another.
-    - Font->kerning()
-    - Release atlas buffer when reaching 1024x1024 size.
-  / Store max texture size.
-    - Double check if done right.
-  - Move shaders to context object.
   - Add global_opacity to shaders and gfx::opacity() to set it.
-  x Find the proper way to choose the mipmap generation method.
   - Add ability to set own mipmaps.
 
 General
@@ -37,10 +25,6 @@ General
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 System
-  - Split keyboard event in KeyPressedEvent/KeyReleasedEvent.
-  - Consider renaming events so structs are like sys::KeyPressed and type sys::KeyPressedEvent.
-  - Framebuffer size vs window size.
-  - Try that clock formula or use double instead.
   - iOS: callbacks for touch/movement events.
 
 Math
@@ -48,6 +32,22 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Split keyboard event in KeyPressedEvent/KeyReleasedEvent.
+  x Consider renaming events so structs are like sys::KeyPressed and type sys::KeyPressedEvent.
+  x Framebuffer size vs window size.
+  x Try that clock formula or use double instead.
+  x Figure out how to simplify debug output.
+  x Add text rendering.
+    x Remove Font::Page, mix all sizes in same atlas.
+    x Let atlas handle its own size and enlarging.
+    x Glyph default values.
+    x Check if there's a more efficient technique for copying from one texture to another.
+    x Font->kerning()
+    x Release atlas buffer when reaching max size.
+  x Store max texture size.
+    x Double check if done right.
+  x Move shaders to context object.
+  x Find the proper way to choose the mipmap generation method.
   x Modules: sys, gfx, math, hlp, g13.
   x Move fpm namespace inside math namespace.
   x Each directory under src/ should be named after a namespace.
