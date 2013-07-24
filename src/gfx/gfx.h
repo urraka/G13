@@ -13,6 +13,7 @@
 #include "Sprite.h"
 #include "SpriteBatch.h"
 #include "Font.h"
+#include "Text.h"
 
 #include <stddef.h>
 #include <glm/glm.hpp>
@@ -21,6 +22,7 @@ namespace gfx {
 
 extern Shader *ColorShader;
 extern Shader *SpriteShader;
+extern Shader *TextShader;
 
 void initialize();
 void terminate();
@@ -43,6 +45,7 @@ void draw(SpriteBatch *spriteBatch, size_t count);
 void draw(SpriteBatch *spriteBatch, size_t offset, size_t count);
 
 void draw(const Sprite &sprite);
+void draw(Text *text);
 
 void matrix(const glm::mat4 &matrix);
 const glm::mat4 &matrix();

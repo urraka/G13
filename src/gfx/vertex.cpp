@@ -11,6 +11,7 @@ namespace gfx {
 static Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei stride, GLvoid *ptr);
 static Attributes color_attr();
 static Attributes sprite_attr();
+static Attributes text_attr();
 
 // -----------------------------------------------------------------------------
 // Constructors
@@ -43,6 +44,18 @@ SpriteVertex sprite_vertex(float x, float y, float u, float v, uint8_t opacity)
 	return vertex;
 }
 
+TextVertex text_vertex(float x, float y, uint16_t u, uint16_t v)
+{
+	TextVertex vertex;
+
+	vertex.x = x;
+	vertex.y = y;
+	vertex.u = u;
+	vertex.v = v;
+
+	return vertex;
+}
+
 // -----------------------------------------------------------------------------
 // attributes<T>()
 // -----------------------------------------------------------------------------
@@ -59,6 +72,12 @@ template<> const Attributes *attributes<SpriteVertex>()
 	return &attribs;
 }
 
+template<> const Attributes *attributes<TextVertex>()
+{
+	static Attributes attribs = text_attr();
+	return &attribs;
+}
+
 // -----------------------------------------------------------------------------
 // default_shader<T>()
 // -----------------------------------------------------------------------------
@@ -71,6 +90,11 @@ template<> Shader *default_shader<ColorVertex>()
 template<> Shader *default_shader<SpriteVertex>()
 {
 	return SpriteShader;
+}
+
+template<> Shader *default_shader<TextVertex>()
+{
+	return TextShader;
 }
 
 VERTEX_INSTANCES();
@@ -114,6 +138,18 @@ Attributes sprite_attr()
 	a[0] = attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, x));
 	a[1] = attr("in_texcoords", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, u));
 	a[2] = attr("in_opacity", 1, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(SpriteVertex, opacity));
+
+	return a;
+}
+
+Attributes text_attr()
+{
+	Attributes a(2);
+
+	GLsizei sz = sizeof(TextVertex);
+
+	a[0] = attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(TextVertex, x));
+	a[1] = attr("in_texcoords", 2, GL_UNSIGNED_SHORT, GL_FALSE, sz, (GLvoid*)offsetof(TextVertex, u));
 
 	return a;
 }

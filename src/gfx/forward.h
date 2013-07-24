@@ -9,9 +9,12 @@ class Texture;
 class Shader;
 class Sprite;
 class SpriteBatch;
+class Font;
+class Text;
 
 struct Color;
 struct ColorVertex;
 struct SpriteVertex;
+struct TextVertex;
 
 } // gfx

@@ -10,11 +10,20 @@ struct TextureInfo
 	gfx::Texture *texture;
 };
 
+struct FontInfo
+{
+	const char *filename;
+	gfx::Font  *font;
+};
+
 static TextureInfo textures[TextureCount] = {};
+static FontInfo    fonts   [FontCount   ] = {};
 
 void initialize()
 {
 	textures[Soldier].filename = "data/guy.png";
+
+	fonts[DefaultFont].filename = "data/ObelixPro.ttf";
 }
 
 void terminate()
@@ -27,6 +36,15 @@ void terminate()
 			textures[i].texture = 0;
 		}
 	}
+
+	for (int i = 0; i < FontCount; i++)
+	{
+		if (fonts[i].font != 0)
+		{
+			delete fonts[i].font;
+			fonts[i].font = 0;
+		}
+	}
 }
 
 gfx::Texture *texture(TextureID id)
@@ -35,6 +53,14 @@ gfx::Texture *texture(TextureID id)
 		textures[id].texture = new gfx::Texture(textures[id].filename);
 
 	return textures[id].texture;
+}
+
+gfx::Font *font(FontID id)
+{
+	if (fonts[id].font == 0)
+		fonts[id].font = new gfx::Font(fonts[id].filename);
+
+	return fonts[id].font;
 }
 
 }} // g13::res

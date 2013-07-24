@@ -9,7 +9,8 @@
 
 #define VERTEX_INSTANCES()         \
 	VERTEX_INSTANCE(ColorVertex ); \
-	VERTEX_INSTANCE(SpriteVertex);
+	VERTEX_INSTANCE(SpriteVertex); \
+	VERTEX_INSTANCE(TextVertex);
 
 #include <stdint.h>
 
@@ -28,7 +29,14 @@ struct SpriteVertex
 	uint8_t opacity;
 };
 
-ColorVertex color_vertex(float x, float y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+struct TextVertex
+{
+	float x, y;
+	uint16_t u, v;
+};
+
+ColorVertex  color_vertex(float x, float y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 SpriteVertex sprite_vertex(float x, float y, float u, float v, uint8_t opacity);
+TextVertex   text_vertex(float x, float y, uint16_t u, uint16_t v);
 
 } // gfx

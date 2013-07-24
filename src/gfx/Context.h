@@ -25,7 +25,9 @@ struct Context
 			matrix(1.0f),
 			projection(1.0f),
 			freetype(0),
-			maxTextureSize(0)
+			maxTextureSize(0),
+			shdrtext_color(-1),
+			shdrtext_texsize(-1)
 	{}
 
 	Shader  *shader;
@@ -44,6 +46,9 @@ struct Context
 	FT_Library freetype;
 
 	int maxTextureSize;
+
+	GLint shdrtext_color;
+	GLint shdrtext_texsize;
 };
 
 extern Context *const context;

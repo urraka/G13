@@ -54,13 +54,47 @@ void Font::size(uint32_t size)
 {
 	assert(size > 0);
 
-	GlyphTable *&table = glyphs_[size]; // will insert the first time
+	if (currentSize_ != size)
+	{
+		FT_Set_Pixel_Sizes((FT_Face)face_, 0, size);
 
-	if (table == 0)
-		table = new GlyphTable();
+		GlyphTable *&table = glyphs_[size]; // will insert the first time
 
-	currentSize_ = size;
-	currentTable_ = table;
+		if (table == 0)
+			table = new GlyphTable();
+
+		currentSize_ = size;
+		currentTable_ = table;
+	}
+}
+
+int Font::kerning(uint32_t a, uint32_t b)
+{
+	if (a == 0 || b == 0)
+		return 0;
+
+	FT_Face face = (FT_Face)face_;
+
+	if (face != 0 && FT_HAS_KERNING(face))
+	{
+		FT_UInt index1 = FT_Get_Char_Index(face, a);
+		FT_UInt index2 = FT_Get_Char_Index(face, b);
+
+		FT_Vector kerning;
+		FT_Get_Kerning(face, index1, index2, FT_KERNING_DEFAULT, &kerning);
+
+		return kerning.x >> 6;
+	}
+
+	return 0;
+}
+
+int Font::linespacing()
+{
+	if (face_ != 0)
+		return FT_Face(face_)->size->metrics.height >> 6;
+
+	return 0;
 }
 
 Texture *Font::texture(int atlas)
@@ -101,21 +135,15 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 	FT_Face face = (FT_Face)face_;
 
 	if (face == 0)
-		return Glyph();
-
-	if (currentSize_ != face->size->metrics.x_ppem)
-	{
-		if (FT_Set_Pixel_Sizes(face, 0, currentSize_) != 0)
-			return Glyph();
-	}
+		return glyph;
 
 	if (FT_Load_Char(face, codepoint, FT_LOAD_TARGET_NORMAL) != 0)
-		return Glyph();
+		return glyph;
 
 	FT_Glyph desc;
 
 	if (FT_Get_Glyph(face->glyph, &desc) != 0)
-		return Glyph();
+		return glyph;
 
 	GlyphAutoRelease glyphAutoRelease(&desc);
 
@@ -135,8 +163,10 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 	if (bold && !outline)
 		FT_Bitmap_Embolden(context->freetype, &bitmap, weight, weight);
 
+	glyph.advance = (desc->advance.x >> 16) + (bold ? (weight >> 6) : 0);
+
 	if (bitmap.width <= 0 || bitmap.rows <= 0)
-		return Glyph();
+		return glyph;
 
 	const int padding = 1;
 	const int width  = bitmap.width;
@@ -160,14 +190,14 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 		if (atlas->texture() == 0)
 		{
 			delete atlas;
-			return Glyph();
+			return glyph;
 		}
 
 		atlases_.push_back(atlas);
 		region = atlas->region(wBounds, hBounds);
 
 		if (region.width == 0)
-			return Glyph();
+			return glyph;
 	}
 
 	glyph.atlas = (int)atlases_.size() - 1;
@@ -182,8 +212,6 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 	glyph.v0 = region.y - padding;
 	glyph.u1 = glyph.u0 + region.width  + padding;
 	glyph.v1 = glyph.v0 + region.height + padding;
-
-	glyph.advance = (desc->advance.x >> 16) + bold ? (weight >> 6) : 0;
 
 	uint8_t *data = new uint8_t[width * height];
 

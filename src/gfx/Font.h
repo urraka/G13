@@ -70,7 +70,9 @@ public:
 	Font(const char *filename);
 	~Font();
 
-	void size(uint32_t fontsize);
+	void size(uint32_t size);
+	int kerning(uint32_t a, uint32_t b);
+	int linespacing();
 	Texture *texture(int atlas);
 	const Glyph *glyph(uint32_t codepoint, bool bold);
 
@@ -86,6 +88,8 @@ private:
 	uint32_t    currentSize_;
 
 	Glyph load(uint32_t codepoint, bool bold);
+
+	friend class Text;
 };
 
 } // gfx

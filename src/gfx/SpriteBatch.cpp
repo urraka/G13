@@ -22,7 +22,7 @@ SpriteBatch::SpriteBatch(size_t maxSize)
 	{
 		ibo_->allocate(maxSize * 6, Static);
 
-		uint16_t indices[] = { 0, 1, 2, 2, 3, 0};
+		uint16_t indices[] = {0, 1, 2, 2, 3, 0};
 
 		for (size_t i = 0; i < maxSize; i++)
 		{
@@ -33,9 +33,8 @@ SpriteBatch::SpriteBatch(size_t maxSize)
 		}
 	}
 
-	vbo_ = new VBO();
+	vbo_ = new VBO(ibo_);
 	vbo_->allocate<SpriteVertex>(maxSize * 4, Dynamic);
-	vbo_->ibo(ibo_);
 
 	refcount_++;
 }

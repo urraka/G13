@@ -94,6 +94,18 @@ void Shader::uniform(GLint location, float x)
 	glUniform1f(location, x);
 }
 
+void Shader::uniform(GLint location, const glm::vec2 &x)
+{
+	gfx::bind(this);
+	glUniform2f(location, x.x, x.y);
+}
+
+void Shader::uniform(GLint location, const glm::vec4 &x)
+{
+	gfx::bind(this);
+	glUniform4f(location, x.x, x.y, x.z, x.w);
+}
+
 void Shader::uniform(GLint location, const glm::mat4 &x)
 {
 	gfx::bind(this);
@@ -110,6 +122,18 @@ void Shader::uniform(const char *name, float x)
 {
 	gfx::bind(this);
 	glUniform1f(location(name), x);
+}
+
+void Shader::uniform(const char *name, const glm::vec2 &x)
+{
+	gfx::bind(this);
+	glUniform2f(location(name), x.x, x.y);
+}
+
+void Shader::uniform(const char *name, const glm::vec4 &x)
+{
+	gfx::bind(this);
+	glUniform4f(location(name), x.x, x.y, x.z, x.w);
 }
 
 void Shader::uniform(const char *name, const glm::mat4 &x)

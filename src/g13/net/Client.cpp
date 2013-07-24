@@ -13,8 +13,7 @@
 namespace g13 {
 namespace net {
 
-static gfx::Font *font = 0;
-static gfx::Sprite fontSprite;
+static gfx::Text *text = 0;
 
 Client::Client()
 	:	state_(Disconnected),
@@ -26,12 +25,13 @@ Client::Client()
 {
 	hlp::assign(name_, "player");
 
+	text = new gfx::Text();
+	text->font(res::font(res::DefaultFont));
+	text->size(16);
+	text->color(gfx::Color(255, 0, 0));
+	text->value("Mi abuelita come caca...\nLe gusta mucho.");
+
 	// load resources
-
-	font = new gfx::Font("data/ObelixPro.ttf");
-
-	fontSprite.u[1] = 1.0f;
-	fontSprite.v[1] = 1.0f;
 
 	background_ = new gfx::VBO();
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
@@ -48,7 +48,7 @@ Client::Client()
 
 Client::~Client()
 {
-	delete font;
+	delete text;
 	delete background_;
 	delete spriteBatch_;
 }
@@ -346,28 +346,15 @@ void Client::draw(float framePercent)
 		gfx::draw(spriteBatch_);
 	}
 
-	fontSprite.texture = font->texture(0);
-
-	if (fontSprite.texture != 0)
-	{
-		fontSprite.width  = (float)fontSprite.texture->width();
-		fontSprite.height = (float)fontSprite.texture->height();
-
-		gfx::matrix(mat4(1.0f));
-		gfx::draw(fontSprite);
-	}
+	gfx::matrix(mat4(1.0f));
+	gfx::translate(20.0f, 40.0f);
+	gfx::draw(text);
 }
 
 void Client::event(Event *evt)
 {
 	if (evt->type == Event::Resized)
 		onResize(evt->size.fboWidth, evt->size.fboHeight);
-
-	if (evt->type == Event::TextEntered)
-	{
-		font->size(10 + rand() % 30);
-		font->glyph(evt->text.ch, false);
-	}
 }
 
 void Client::onResize(int width, int height)

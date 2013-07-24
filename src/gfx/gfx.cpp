@@ -14,6 +14,7 @@ Context *const context = &ctx_;
 
 Shader *ColorShader  = 0;
 Shader *SpriteShader = 0;
+Shader *TextShader   = 0;
 
 static VBO *vboSprite = 0;
 
@@ -44,6 +45,12 @@ void initialize()
 
 	SpriteShader = new Shader();
 	SpriteShader->compile<SpriteVertex>(glsl::sprite_vert, glsl::sprite_frag);
+
+	TextShader = new Shader();
+	TextShader->compile<TextVertex>(glsl::text_vert, glsl::text_frag);
+
+	context->shdrtext_color = TextShader->location("color");
+	context->shdrtext_texsize = TextShader->location("texsize");
 
 	vboSprite = new VBO();
 	vboSprite->allocate<SpriteVertex>(4, Dynamic);
@@ -244,6 +251,11 @@ void draw(const Sprite &sprite)
 	vboSprite->set(v, 0, 4);
 	bind(sprite.texture);
 	draw(vboSprite, 0, 4);
+}
+
+void draw(Text *text)
+{
+	text->draw();
 }
 
 // -----------------------------------------------------------------------------

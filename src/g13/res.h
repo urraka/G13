@@ -11,9 +11,16 @@ enum TextureID
 	TextureCount
 };
 
+enum FontID
+{
+	DefaultFont,
+	FontCount
+};
+
 void initialize();
 void terminate();
 
 gfx::Texture *texture(TextureID id);
+gfx::Font *font(FontID id);
 
 }} // g13::res

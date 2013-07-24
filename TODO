@@ -23,8 +23,10 @@ Graphics
     x Glyph default values.
     - Check if there's a more efficient technique for copying from one texture to another.
     - Font->kerning()
+    - Release atlas buffer when reaching 1024x1024 size.
   / Store max texture size.
     - Double check if done right.
+  - Move shaders to context object.
   - Add global_opacity to shaders and gfx::opacity() to set it.
   x Find the proper way to choose the mipmap generation method.
   - Add ability to set own mipmaps.

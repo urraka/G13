@@ -21,9 +21,13 @@ public:
 
 	void uniform(GLint location, int value);
 	void uniform(GLint location, float value);
+	void uniform(GLint location, const glm::vec2 &value);
+	void uniform(GLint location, const glm::vec4 &value);
 	void uniform(GLint location, const glm::mat4 &value);
 	void uniform(const char *name, int value);
 	void uniform(const char *name, float value);
+	void uniform(const char *name, const glm::vec2 &value);
+	void uniform(const char *name, const glm::vec4 &value);
 	void uniform(const char *name, const glm::mat4 &value);
 
 private:
