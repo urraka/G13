@@ -74,7 +74,7 @@ public:
 	float kerning(uint32_t a, uint32_t b);
 	int linespacing();
 	Texture *texture(int atlas);
-	const Glyph *glyph(uint32_t codepoint, bool bold);
+	const Glyph *glyph(uint32_t codepoint);
 
 private:
 	typedef std::map<uint32_t, Glyph>       GlyphTable;
@@ -87,7 +87,7 @@ private:
 	GlyphTable *currentTable_;
 	uint32_t    currentSize_;
 
-	Glyph load(uint32_t codepoint, bool bold);
+	Glyph load(uint32_t codepoint);
 
 	friend class Text;
 };

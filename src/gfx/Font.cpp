@@ -124,21 +124,19 @@ Texture *Font::texture(int atlas)
 	return 0;
 }
 
-const Font::Glyph *Font::glyph(uint32_t codepoint, bool bold)
+const Font::Glyph *Font::glyph(uint32_t codepoint)
 {
 	assert(currentTable_ != 0);
 
-	uint32_t key = codepoint | (bold ? (1U << 31) : 0);
-
-	GlyphTable::iterator i = currentTable_->find(key);
+	GlyphTable::iterator i = currentTable_->find(codepoint);
 
 	if (i == currentTable_->end())
-		i = currentTable_->insert(std::make_pair(key, load(codepoint, bold))).first;
+		i = currentTable_->insert(std::make_pair(codepoint, load(codepoint))).first;
 
 	return &i->second;
 }
 
-Font::Glyph Font::load(uint32_t codepoint, bool bold)
+Font::Glyph Font::load(uint32_t codepoint)
 {
 	Glyph glyph;
 
@@ -149,7 +147,7 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 
 	FT_UInt iGlyph = FT_Get_Char_Index(face, codepoint);
 
-	if (FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LCD) != 0)
+	if (FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER /*| FT_LOAD_FORCE_AUTOHINT*/ | FT_LOAD_TARGET_LCD) != 0)
 		return glyph;
 
 	FT_Bitmap &bitmap = face->glyph->bitmap;

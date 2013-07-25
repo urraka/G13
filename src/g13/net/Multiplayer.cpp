@@ -96,7 +96,7 @@ void Multiplayer::send(msg::Message *msg, ENetPeer *target)
 	}
 	else
 	{
-		if (type == msg::PlayerChat::Type || type == msg::Chat::Type)
+		if (type == msg::Chat::Type)
 			channel = ChatChannel;
 		else
 			channel = ReliableChannel;

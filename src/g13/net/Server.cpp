@@ -255,20 +255,18 @@ void Server::onPlayerChat(Player *player, msg::Message *msg)
 
 	LOG(player->name() << ": " << chat->text);
 
-	msg::PlayerChat chatmsg;
-	chatmsg.id = player->id();
-	hlp::assign(chatmsg.text, chat->text);
+	chat->id = player->id();
 
-	for (size_t i = 0; i < player->id(); i++)
+	for (size_t i = 0; i < chat->id; i++)
 	{
 		if (players_[i].connected())
-			send(&chatmsg, players_[i].peer());
+			send(chat, players_[i].peer());
 	}
 
-	for (size_t i = player->id() + 1; i < MaxPlayers; i++)
+	for (size_t i = chat->id + 1; i < MaxPlayers; i++)
 	{
 		if (players_[i].connected())
-			send(&chatmsg, players_[i].peer());
+			send(chat, players_[i].peer());
 	}
 }
 

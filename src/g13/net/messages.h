@@ -10,7 +10,7 @@ MESSAGES_BEGIN()
 //******************************************************************************
 
 MESSAGE(Login)
-	char name[Player::MaxNameLength + 1];
+	char name[Player::MaxNameLength * 4 + 1];
 BEGIN
 	String(name, Player::MinNameLength)
 END
@@ -28,8 +28,10 @@ BEGIN
 END
 
 MESSAGE(Chat)
-	char text[1024];
+	uint8_t id;
+	char    text[1024];
 BEGIN
+	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	String(text, 1)
 END
 
@@ -54,7 +56,7 @@ END
 
 MESSAGE(PlayerConnect)
 	uint8_t id;
-	char    name[Player::MaxNameLength + 1];
+	char    name[Player::MaxNameLength * 4 + 1];
 BEGIN
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	String(name, Player::MinNameLength)
@@ -75,14 +77,6 @@ BEGIN
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	Fixed(position.x)
 	Fixed(position.y)
-END
-
-MESSAGE(PlayerChat)
-	uint8_t id;
-	char text[1024];
-BEGIN
-	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
-	String(text, 1)
 END
 
 LIST(SoldierState, soldier)

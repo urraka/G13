@@ -35,7 +35,7 @@ Client::Client()
 	chatText_ = new gfx::Text();
 	chatText_->font(res::font(res::DefaultFont));
 	chatText_->size(9);
-	chatText_->color(gfx::Color(0, 0, 0));
+	chatText_->color(gfx::Color(255, 255, 255));
 	chatText_->value(caret_);
 
 	chatBackground_ = new gfx::VBO();
@@ -366,6 +366,7 @@ void Client::draw(float framePercent)
 		gfx::draw(chatText_);
 	}
 
+	#if 0
 	if (chatText_->font()->texture(0) != 0)
 	{
 		gfx::Sprite sprite;
@@ -379,6 +380,7 @@ void Client::draw(float framePercent)
 		gfx::matrix(mat4(1.0f));
 		gfx::draw(sprite);
 	}
+	#endif
 }
 
 bool Client::event(Event *evt)
@@ -401,13 +403,20 @@ bool Client::event(Event *evt)
 			break;
 
 		case Event::KeyPressed:
-			if (evt->key.code == sys::Enter || (textInputMode_ && evt->key.code == sys::Escape))
+		{
+			bool esc = evt->key.code == sys::Escape;
+			bool enter = evt->key.code == sys::Enter || evt->key.code == sys::NumpadEnter;
+
+			if ((enter && state_ == Connected) || (textInputMode_ && esc))
 			{
 				textInputMode_ = !textInputMode_;
 
-				if (!textInputMode_ && chatString_.size() > 0)
+				bool closedChat = !textInputMode_;
+
+				if (closedChat && !esc && chatString_.size() > 0)
 				{
 					msg::Chat msg;
+					msg.id = id_;
 					hlp::utf8_encode(chatString_, msg.text);
 					send(&msg, peer_);
 				}
@@ -430,6 +439,7 @@ bool Client::event(Event *evt)
 
 				break;
 			}
+		}
 
 		case Event::KeyRepeat:
 			if (textInputMode_)
@@ -447,7 +457,7 @@ bool Client::event(Event *evt)
 		case Event::TextEntered:
 			if (textInputMode_)
 			{
-				if (chatString_.size() < 256)
+				if (chatString_.size() < 100)
 				{
 					chatString_ += evt->text.ch;
 					chatText_->value(chatString_ + caret_);
@@ -478,10 +488,10 @@ void Client::onResize(int width, int height)
 
 	background_->set(vertex, 0, 4);
 
-	vertex[0] = gfx::color_vertex(0.0f, h - 35.0f, 255, 255, 255, 255);
-	vertex[1] = gfx::color_vertex(w   , h - 35.0f, 255, 255, 255, 255);
-	vertex[2] = gfx::color_vertex(w   , h        , 255, 255, 255, 255);
-	vertex[3] = gfx::color_vertex(0.0f, h        , 255, 255, 255, 255);
+	vertex[0] = gfx::color_vertex(0.0f, h - 30.0f, 64, 64, 64, 200);
+	vertex[1] = gfx::color_vertex(w   , h - 30.0f, 64, 64, 64, 200);
+	vertex[2] = gfx::color_vertex(w   , h        , 64, 64, 64, 200);
+	vertex[3] = gfx::color_vertex(0.0f, h        , 64, 64, 64, 200);
 
 	chatBackground_->set(vertex, 0, 4);
 }

@@ -124,7 +124,7 @@ void Text::update()
 		if (value_[i] == ' ' || value_[i] == '\n' || value_[i] == '\t' || value_[i] == '\v')
 			continue;
 
-		const Font::Glyph *glyph = font_->glyph(value_[i], false);
+		const Font::Glyph *glyph = font_->glyph(value_[i]);
 
 		if (glyph->atlas >= (int)drawData_.size())
 			drawData_.resize(font_->atlases_.size());
@@ -175,7 +175,7 @@ void Text::update()
 
 	float x = 0.0f;
 	float y = 0.0f;
-	float hspace = (float)font_->glyph(' ', false)->advance;
+	float hspace = (float)font_->glyph(' ')->advance;
 	float vspace = (float)font_->linespacing();
 
 	uint32_t prev = 0;

@@ -23,7 +23,7 @@ void initialize()
 {
 	textures[Soldier].filename = "data/guy.png";
 
-	fonts[DefaultFont].filename = "data/consola.ttf";
+	fonts[DefaultFont].filename = "data/NotoSans-Bold.ttf";
 }
 
 void terminate()

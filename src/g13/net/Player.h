@@ -24,7 +24,7 @@ public:
 	enum
 	{
 		InvalidId     = 0xFF,
-		MaxNameLength = 32,
+		MaxNameLength = 20,
 		MinNameLength = 1,
 		MaxTickOffset = 63
 	};
