@@ -1,6 +1,8 @@
 #include "msg.h"
 #include "BitStream.h"
 
+#include <hlp/utf8.h>
+
 namespace g13 {
 namespace net {
 namespace msg {

@@ -29,6 +29,7 @@ private:
 	void onPlayerLogin(Player *player, msg::Message *msg);
 	void onPlayerReady(Player *player, msg::Message *msg);
 	void onPlayerInput(Player *player, msg::Message *msg);
+	void onPlayerChat(Player *player, msg::Message *msg);
 };
 
 }} // net

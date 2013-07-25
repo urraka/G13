@@ -84,7 +84,8 @@ void display()
 {
 	while (Event *event = sys::poll_events())
 	{
-		state->event(event);
+		if (!state->event(event))
+			continue;
 
 		switch (event->type)
 		{

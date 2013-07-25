@@ -20,7 +20,7 @@ bool Server::start(int port)
 	address.host = ENET_HOST_ANY;
 	address.port = port;
 
-	connection_ = enet_host_create(&address, MaxPlayers, 2, 0, 0);
+	connection_ = enet_host_create(&address, MaxPlayers, ChannelsCount, 0, 0);
 
 	if (connection_ == 0)
 	{
@@ -47,6 +47,8 @@ bool Server::start(int port)
 void Server::stop()
 {
 	state_ = Stopping;
+
+	LOG("Disconnecting...");
 
 	for (size_t i = 0; i < MaxPlayers; i++)
 	{
@@ -79,6 +81,7 @@ void Server::update(Time dt)
 
 	if (state_ == Stopping && activePlayers == 0)
 	{
+		LOG("Disconnected.");
 		state_ = Stopped;
 		enet_host_destroy(connection_);
 		connection_ = 0;
@@ -165,6 +168,7 @@ void Server::onMessage(msg::Message *msg, ENetPeer *from)
 		case msg::Login::Type: onPlayerLogin(player, msg); break;
 		case msg::Ready::Type: onPlayerReady(player, msg); break;
 		case msg::Input::Type: onPlayerInput(player, msg); break;
+		case msg::Chat::Type : onPlayerChat(player, msg);  break;
 
 		default: break;
 	}
@@ -208,7 +212,7 @@ void Server::onPlayerLogin(Player *player, msg::Message *msg)
 		}
 	}
 
-	LOG("Player #" << (int)player->id() << " connected.");
+	LOG("Player #" << (int)player->id() << " connected. Name: " << player->name());
 }
 
 void Server::onPlayerReady(Player *player, msg::Message *msg)
@@ -243,6 +247,29 @@ void Server::onPlayerInput(Player *player, msg::Message *msg)
 	input.unserialize(msgInput->input);
 
 	player->onInput(msgInput->tick, input);
+}
+
+void Server::onPlayerChat(Player *player, msg::Message *msg)
+{
+	msg::Chat *chat = (msg::Chat*)msg;
+
+	LOG(player->name() << ": " << chat->text);
+
+	msg::PlayerChat chatmsg;
+	chatmsg.id = player->id();
+	hlp::assign(chatmsg.text, chat->text);
+
+	for (size_t i = 0; i < player->id(); i++)
+	{
+		if (players_[i].connected())
+			send(&chatmsg, players_[i].peer());
+	}
+
+	for (size_t i = player->id() + 1; i < MaxPlayers; i++)
+	{
+		if (players_[i].connected())
+			send(&chatmsg, players_[i].peer());
+	}
 }
 
 }} // g13::net

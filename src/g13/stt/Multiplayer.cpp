@@ -4,6 +4,7 @@
 #include <g13/net/Client.h>
 #include <g13/net/Server.h>
 
+#include <gfx/gfx.h>
 #include <hlp/read.h>
 #include <hlp/split.h>
 #include <hlp/to_int.h>
@@ -47,18 +48,25 @@ void Multiplayer::update(Time dt)
 
 void Multiplayer::draw(float percent)
 {
+	gfx::clear();
 	client_->draw(percent);
 }
 
-void Multiplayer::event(Event *evt)
+bool Multiplayer::event(Event *evt)
 {
-	if (evt->type == Event::KeyPressed)
-		onKeyPressed(evt->key.code);
+	if (client_->state() == net::Client::Connected)
+	{
+		if (!client_->event(evt))
+			return false;
+	}
 
-	client_->event(evt);
+	if (evt->type == Event::KeyPressed)
+		return onKeyPressed(evt->key.code);
+
+	return true;
 }
 
-void Multiplayer::onKeyPressed(int key)
+bool Multiplayer::onKeyPressed(int key)
 {
 	switch (key)
 	{
@@ -72,8 +80,6 @@ void Multiplayer::onKeyPressed(int key)
 
 				server_->start(port);
 			}
-			else
-				server_->stop();
 		}
 		break;
 
@@ -108,6 +114,8 @@ void Multiplayer::onKeyPressed(int key)
 
 		default: break;
 	}
+
+	return true;
 }
 
 }} // g13::stt

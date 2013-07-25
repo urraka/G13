@@ -20,10 +20,10 @@ public:
 				x(0), y(0), w(0), h(0),
 				u0(0), v0(0), u1(0), v1(0) {}
 
-		int advance;        // horizontal offset to next character
-		int atlas;          // page->atlas[ atlas ]
-		int x, y, w, h;     // glyph bounds relative to baseline
-		int u0, v0, u1, v1; // non-normalized texcoords (texture size can change)
+		float advance;        // horizontal offset to next character
+		int   atlas;          // page->atlas[ atlas ]
+		int   x, y, w, h;     // glyph bounds relative to baseline
+		int   u0, v0, u1, v1; // non-normalized texcoords (texture size can change)
 	};
 
 	class Atlas
@@ -54,7 +54,7 @@ public:
 		};
 
 		Region region(int width, int height);
-		void set(const Region &region, uint8_t *data);
+		void set(const Region &region, const uint8_t *data, size_t pitch);
 		Texture *texture();
 
 	private:
@@ -71,7 +71,7 @@ public:
 	~Font();
 
 	void size(uint32_t size);
-	int kerning(uint32_t a, uint32_t b);
+	float kerning(uint32_t a, uint32_t b);
 	int linespacing();
 	Texture *texture(int atlas);
 	const Glyph *glyph(uint32_t codepoint, bool bold);

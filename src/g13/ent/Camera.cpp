@@ -25,16 +25,9 @@ void Camera::update(Time dt)
 	position_.update();
 	zoom_.update();
 
-	if (sys::pressed(sys::NumpadAdd))
-		zoom(ZoomIn);
-
-	if (sys::pressed(sys::NumpadSubtract))
-		zoom(ZoomOut);
-
 	zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);
 	zoomVelocity_ = zoomTarget_ - zoom_.current;
 	zoom_.current += zoomVelocity_ * kVelMultiplier * zoomRate_ * dts;
-	zoomType_ = ZoomNone;
 
 	if (target_ == 0)
 		return;

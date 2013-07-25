@@ -24,6 +24,11 @@ public:
 	void size(uint32_t size);
 	void color(const Color &color);
 
+	const std::basic_string<uint32_t> &value();
+	Font *font() const;
+	Color color() const;
+	uint32_t size() const;
+
 private:
 	std::basic_string<uint32_t> value_;
 	Font *font_;

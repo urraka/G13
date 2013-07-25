@@ -19,13 +19,13 @@ public:
 
 	void update(Time dt);
 	void draw(float percent);
-	void event(Event *evt);
+	bool event(Event *evt);
 
 private:
 	net::Client *client_;
 	net::Server *server_;
 
-	void onKeyPressed(int key);
+	bool onKeyPressed(int key);
 };
 
 }} // g13::stt

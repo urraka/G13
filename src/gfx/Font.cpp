@@ -7,10 +7,14 @@
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
 #include FT_BITMAP_H
+#include FT_LCD_FILTER_H
 
 #include <iostream>
 
 namespace gfx {
+
+static const int hres = 100;
+static const int depth = 3;
 
 // -----------------------------------------------------------------------------
 // Font
@@ -35,6 +39,11 @@ Font::Font(const char *filename)
 		return;
 	}
 
+	uint8_t weights[] = {0x10, 0x40, 0x70, 0x40, 0x10};
+
+	FT_Library_SetLcdFilter(context->freetype, FT_LCD_FILTER_LIGHT);
+	FT_Library_SetLcdFilterWeights(context->freetype, weights);
+
 	face_ = face;
 }
 
@@ -56,7 +65,15 @@ void Font::size(uint32_t size)
 
 	if (currentSize_ != size)
 	{
-		FT_Set_Pixel_Sizes((FT_Face)face_, 0, size);
+		FT_Matrix matrix = {
+			(int)((1.0 / hres) * 0x10000L),
+			(int)((0.0)        * 0x10000L),
+			(int)((0.0)        * 0x10000L),
+			(int)((1.0)        * 0x10000L)
+		};
+
+		FT_Set_Char_Size((FT_Face)face_, size * 64, 0, 96 * hres, 96);
+		FT_Set_Transform((FT_Face)face_, &matrix, 0);
 
 		GlyphTable *&table = glyphs_[size]; // will insert the first time
 
@@ -68,25 +85,25 @@ void Font::size(uint32_t size)
 	}
 }
 
-int Font::kerning(uint32_t a, uint32_t b)
+float Font::kerning(uint32_t a, uint32_t b)
 {
+	assert(face_ != 0);
+
 	if (a == 0 || b == 0)
-		return 0;
+		return 0.0f;
 
 	FT_Face face = (FT_Face)face_;
 
-	if (face != 0 && FT_HAS_KERNING(face))
-	{
-		FT_UInt index1 = FT_Get_Char_Index(face, a);
-		FT_UInt index2 = FT_Get_Char_Index(face, b);
+	FT_UInt index1 = FT_Get_Char_Index(face, a);
+	FT_UInt index2 = FT_Get_Char_Index(face, b);
 
-		FT_Vector kerning;
-		FT_Get_Kerning(face, index1, index2, FT_KERNING_DEFAULT, &kerning);
+	FT_Vector kerning;
+	FT_Get_Kerning(face, index1, index2, FT_KERNING_UNFITTED, &kerning);
 
-		return kerning.x >> 6;
-	}
+	if (kerning.x != 0)
+		return kerning.x / (hres * 64.0f);
 
-	return 0;
+	return 0.0f;
 }
 
 int Font::linespacing()
@@ -123,13 +140,6 @@ const Font::Glyph *Font::glyph(uint32_t codepoint, bool bold)
 
 Font::Glyph Font::load(uint32_t codepoint, bool bold)
 {
-	struct GlyphAutoRelease
-	{
-		FT_Glyph *glyph;
-		GlyphAutoRelease(FT_Glyph *g) : glyph(g) {}
-		~GlyphAutoRelease() { FT_Done_Glyph(*glyph); }
-	};
-
 	Glyph glyph;
 
 	FT_Face face = (FT_Face)face_;
@@ -137,39 +147,22 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 	if (face == 0)
 		return glyph;
 
-	if (FT_Load_Char(face, codepoint, FT_LOAD_TARGET_NORMAL) != 0)
+	FT_UInt iGlyph = FT_Get_Char_Index(face, codepoint);
+
+	if (FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LCD) != 0)
 		return glyph;
 
-	FT_Glyph desc;
-
-	if (FT_Get_Glyph(face->glyph, &desc) != 0)
-		return glyph;
-
-	GlyphAutoRelease glyphAutoRelease(&desc);
-
-	FT_Pos weight = 1 << 6;
-	bool outline = (desc->format == FT_GLYPH_FORMAT_OUTLINE);
-
-	if (bold && outline)
-	{
-		FT_OutlineGlyph outlineGlyph = (FT_OutlineGlyph)desc;
-		FT_Outline_Embolden(&outlineGlyph->outline, weight);
-	}
-
-	FT_Glyph_To_Bitmap(&desc, FT_RENDER_MODE_NORMAL, 0, 1);
-	FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)desc;
-	FT_Bitmap& bitmap = bitmapGlyph->bitmap;
-
-	if (bold && !outline)
-		FT_Bitmap_Embolden(context->freetype, &bitmap, weight, weight);
-
-	glyph.advance = (desc->advance.x >> 16) + (bold ? (weight >> 6) : 0);
+	FT_Bitmap &bitmap = face->glyph->bitmap;
 
 	if (bitmap.width <= 0 || bitmap.rows <= 0)
+	{
+		FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
+		glyph.advance = face->glyph->advance.x / 64.0;
 		return glyph;
+	}
 
 	const int padding = 1;
-	const int width  = bitmap.width;
+	const int width  = bitmap.width / depth;
 	const int height = bitmap.rows;
 	const int wBounds = width  + padding; // bottom-right padding
 	const int hBounds = height + padding;
@@ -202,51 +195,23 @@ Font::Glyph Font::load(uint32_t codepoint, bool bold)
 
 	glyph.atlas = (int)atlases_.size() - 1;
 
-	glyph.x =  bitmapGlyph->left - padding;
-	glyph.y = -bitmapGlyph->top  - padding;
-	glyph.w =  wBounds;
-	glyph.h =  hBounds;
-
-	// extend region to contain the top-left padding
-	glyph.u0 = region.x - padding;
-	glyph.v0 = region.y - padding;
-	glyph.u1 = glyph.u0 + region.width  + padding;
-	glyph.v1 = glyph.v0 + region.height + padding;
-
-	uint8_t *data = new uint8_t[width * height];
-
-	const uint8_t *src = bitmap.buffer;
-	uint8_t *dst = data;
-
-	if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
-	{
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-				dst[x] = ((src[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
-
-			src += bitmap.pitch;
-			dst += width;
-		}
-	}
-	else
-	{
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-				dst[x] = src[x];
-
-			src += bitmap.pitch;
-			dst += width;
-		}
-	}
+	glyph.x =  face->glyph->bitmap_left;
+	glyph.y = -face->glyph->bitmap_top ;
+	glyph.w =  wBounds - padding;
+	glyph.h =  hBounds - padding;
 
 	region.width -= padding;
 	region.height -= padding;
 
-	atlas->set(region, data);
+	glyph.u0 = region.x;
+	glyph.v0 = region.y;
+	glyph.u1 = glyph.u0 + region.width ;
+	glyph.v1 = glyph.v0 + region.height;
 
-	delete[] data;
+	atlas->set(region, bitmap.buffer, bitmap.pitch);
+
+	FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
+	glyph.advance = face->glyph->advance.x / 64.0;
 
 	return glyph;
 }
@@ -260,7 +225,8 @@ Font::Atlas::Atlas() : texture_(0), buffer_(0)
 	int width  = 128;
 	int height = 128;
 
-	texture_ = new Texture(width, height, 1, false);
+	texture_ = new Texture(width, height, depth, false);
+	texture_->filter(Nearest);
 
 	if (texture_->id() == 0)
 	{
@@ -269,8 +235,8 @@ Font::Atlas::Atlas() : texture_(0), buffer_(0)
 		return;
 	}
 
-	buffer_ = new uint8_t[width * height];
-	memset(buffer_, 0, width * height);
+	buffer_ = new uint8_t[depth * width * height];
+	memset(buffer_, 0, depth * width * height);
 
 	texture_->update(0, 0, width, height, buffer_);
 
@@ -286,31 +252,38 @@ Font::Atlas::~Atlas()
 		delete[] buffer_;
 }
 
-void Font::Atlas::set(const Region &region, uint8_t *data)
+void Font::Atlas::set(const Region &region, const uint8_t *data, size_t srcPitch)
 {
 	assert(texture_ != 0);
-	assert(region.x >= 0 && region.y >= 0 && region.width > 0 && region.height > 0);
+	assert(region.x >= 0 && region.y >= 0 && region.width >= 0 && region.height >= 0);
 	assert(region.x + region.width <= texture_->width());
 	assert(region.y + region.height <= texture_->height());
 
+	uint8_t *buf = new uint8_t[depth * region.width * region.height];
+	uint8_t *pbuf = buf;
+
 	if (buffer_ != 0)
 	{
-		int width = texture_->width();
+		size_t dstPitch = texture_->width() * depth;
+		size_t rowSize = region.width * depth;
 
-		uint8_t *src = data;
-		uint8_t *dst = &buffer_[region.y * width];
+		const uint8_t *src = data;
+		uint8_t *dst = &buffer_[region.y * dstPitch];
 
 		for (int y = 0; y < region.height; y++)
 		{
-			for (int x = 0; x < region.width; x++)
-				dst[region.x + x] = src[x];
+			memcpy(&dst[region.x * depth], src, rowSize);
+			memcpy(pbuf, src, rowSize);
 
-			src += region.width;
-			dst += width;
+			src += srcPitch;
+			dst += dstPitch;
+			pbuf += rowSize;
 		}
 	}
 
-	texture_->update(region.x, region.y, region.width, region.height, data);
+	texture_->update(region.x, region.y, region.width, region.height, buf);
+
+	delete[] buf;
 }
 
 Texture *Font::Atlas::texture()
@@ -431,7 +404,8 @@ bool Font::Atlas::enlarge()
 	if (newWidth > context->maxTextureSize || newHeight > context->maxTextureSize)
 		return false;
 
-	Texture *tx = new Texture(newWidth, newHeight, 1, false);
+	Texture *tx = new Texture(newWidth, newHeight, depth, false);
+	tx->filter(Nearest);
 
 	if (tx->id() == 0)
 	{
@@ -442,27 +416,30 @@ bool Font::Atlas::enlarge()
 	delete texture_;
 	texture_ = tx;
 
-	uint8_t *buffer = new uint8_t[newWidth * newHeight];
+	uint8_t *buffer = new uint8_t[depth * newWidth * newHeight];
 
 	if (width > height)
 	{
-		memcpy(buffer, buffer_, width * height);
-		memset(&buffer[width * height], 0, width * height);
+		size_t size = depth * width * height;
+
+		memcpy(buffer, buffer_, size);
+		memset(&buffer[size], 0, size);
 	}
 	else
 	{
 		uint8_t *src = buffer_;
 		uint8_t *dst = buffer;
 
+		size_t srcRowSize = depth * width;
+		size_t dstRowSize = depth * newWidth;
+
 		for (int y = 0; y < height; y++)
 		{
-			for (int x = 0; x < width; x++)
-				dst[x] = src[x];
+			memcpy(dst, src, srcRowSize);
+			memset(&dst[srcRowSize], 0, srcRowSize);
 
-			memset(&dst[width], 0, width);
-
-			src += width;
-			dst += newWidth;
+			src += srcRowSize;
+			dst += dstRowSize;
 		}
 
 		// keep top padding

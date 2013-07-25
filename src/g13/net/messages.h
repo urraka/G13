@@ -27,6 +27,12 @@ BEGIN
 	Bits(input, cmp::SoldierInput::MaxBits)
 END
 
+MESSAGE(Chat)
+	char text[1024];
+BEGIN
+	String(text, 1)
+END
+
 //******************************************************************************
 // Server
 //******************************************************************************
@@ -69,6 +75,14 @@ BEGIN
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	Fixed(position.x)
 	Fixed(position.y)
+END
+
+MESSAGE(PlayerChat)
+	uint8_t id;
+	char text[1024];
+BEGIN
+	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	String(text, 1)
 END
 
 LIST(SoldierState, soldier)

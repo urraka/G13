@@ -7,13 +7,13 @@
 
 #include <gfx/gfx.h>
 #include <hlp/assign.h>
+#include <hlp/utf8.h>
+
 #include <assert.h>
 #include <iostream>
 
 namespace g13 {
 namespace net {
-
-static gfx::Text *text = 0;
 
 Client::Client()
 	:	state_(Disconnected),
@@ -21,17 +21,26 @@ Client::Client()
 		id_(Player::InvalidId),
 		background_(0),
 		texture_(0),
-		spriteBatch_(0)
+		spriteBatch_(0),
+		chatText_(0),
+		chatBackground_(0),
+		textInputMode_(false)
 {
 	hlp::assign(name_, "player");
 
-	text = new gfx::Text();
-	text->font(res::font(res::DefaultFont));
-	text->size(24);
-	text->color(gfx::Color(255, 255, 255));
-	text->value("Mi abuelita come caca...\nLe gusta mucho.");
+	caret_ += '_';
 
 	// load resources
+
+	chatText_ = new gfx::Text();
+	chatText_->font(res::font(res::DefaultFont));
+	chatText_->size(9);
+	chatText_->color(gfx::Color(0, 0, 0));
+	chatText_->value(caret_);
+
+	chatBackground_ = new gfx::VBO();
+	chatBackground_->allocate<gfx::ColorVertex>(4, gfx::Static);
+	chatBackground_->mode(gfx::TriangleFan);
 
 	background_ = new gfx::VBO();
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
@@ -40,15 +49,11 @@ Client::Client()
 	texture_ = res::texture(res::Soldier);
 	spriteBatch_ = new gfx::SpriteBatch(MaxPlayers);
 	spriteBatch_->texture(texture_);
-
-	int w, h;
-	sys::framebuffer_size(&w, &h);
-	onResize(w, h);
 }
 
 Client::~Client()
 {
-	delete text;
+	delete chatText_;
 	delete background_;
 	delete spriteBatch_;
 }
@@ -166,6 +171,7 @@ void Client::onDisconnect(ENetPeer *peer)
 	connection_ = 0;
 	id_ = Player::InvalidId;
 	state_ = Disconnected;
+	textInputMode_ = false;
 }
 
 void Client::onMessage(msg::Message *msg, ENetPeer *from)
@@ -279,6 +285,10 @@ void Client::onPlayerJoin(msg::Message *msg)
 	{
 		camera_.target(&players_[id_].soldier()->graphics.position.current);
 
+		int w, h;
+		sys::framebuffer_size(&w, &h);
+		onResize(w, h);
+
 		#ifdef DEBUG
 			dbg->map = map_;
 			dbg->soldier = players_[id_].soldier();
@@ -317,12 +327,11 @@ void Client::onGameState(msg::Message *msg)
 
 void Client::draw(float framePercent)
 {
-	gfx::clear();
-	gfx::matrix(mat4(1.0f));
-	gfx::draw(background_);
-
 	if (active() && players_[id_].state() == Player::Playing)
 	{
+		gfx::matrix(mat4(1.0f));
+		gfx::draw(background_);
+
 		spriteBatch_->clear();
 
 		for (size_t i = 0; i < MaxPlayers; i++)
@@ -346,15 +355,111 @@ void Client::draw(float framePercent)
 		gfx::draw(spriteBatch_);
 	}
 
-	gfx::matrix(mat4(1.0f));
-	gfx::translate(10.0f, 30.0f);
-	gfx::draw(text);
+	if (textInputMode_)
+	{
+		int width, height;
+		sys::framebuffer_size(&width, &height);
+
+		gfx::matrix(mat4(1.0f));
+		gfx::draw(chatBackground_);
+		gfx::translate(10.0f, height - 10.0f);
+		gfx::draw(chatText_);
+	}
+
+	if (chatText_->font()->texture(0) != 0)
+	{
+		gfx::Sprite sprite;
+		sprite.texture = chatText_->font()->texture(0);
+		sprite.width = sprite.texture->width();
+		sprite.height = sprite.texture->height();
+		sprite.u[1] = 1.0f;
+		sprite.v[1] = 1.0f;
+		sprite.opacity = 0.5f;
+
+		gfx::matrix(mat4(1.0f));
+		gfx::draw(sprite);
+	}
 }
 
-void Client::event(Event *evt)
+bool Client::event(Event *evt)
 {
-	if (evt->type == Event::Resized)
-		onResize(evt->size.fboWidth, evt->size.fboHeight);
+	bool result = true;
+
+	switch (evt->type)
+	{
+		case Event::Resized:
+			onResize(evt->size.fboWidth, evt->size.fboHeight);
+			break;
+
+		case Event::FocusLost:
+			camera_.zoom(ent::Camera::ZoomNone);
+
+		case Event::KeyReleased:
+			if (evt->key.code == sys::NumpadAdd || evt->key.code == sys::NumpadSubtract)
+				camera_.zoom(ent::Camera::ZoomNone);
+
+			break;
+
+		case Event::KeyPressed:
+			if (evt->key.code == sys::Enter || (textInputMode_ && evt->key.code == sys::Escape))
+			{
+				textInputMode_ = !textInputMode_;
+
+				if (!textInputMode_ && chatString_.size() > 0)
+				{
+					msg::Chat msg;
+					hlp::utf8_encode(chatString_, msg.text);
+					send(&msg, peer_);
+				}
+
+				chatString_.clear();
+				chatText_->value(chatString_ + caret_);
+
+				camera_.zoom(ent::Camera::ZoomNone);
+
+				result = false;
+				break;
+			}
+
+			if (!textInputMode_)
+			{
+				if (evt->key.code == sys::NumpadAdd)
+					camera_.zoom(ent::Camera::ZoomIn);
+				else if (evt->key.code == sys::NumpadSubtract)
+					camera_.zoom(ent::Camera::ZoomOut);
+
+				break;
+			}
+
+		case Event::KeyRepeat:
+			if (textInputMode_)
+			{
+				if (evt->key.code == sys::Backspace && chatString_.size() > 0)
+				{
+					chatString_.erase(chatString_.size() - 1, 1);
+					chatText_->value(chatString_ + caret_);
+				}
+
+				result = false;
+			}
+			break;
+
+		case Event::TextEntered:
+			if (textInputMode_)
+			{
+				if (chatString_.size() < 256)
+				{
+					chatString_ += evt->text.ch;
+					chatText_->value(chatString_ + caret_);
+				}
+				result = false;
+			}
+			break;
+
+		default: break;
+	}
+
+	return result;
 }
 
 void Client::onResize(int width, int height)
@@ -366,12 +471,19 @@ void Client::onResize(int width, int height)
 	float w = (float)width;
 	float h = (float)height;
 
-	vertex[0] = gfx::color_vertex(0.0f, 0.0f, 0, 0, 255, 255);
-	vertex[1] = gfx::color_vertex(w, 0.0f, 0, 0, 255, 255);
-	vertex[2] = gfx::color_vertex(w, h, 255, 255, 255, 255);
-	vertex[3] = gfx::color_vertex(0.0f, h, 255, 255, 255, 255);
+	vertex[0] = gfx::color_vertex(0.0f, 0.0f,   0,   0, 255, 255);
+	vertex[1] = gfx::color_vertex(w   , 0.0f,   0,   0, 255, 255);
+	vertex[2] = gfx::color_vertex(w   , h   , 255, 255, 255, 255);
+	vertex[3] = gfx::color_vertex(0.0f, h   , 255, 255, 255, 255);
 
 	background_->set(vertex, 0, 4);
+
+	vertex[0] = gfx::color_vertex(0.0f, h - 35.0f, 255, 255, 255, 255);
+	vertex[1] = gfx::color_vertex(w   , h - 35.0f, 255, 255, 255, 255);
+	vertex[2] = gfx::color_vertex(w   , h        , 255, 255, 255, 255);
+	vertex[3] = gfx::color_vertex(0.0f, h        , 255, 255, 255, 255);
+
+	chatBackground_->set(vertex, 0, 4);
 }
 
 }} // g13::net

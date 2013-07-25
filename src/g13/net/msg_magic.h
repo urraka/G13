@@ -202,7 +202,7 @@
 
 #define String(str, min)                                                                       \
         assert(str[sizeof(str) - 1] == 0);                                                     \
-        _w.write(str);
+        _w.write(str, sizeof(str));
 
 #define Fixed(x)                                                                               \
         _w.write(x.value());
@@ -298,7 +298,8 @@
 
 #define String(str, min)                                                                       \
         _strlen = _r.read(str, sizeof(str));                                                   \
-        if (_strlen < min || _strlen == sizeof(str)) return false;
+        if (_strlen < min || _strlen == sizeof(str)) return false;                             \
+        // if (!hlp::utf8_valid(str)) return false;
 
 #define Fixed(x)                                                                               \
         if (!_r.has(sizeof(int32_t) * 8)) return false;                                        \

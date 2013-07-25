@@ -1,4 +1,5 @@
 Networking
+  - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.
   - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
   - Server asserts when client tick > server tick. Make it kill the client.
@@ -16,6 +17,10 @@ Game
   - Consider making components private with methods to access as const.
 
 Graphics
+  - Test freetype rebuild for that font thing.
+  - Add easy to draw rectangles.
+  - Text crashing with weird character 0x2584.
+  - Add some text metrics stuff.
   - Add global_opacity to shaders and gfx::opacity() to set it.
   - Add ability to set own mipmaps.
 

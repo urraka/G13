@@ -53,7 +53,7 @@ void Text::value(const char *str)
 
 	if (!equal)
 	{
-		value_.empty();
+		value_.clear();
 
 		while (*str != 0)
 			value_ += (uint32_t)*(str++);
@@ -83,6 +83,26 @@ void Text::size(uint32_t size)
 void Text::color(const Color &color)
 {
 	color_ = color;
+}
+
+const std::basic_string<uint32_t> &Text::value()
+{
+	return value_;
+}
+
+Font *Text::font() const
+{
+	return font_;
+}
+
+Color Text::color() const
+{
+	return color_;
+}
+
+uint32_t Text::size() const
+{
+	return size_;
 }
 
 void Text::update()

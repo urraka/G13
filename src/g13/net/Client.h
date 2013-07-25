@@ -23,7 +23,7 @@ public:
 	void disconnect();
 	void update(Time dt);
 	void draw(float framePercent);
-	void event(Event *evt);
+	bool event(Event *evt);
 
 	bool active() const;
 	State state() const;
@@ -42,6 +42,12 @@ private:
 	gfx::VBO *background_;
 	gfx::Texture *texture_;
 	gfx::SpriteBatch *spriteBatch_;
+	gfx::Text *chatText_;
+	gfx::VBO *chatBackground_;
+
+	bool textInputMode_;
+	std::basic_string<uint32_t> chatString_;
+	std::basic_string<uint32_t> caret_;
 
 	void onConnect   (ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);

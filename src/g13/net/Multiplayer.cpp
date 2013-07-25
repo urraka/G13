@@ -85,17 +85,22 @@ void Multiplayer::loadMap()
 
 void Multiplayer::send(msg::Message *msg, ENetPeer *target)
 {
+	uint8_t  type = msg->type();
 	uint8_t  channel;
 	uint32_t packetFlags = ENET_PACKET_FLAG_NO_ALLOCATE;
 
-	if (msg->type() == msg::GameState::Type)
+	if (type == msg::GameState::Type)
 	{
 		channel = UnsequencedChannel;
 		packetFlags |= ENET_PACKET_FLAG_UNSEQUENCED;
 	}
 	else
 	{
-		channel = ReliableChannel;
+		if (type == msg::PlayerChat::Type || type == msg::Chat::Type)
+			channel = ChatChannel;
+		else
+			channel = ReliableChannel;
+
 		packetFlags |= ENET_PACKET_FLAG_RELIABLE;
 	}
 
