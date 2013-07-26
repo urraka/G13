@@ -15,7 +15,9 @@ template<size_t N> void utf8_encode(const std::basic_string<uint32_t> &str, char
 	assert(str.size() * 4 <= N - 1);
 
 	char *result = utf8::unchecked::utf32to8(str.begin(), str.end(), dest);
-	*result = 0;
+
+	while (size_t(result - dest) < N)
+		*(result++) = 0;
 }
 
 inline std::basic_string<uint32_t> utf8_decode(const char *str)
