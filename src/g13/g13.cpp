@@ -37,7 +37,7 @@ void initialize()
 	sys::fullscreen(false);
 	//sys::cursor_mode(sys::Disabled);
 	sys::window_title("G13");
-	sys::window_size(0.5f, 0.5f);
+	sys::window_size(0.4f, 0.4f);
 	sys::window_position(0.25f, 0.25f);
 	sys::vsync(1);
 

@@ -139,7 +139,6 @@ const char *text_frag =
 	"\tresult.a *= color.a;\n"
 	"\n"
 	"\tgl_FragColor = result;\n"
-	"\t// gl_FragColor = vec4(mix(vec3(0.0, 0.0, 0.0), result.rgb, result.a), 1.0);\n"
 	"}\n";
 
 }} // gfx::glsl
