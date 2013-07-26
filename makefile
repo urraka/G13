@@ -85,7 +85,7 @@ endif
 
 ifeq ($(platform),linux)
   out-dir := bin/linux$(out-dir-suffix)
-  out := $(out-dir)/G13
+  out := $(out-dir)/G13.bin
   lib += lib/linux/libGLEW.a
   lib += lib/linux/libglfw3.a
   lib += lib/linux/libpng15.a
@@ -104,7 +104,7 @@ endif
 ifeq ($(platform),osx)
   cxx := clang++
   out-dir := bin/osx$(out-dir-suffix)
-  out := $(out-dir)/G13
+  out := $(out-dir)/G13.bin
   lib += lib/osx/libGLEW.a
   lib += lib/osx/libglfw3.a
   lib += lib/osx/libpng15.a

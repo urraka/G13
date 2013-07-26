@@ -48,7 +48,7 @@ void initialize()
 	int width;
 	int height;
 
-	sys::window_size(&width, &height);
+	sys::framebuffer_size(&width, &height);
 	gfx::viewport(width, height, sys::window_rotation());
 
 	if (enet_initialize() != 0)

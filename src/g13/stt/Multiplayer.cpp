@@ -32,6 +32,10 @@ Multiplayer::Multiplayer()
 {
 	client_ = new net::Client();
 	server_ = new net::Server();
+
+	#if defined(DEBUG) && defined(IOS)
+		onKeyPressed('C');
+	#endif
 }
 
 Multiplayer::~Multiplayer()
@@ -48,6 +52,7 @@ void Multiplayer::update(Time dt)
 
 void Multiplayer::draw(float percent)
 {
+	gfx::bgcolor(gfx::Color(128, 128, 128));
 	gfx::clear();
 	client_->draw(percent);
 }

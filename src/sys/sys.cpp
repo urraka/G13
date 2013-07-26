@@ -8,6 +8,8 @@
 #ifdef IOS
 	#include "ios.h"
 	#include <mach/mach_time.h>
+
+	typedef void GLFWwindow;
 #else
 	#include <GL/glew.h>
 	#include <GLFW/glfw3.h>
@@ -560,6 +562,9 @@ void cb_orientation()
 	event.size.rotation = window_rotation();
 
 	window_size(&event.size.width, &event.size.height);
+
+	event.size.fboWidth = event.size.width;
+	event.size.fboHeight = event.size.height;
 
 	push_event(event);
 }

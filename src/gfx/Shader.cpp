@@ -214,7 +214,7 @@ GLuint create_program(GLuint vert, GLuint frag, const Attributes *attributes)
 			GLchar *info = new GLchar[length + 1];
 			glGetProgramInfoLog(program, length, 0, info);
 
-			std::cerr << "Failed to link program:" << std::endl << info << std::endl;
+			std::cout << "Failed to link program:" << std::endl << info << std::endl;
 
 			delete[] info;
 		}
