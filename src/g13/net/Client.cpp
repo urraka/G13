@@ -32,12 +32,6 @@ Client::Client()
 
 	// load resources
 
-	chatText_ = new gfx::Text();
-	chatText_->font(res::font(res::DefaultFont));
-	chatText_->size(9);
-	chatText_->color(gfx::Color(255, 255, 255));
-	chatText_->value(caret_);
-
 	chatBackground_ = new gfx::VBO();
 	chatBackground_->allocate<gfx::ColorVertex>(4, gfx::Static);
 	chatBackground_->mode(gfx::TriangleFan);
@@ -49,10 +43,31 @@ Client::Client()
 	texture_ = res::texture(res::Soldier);
 	spriteBatch_ = new gfx::SpriteBatch(MaxPlayers);
 	spriteBatch_->texture(texture_);
+
+	gfx::Font *font = res::font(res::DefaultFont);
+	gfx::Color fontColor(255, 255, 255);
+	uint32_t fontSize = 10;
+
+	chatText_ = new gfx::Text();
+	chatText_->font(font);
+	chatText_->size(fontSize);
+	chatText_->color(fontColor);
+	chatText_->value(caret_);
+
+	for (size_t i = 0; i < MaxPlayers; i++)
+	{
+		playersText_[i].text = new gfx::Text();
+		playersText_[i].text->font(font);
+		playersText_[i].text->size(fontSize);
+		playersText_[i].text->color(fontColor);
+	}
 }
 
 Client::~Client()
 {
+	for (size_t i = 0; i < MaxPlayers; i++)
+		delete playersText_[i].text;
+
 	delete chatText_;
 	delete background_;
 	delete spriteBatch_;
@@ -131,6 +146,12 @@ void Client::update(Time dt)
 		camera_.update(dt);
 	}
 
+	for (size_t i = 0; i < MaxPlayers; i++)
+	{
+		if (playersText_[i].time > 0)
+			playersText_[i].time = std::max(0, (int)(playersText_[i].time - dt));
+	}
+
 	tick_++;
 }
 
@@ -172,6 +193,12 @@ void Client::onDisconnect(ENetPeer *peer)
 	id_ = Player::InvalidId;
 	state_ = Disconnected;
 	textInputMode_ = false;
+
+	for (size_t i = 0; i < MaxPlayers; i++)
+	{
+		players_[i].onDisconnect();
+		playersText_[i].time = 0;
+	}
 }
 
 void Client::onMessage(msg::Message *msg, ENetPeer *from)
@@ -182,6 +209,7 @@ void Client::onMessage(msg::Message *msg, ENetPeer *from)
 		case msg::PlayerConnect::Type:    onPlayerConnect(msg);    break;
 		case msg::PlayerDisconnect::Type: onPlayerDisconnect(msg); break;
 		case msg::PlayerJoin::Type:       onPlayerJoin(msg);       break;
+		case msg::Chat::Type:             onPlayerChat(msg);       break;
 		case msg::GameState::Type:        onGameState(msg);        break;
 
 		default: break;
@@ -272,6 +300,7 @@ void Client::onPlayerDisconnect(msg::Message *msg)
 {
 	msg::PlayerDisconnect *playerDisconnect = (msg::PlayerDisconnect*)msg;
 	players_[playerDisconnect->id].onDisconnect();
+	playersText_[playerDisconnect->id].time = 0;
 
 	debug_log("Player #" << (int)playerDisconnect->id << " disconnected.");
 }
@@ -302,6 +331,17 @@ void Client::onPlayerJoin(msg::Message *msg)
 		else
 			debug_log("Player #" << (int)playerJoin->id << " joined.");
 	#endif
+}
+
+void Client::onPlayerChat(msg::Message *msg)
+{
+	msg::Chat *chat = (msg::Chat*)msg;
+
+	if (players_[chat->id].state() == Player::Playing)
+	{
+		playersText_[chat->id].text->value(hlp::utf8_decode(chat->text));
+		playersText_[chat->id].time = sys::time<sys::Seconds>(5);
+	}
 }
 
 void Client::onGameState(msg::Message *msg)
@@ -353,6 +393,44 @@ void Client::draw(float framePercent)
 		#endif
 
 		gfx::draw(spriteBatch_);
+
+		float scale = 1.0f / camera_.scale(framePercent);
+
+		for (size_t i = 0; i < MaxPlayers; i++)
+		{
+			if (playersText_[i].time > 0)
+			{
+				const cmp::SoldierPhysics &physics = players_[i].soldier()->physics;
+				const cmp::SoldierGraphics &graph = players_[i].soldier()->graphics;
+
+				vec2 pos = vec2(graph.sprite.x, graph.sprite.y);
+				gfx::Text::Bounds bounds = playersText_[i].text->bounds();
+
+				pos.x += 2.0f;
+				pos.y -= 20.0f;
+
+				if (physics.ducking())
+					pos.y -= physics.bboxDucked.height().to_float();
+				else
+					pos.y -= physics.bboxNormal.height().to_float();
+
+				float shadow = 2.0f;
+
+				mat4 m = gfx::matrix();
+				gfx::translate(pos.x, pos.y);
+				gfx::scale(scale, scale);
+				gfx::translate(-0.5f * bounds.width + shadow, shadow);
+
+				playersText_[i].text->color(gfx::Color(0, 0, 0));
+				gfx::draw(playersText_[i].text);
+				gfx::translate(-shadow, -shadow);
+
+				playersText_[i].text->color(gfx::Color(255, 255, 255));
+				gfx::draw(playersText_[i].text);
+
+				gfx::matrix(m);
+			}
+		}
 	}
 
 	if (textInputMode_)
@@ -407,7 +485,7 @@ bool Client::event(Event *evt)
 			bool esc = evt->key.code == sys::Escape;
 			bool enter = evt->key.code == sys::Enter || evt->key.code == sys::NumpadEnter;
 
-			if ((enter && state_ == Connected) || (textInputMode_ && esc))
+			if ((enter && active()) || (textInputMode_ && esc))
 			{
 				textInputMode_ = !textInputMode_;
 
@@ -419,6 +497,9 @@ bool Client::event(Event *evt)
 					msg.id = id_;
 					hlp::utf8_encode(chatString_, msg.text);
 					send(&msg, peer_);
+
+					playersText_[id_].time = sys::time<sys::Seconds>(5);
+					playersText_[id_].text->value(chatString_);
 				}
 
 				chatString_.clear();
@@ -483,8 +564,8 @@ void Client::onResize(int width, int height)
 
 	vertex[0] = gfx::color_vertex(0.0f, 0.0f,   0,   0, 255, 255);
 	vertex[1] = gfx::color_vertex(w   , 0.0f,   0,   0, 255, 255);
-	vertex[2] = gfx::color_vertex(w   , h   , 255, 255, 255, 255);
-	vertex[3] = gfx::color_vertex(0.0f, h   , 255, 255, 255, 255);
+	vertex[2] = gfx::color_vertex(w   , h   , 200, 200, 255, 255);
+	vertex[3] = gfx::color_vertex(0.0f, h   , 200, 200, 255, 255);
 
 	background_->set(vertex, 0, 4);
 

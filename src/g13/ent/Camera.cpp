@@ -52,24 +52,29 @@ void Camera::viewport(int width, int height)
 	height_ = height;
 }
 
-mat4 Camera::matrix(float framePercent, MatrixMode mode)
+float Camera::scale(float framePercent) const
 {
 	const float worldUnitsPerPixel = 1.0f;
 	const float initialWidth = 1200.0f; // in world units
 	const float initialScale = width_ * worldUnitsPerPixel / initialWidth;
 
+	return initialScale * glm::exp(maxZoom_ * zoom_.value(framePercent));
+}
+
+mat4 Camera::matrix(float framePercent, MatrixMode mode) const
+{
+	float scaleFactor = scale(framePercent);
 	vec2 position = position_.value(framePercent);
-	float scale = initialScale * glm::exp(maxZoom_ * zoom_.value(framePercent));
 
 	if (mode == MatrixInverted)
 	{
 		return glm::translate(position.x, position.y, 0.0f) *
-			glm::scale(1.0f / scale, 1.0f / scale, 1.0f) *
+			glm::scale(1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f) *
 			glm::translate(-width_ / 2.0f, -height_ / 2.0f, 0.0f);
 	}
 
 	return glm::translate(width_ / 2.0f, height_ / 2.0f, 0.0f) *
-		glm::scale(scale, scale, 1.0f) *
+		glm::scale(scaleFactor, scaleFactor, 1.0f) *
 		glm::translate(-position.x, -position.y, 0.0f);
 }
 

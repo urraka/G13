@@ -49,6 +49,15 @@ private:
 	std::basic_string<uint32_t> chatString_;
 	std::basic_string<uint32_t> caret_;
 
+	struct PlayerText
+	{
+		PlayerText() : time(0), text(0) {}
+		Time time;
+		gfx::Text *text;
+	};
+
+	PlayerText playersText_[MaxPlayers];
+
 	void onConnect   (ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);
 	void onMessage   (msg::Message *msg, ENetPeer *from);
@@ -57,6 +66,7 @@ private:
 	void onPlayerConnect(msg::Message *msg);
 	void onPlayerDisconnect(msg::Message *msg);
 	void onPlayerJoin(msg::Message *msg);
+	void onPlayerChat(msg::Message *msg);
 	void onGameState(msg::Message *msg);
 
 	void onResize(int width, int height);

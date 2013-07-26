@@ -27,7 +27,8 @@ public:
 	void update(Time dt);
 	void target(const vec2 *target);
 	void viewport(int width, int height);
-	mat4 matrix(float framePercent, MatrixMode mode = MatrixNormal);
+	float scale(float framePercent) const;
+	mat4 matrix(float framePercent, MatrixMode mode = MatrixNormal) const;
 	void zoom(ZoomType zoomType);
 
 private:

@@ -18,6 +18,15 @@ public:
 	Text();
 	~Text();
 
+	struct Bounds
+	{
+		Bounds() : x(0), y(0), width(0), height(0) {}
+		float x;
+		float y;
+		float width;
+		float height;
+	};
+
 	void value(const std::basic_string<uint32_t> &str);
 	void value(const char *str);
 	void font(Font *font);
@@ -29,13 +38,18 @@ public:
 	Color color() const;
 	uint32_t size() const;
 
+	const Bounds &bounds();
+
 private:
 	std::basic_string<uint32_t> value_;
 	Font *font_;
 	uint32_t size_;
 	Color color_;
 
-	bool updated_;
+	Bounds bounds_;
+
+	bool updatedGeometry_;
+	bool updatedBounds_;
 
 	struct DrawData
 	{
@@ -52,7 +66,7 @@ private:
 	std::vector<DrawData> drawData_;
 	std::vector<const Font::Glyph*> glyphs_;
 
-	void update();
+	void update(bool upload);
 	void draw();
 
 	friend void draw(Text *text);

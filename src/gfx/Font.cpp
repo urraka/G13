@@ -224,7 +224,7 @@ Font::Atlas::Atlas() : texture_(0), buffer_(0)
 	int height = 128;
 
 	texture_ = new Texture(width, height, depth, false);
-	texture_->filter(Nearest);
+	// texture_->filter(Nearest);
 
 	if (texture_->id() == 0)
 	{
@@ -403,7 +403,7 @@ bool Font::Atlas::enlarge()
 		return false;
 
 	Texture *tx = new Texture(newWidth, newHeight, depth, false);
-	tx->filter(Nearest);
+	// tx->filter(Nearest);
 
 	if (tx->id() == 0)
 	{

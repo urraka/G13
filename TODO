@@ -17,6 +17,8 @@ Game
   - Consider making components private with methods to access as const.
 
 Graphics
+  - Make matrix invalidation O(1), iterate shaders on a draw call.
+  - Check if font has kerning again.
   - Add special case in text shader for black/white color;
   - Add easy to draw rectangles.
   - Text crashing with weird character 0x2584.
