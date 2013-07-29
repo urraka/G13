@@ -17,17 +17,13 @@ Game
   - Consider making components private with methods to access as const.
 
 Graphics
-  - Make matrix invalidation O(1), iterate shaders on a draw call.
-  - Check if font has kerning again.
-  - Add special case in text shader for black/white color;
+  - Add special case in text shader for black/white color.
   - Add easy to draw rectangles.
   - Text crashing with weird character 0x2584.
-  - Add some text metrics stuff.
   - Add global_opacity to shaders and gfx::opacity() to set it.
   - Add ability to set own mipmaps.
 
 General
-  - Test if all the refactoring works on linux/osx/ios.
   - Consider making each module a library to include into the game.
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
@@ -39,6 +35,10 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Make matrix invalidation O(1), iterate shaders on a draw call.
+  x Add some text metrics stuff.
+  x Check if font has kerning again.
+  x Test if all the refactoring works on linux/osx/ios.
   x Split keyboard event in KeyPressedEvent/KeyReleasedEvent.
   x Consider renaming events so structs are like sys::KeyPressed and type sys::KeyPressedEvent.
   x Framebuffer size vs window size.

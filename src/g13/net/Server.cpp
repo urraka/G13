@@ -165,19 +165,17 @@ void Server::onMessage(msg::Message *msg, ENetPeer *from)
 
 	switch (msg->type())
 	{
-		case msg::Login::Type: onPlayerLogin(player, msg); break;
-		case msg::Ready::Type: onPlayerReady(player, msg); break;
-		case msg::Input::Type: onPlayerInput(player, msg); break;
-		case msg::Chat::Type : onPlayerChat(player, msg);  break;
+		case msg::Login::Type: onPlayerLogin(player, (msg::Login*)msg); break;
+		case msg::Ready::Type: onPlayerReady(player, (msg::Ready*)msg); break;
+		case msg::Input::Type: onPlayerInput(player, (msg::Input*)msg); break;
+		case msg::Chat::Type:  onPlayerChat (player, (msg::Chat*) msg); break;
 
 		default: break;
 	}
 }
 
-void Server::onPlayerLogin(Player *player, msg::Message *msg)
+void Server::onPlayerLogin(Player *player, msg::Login *login)
 {
-	msg::Login *login = (msg::Login*)msg;
-
 	player->onConnect(login->name);
 
 	ENetPeer *peer = player->peer();
@@ -215,7 +213,7 @@ void Server::onPlayerLogin(Player *player, msg::Message *msg)
 	LOG("Player #" << (int)player->id() << " connected. Name: " << player->name());
 }
 
-void Server::onPlayerReady(Player *player, msg::Message *msg)
+void Server::onPlayerReady(Player *player, msg::Ready *ready)
 {
 	msg::PlayerJoin join;
 	join.tick = tick_;
@@ -227,14 +225,12 @@ void Server::onPlayerReady(Player *player, msg::Message *msg)
 	send(&join);
 }
 
-void Server::onPlayerInput(Player *player, msg::Message *msg)
+void Server::onPlayerInput(Player *player, msg::Input *input)
 {
-	msg::Input *msgInput = (msg::Input*)msg;
-
-	if (msgInput->tick > tick_)
+	if (input->tick > tick_)
 	{
 		#ifdef DEBUG
-			uint32_t t = msgInput->tick;
+			uint32_t t = input->tick;
 			int id = (int)player->id();
 
 			debug_log("input->tick > tick (" << t << " > " << tick_ << ") for player #" << id);
@@ -243,16 +239,14 @@ void Server::onPlayerInput(Player *player, msg::Message *msg)
 		return;
 	}
 
-	cmp::SoldierInput input;
-	input.unserialize(msgInput->input);
+	cmp::SoldierInput soldierInput;
+	soldierInput.unserialize(input->input);
 
-	player->onInput(msgInput->tick, input);
+	player->onInput(input->tick, soldierInput);
 }
 
-void Server::onPlayerChat(Player *player, msg::Message *msg)
+void Server::onPlayerChat(Player *player, msg::Chat *chat)
 {
-	msg::Chat *chat = (msg::Chat*)msg;
-
 	LOG(player->name() << ": " << chat->text);
 
 	chat->id = player->id();

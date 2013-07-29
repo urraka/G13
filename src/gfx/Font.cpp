@@ -4,9 +4,6 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include FT_GLYPH_H
-#include FT_OUTLINE_H
-#include FT_BITMAP_H
 #include FT_LCD_FILTER_H
 
 #include <iostream>
@@ -89,10 +86,10 @@ float Font::kerning(uint32_t a, uint32_t b)
 {
 	assert(face_ != 0);
 
-	if (a == 0 || b == 0)
-		return 0.0f;
-
 	FT_Face face = (FT_Face)face_;
+
+	if (a == 0 || b == 0 || !FT_HAS_KERNING(face))
+		return 0.0f;
 
 	FT_UInt index1 = FT_Get_Char_Index(face, a);
 	FT_UInt index2 = FT_Get_Char_Index(face, b);

@@ -37,7 +37,6 @@ private:
 
 	const Attributes *attributes_;
 
-	friend void invalidate_matrix();
 	friend void draw(VBO *vbo, size_t offset, size_t count);
 	friend class VBO;
 };

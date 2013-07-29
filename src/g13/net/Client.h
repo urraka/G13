@@ -11,6 +11,15 @@
 namespace g13 {
 namespace net {
 
+namespace msg {
+	class ServerInfo;
+	class PlayerConnect;
+	class PlayerDisconnect;
+	class PlayerJoin;
+	class GameState;
+	class Chat;
+}
+
 class Client : public Multiplayer
 {
 public:
@@ -62,12 +71,12 @@ private:
 	void onDisconnect(ENetPeer *peer);
 	void onMessage   (msg::Message *msg, ENetPeer *from);
 
-	void onServerInfo(msg::Message *msg);
-	void onPlayerConnect(msg::Message *msg);
-	void onPlayerDisconnect(msg::Message *msg);
-	void onPlayerJoin(msg::Message *msg);
-	void onPlayerChat(msg::Message *msg);
-	void onGameState(msg::Message *msg);
+	void onServerInfo      (msg::ServerInfo       *info);
+	void onPlayerConnect   (msg::PlayerConnect    *playerConnect);
+	void onPlayerDisconnect(msg::PlayerDisconnect *playerDisconnect);
+	void onPlayerJoin      (msg::PlayerJoin       *playerJoin);
+	void onPlayerChat      (msg::Chat             *chat);
+	void onGameState       (msg::GameState        *gameState);
 
 	void onResize(int width, int height);
 };

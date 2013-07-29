@@ -12,12 +12,6 @@ namespace gfx {
 static Context ctx_;
 Context *const context = &ctx_;
 
-void invalidate_matrix()
-{
-	for (size_t i = 0; i < context->shaders.size(); i++)
-		context->shaders[i]->mvpModified_ = true;
-}
-
 // -----------------------------------------------------------------------------
 // General
 // -----------------------------------------------------------------------------
@@ -80,7 +74,7 @@ void viewport(int width, int height, int rotation)
 	if (rotation != 0)
 		context->projection = glm::rotate((float)rotation, 0.0f, 0.0f, 1.0f) * context->projection;
 
-	invalidate_matrix();
+	context->mvpModified = true;
 }
 
 void clear()
@@ -183,6 +177,14 @@ void draw(VBO *vbo, size_t offset, size_t count)
 
 	bind(shader);
 
+	if (context->mvpModified)
+	{
+		for (size_t i = 0; i < context->shaders.size(); i++)
+			context->shaders[i]->mvpModified_ = true;
+
+		context->mvpModified = false;
+	}
+
 	if (shader->mvpModified_ && shader->mvp_ != -1)
 	{
 		shader->uniform(shader->mvp_, context->projection * context->matrix);
@@ -263,7 +265,7 @@ void draw(Text *text)
 void matrix(const glm::mat4 &m)
 {
 	context->matrix = m;
-	invalidate_matrix();
+	context->mvpModified = true;
 }
 
 const glm::mat4 &matrix()

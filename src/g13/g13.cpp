@@ -84,6 +84,11 @@ void display()
 {
 	while (Event *event = sys::poll_events())
 	{
+		#ifdef DEBUG
+			if (!dbg->event(event))
+				continue;
+		#endif
+
 		if (!state->event(event))
 			continue;
 
@@ -93,12 +98,6 @@ void display()
 				gfx::viewport(event->size.fboWidth, event->size.fboHeight, event->size.rotation);
 				break;
 
-			#ifdef DEBUG
-				case Event::KeyPressed:
-					dbg->onKeyPressed(event->key.code);
-					break;
-			#endif
-
 			case Event::Closed:
 				return;
 
@@ -107,6 +106,10 @@ void display()
 	}
 
 	state->draw(accumulator / (double)dt);
+
+	#ifdef DEBUG
+		dbg->drawConsole();
+	#endif
 
 	Time newTime = sys::time();
 	Time frameTime = newTime - time;

@@ -52,7 +52,6 @@ void Multiplayer::update(Time dt)
 
 void Multiplayer::draw(float percent)
 {
-	gfx::bgcolor(gfx::Color(128, 128, 128));
 	gfx::clear();
 	client_->draw(percent);
 }

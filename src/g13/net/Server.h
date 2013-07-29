@@ -6,6 +6,13 @@
 namespace g13 {
 namespace net {
 
+namespace msg {
+	class Login;
+	class Ready;
+	class Input;
+	class Chat;
+}
+
 class Server : public Multiplayer
 {
 public:
@@ -26,10 +33,10 @@ private:
 	void onDisconnect(ENetPeer *peer);
 	void onMessage   (msg::Message *msg, ENetPeer *from);
 
-	void onPlayerLogin(Player *player, msg::Message *msg);
-	void onPlayerReady(Player *player, msg::Message *msg);
-	void onPlayerInput(Player *player, msg::Message *msg);
-	void onPlayerChat(Player *player, msg::Message *msg);
+	void onPlayerLogin(Player *player, msg::Login *login);
+	void onPlayerReady(Player *player, msg::Ready *ready);
+	void onPlayerInput(Player *player, msg::Input *input);
+	void onPlayerChat (Player *player, msg::Chat  *chat);
 };
 
 }} // net

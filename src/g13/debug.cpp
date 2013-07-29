@@ -1,11 +1,12 @@
 #ifdef DEBUG
 
 #include "debug.h"
+#include "res.h"
 #include "Map.h"
 #include "Collision.h"
 #include "ent/Soldier.h"
 
-#include <sys/keyboard.h>
+#include <g13/g13.h>
 #include <gfx/gfx.h>
 #include <vector>
 #include <sstream>
@@ -23,7 +24,10 @@ Debugger::Debugger()
 		interpolation(true),
 		extrapolation(false),
 		ticksBehind(4),
-		collisionHulls()
+		showFontAtlas(false),
+		consoleEnabled_(false),
+		collisionHulls(),
+		consoleText_(0)
 {
 }
 
@@ -215,8 +219,80 @@ void Debugger::showCollisionData()
 	std::cout << std::endl;
 }
 
-void Debugger::onKeyPressed(int key)
+void Debugger::drawFontAtlas()
 {
+	if (!showFontAtlas)
+		return;
+
+	gfx::Font *font = res::font(res::DefaultFont);
+
+	if (font->texture(0) != 0)
+	{
+		gfx::Sprite sprite;
+		sprite.texture = font->texture(0);
+		sprite.width = sprite.texture->width();
+		sprite.height = sprite.texture->height();
+		sprite.u[1] = 1.0f;
+		sprite.v[1] = 1.0f;
+		sprite.opacity = 0.5f;
+
+		gfx::matrix(mat4(1.0f));
+		gfx::draw(sprite);
+	}
+}
+
+void Debugger::drawConsole()
+{
+	if (!consoleEnabled_)
+		return;
+
+	if (consoleText_ == 0)
+	{
+		std::string text;
+
+		text += "C: Start client\n";
+		text += "S: Start server\n";
+		text += "F: Toggle font atlas\n";
+		text += "W: Toggle wireframe\n";
+		text += "H: Toggle collision hulls\n";
+		text += "I: Toggle network interpolation\n";
+		text += "O: Toggle network extrapolation\n";
+		text += "E: Increment ticksBehind\n";
+		text += "Q: Decrement ticksBehind\n";
+		text += "M: Show collision data\n";
+
+		consoleText_ = new gfx::Text();
+		consoleText_->size(11);
+		consoleText_->font(res::font(res::Monospace));
+		consoleText_->value(text.c_str());
+	}
+
+	gfx::matrix(mat4(1.0f));
+	gfx::translate(10.0f, 20.0f);
+	gfx::draw(consoleText_);
+}
+
+bool Debugger::event(sys::Event *evt)
+{
+	if (evt->type == Event::KeyPressed)
+		return onKeyPressed(evt->key.code);
+
+	return true;
+}
+
+bool Debugger::onKeyPressed(int key)
+{
+	if (key == sys::F1 || (consoleEnabled_ && key == sys::Escape))
+	{
+		consoleEnabled_ = !consoleEnabled_;
+		return false;
+	}
+
+	if (!consoleEnabled_)
+		return true;
+
+	bool result = false;
+
 	switch (key)
 	{
 		case 'W':
@@ -255,8 +331,20 @@ void Debugger::onKeyPressed(int key)
 			dbg->showCollisionData();
 			break;
 
-		default: break;
+		case 'F':
+			showFontAtlas = !showFontAtlas;
+			break;
+
+		case 'S':
+		case 'C':
+			result = true;
+			break;
+
+		default:
+			break;
 	}
+
+	return result;
 }
 
 } // g13

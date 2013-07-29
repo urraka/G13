@@ -14,6 +14,7 @@ enum TextureID
 enum FontID
 {
 	DefaultFont,
+	Monospace,
 	FontCount
 };
 

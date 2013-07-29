@@ -27,6 +27,7 @@ struct Context
 		unit = 0;
 		matrix = glm::mat4(1.0f);
 		projection = glm::mat4(1.0f);
+		mvpModified = true;
 		maxTextureSize = 0;
 		shdrcolor = 0;
 		shdrsprite = 0;
@@ -51,6 +52,7 @@ struct Context
 	std::vector<Shader*> shaders;
 	glm::mat4 matrix;
 	glm::mat4 projection;
+	bool mvpModified;
 
 	// constants
 	int maxTextureSize;

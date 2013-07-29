@@ -24,6 +24,7 @@ void initialize()
 	textures[Soldier].filename = "data/guy.png";
 
 	fonts[DefaultFont].filename = "data/NotoSans-Bold.ttf";
+	fonts[Monospace].filename = "data/consolab.ttf";
 }
 
 void terminate()
