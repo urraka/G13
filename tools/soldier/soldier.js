@@ -55,7 +55,7 @@ var CX = 0;
 var CY = 0;
 var images = {};
 var timerID = null;
-var soldier = new Soldier();
+var soldier = null;
 
 // -----------------------------------------------------------------------------
 // Main
@@ -69,6 +69,8 @@ function main()
 	images["soldier"] = document.getElementById("soldier");
 	images["eyes"] = document.getElementById("eyes");
 	images["weapon"] = document.getElementById("weapon");
+
+	soldier = new Soldier();
 
 	window.onresize    = resize;
 	window.onmousemove = function(e) { mouse(e.clientX, e.clientY); };
@@ -139,6 +141,8 @@ function draw()
 
 	context.setTransform(1, 0, 0, 1, 0, 0);
 
+	context.drawImage(images["atlas"], 0, 0);
+
 	context.beginPath();
 	context.moveTo(CX, 0);
 	context.lineTo(CX, H);
@@ -175,6 +179,9 @@ function Soldier()
 	this.target = { x: 0, y: 0 };
 	this.weaponShake = { x: 0, y: 0 };
 	this.shooting = false;
+	this.armsAtlas = this.generateArmsAtlas();
+
+	images["atlas"] = this.armsAtlas.image;
 }
 
 Soldier.prototype.draw = function(context)
@@ -243,38 +250,23 @@ Soldier.prototype.draw = function(context)
 
 Soldier.prototype.drawArm = function(context, which, angle)
 {
+	var interval = 6;
+
 	var arm = this.weapon.arms[which];
+	var armIndex = Math.floor((angle + 90) / interval);
+	var armSprite = this.armsAtlas.sprites[which][armIndex];
+
 	var x = this.frame.arms[which].x;
 	var y = this.frame.arms[which].y;
 
-	var interval = 6;
-
-	var angle1 = Math.floor((angle + 90) / interval) * interval - 90;
+	var angle1 = armIndex * interval - 90;
 	var angle2 = angle;
 
-	var weapdist1 = this.weaponDistance(angle1);
-	var weapdist2 = this.weaponDistance(angle2);
-
-	var matrix1 = svg.createSVGMatrix();
-	matrix1 = matrix1.rotate(angle1);
-	matrix1 = matrix1.translate(weapdist1 - this.weapon.cx, -this.weapon.cy);
-
-	var grabpoint1 = svg.createSVGPoint();
-	grabpoint1.x = arm.grabx;
-	grabpoint1.y = arm.graby;
-	grabpoint1 = grabpoint1.matrixTransform(matrix1);
+	var grabpoint1 = this.grabpoint(arm.grabx, arm.graby, angle1, 0, 0);
 	grabpoint1.x -= x;
 	grabpoint1.y -= y;
 
-	var matrix2 = svg.createSVGMatrix();
-	matrix2 = matrix2.translate(this.weaponShake.x, this.weaponShake.y);
-	matrix2 = matrix2.rotate(angle2);
-	matrix2 = matrix2.translate(weapdist2 - this.weapon.cx, -this.weapon.cy);
-
-	var grabpoint2 = svg.createSVGPoint();
-	grabpoint2.x = arm.grabx;
-	grabpoint2.y = arm.graby;
-	grabpoint2 = grabpoint2.matrixTransform(matrix2);
+	var grabpoint2 = this.grabpoint(arm.grabx, arm.graby, angle2, this.weaponShake.x, this.weaponShake.y);
 	grabpoint2.x -= x;
 	grabpoint2.y -= y;
 
@@ -284,24 +276,157 @@ Soldier.prototype.drawArm = function(context, which, angle)
 	var dist1 = Math.sqrt(Math.pow(grabpoint1.x, 2) + Math.pow(grabpoint1.y, 2));
 	var dist2 = Math.sqrt(Math.pow(grabpoint2.x, 2) + Math.pow(grabpoint2.y, 2));
 
-	var ctrlpoint = {
-		x: grabpoint1.x * 0.5 + arm.offsx,
-		y: grabpoint1.y * 0.5 + arm.offsy
-	};
+	var w = armSprite.width;
+	var h = armSprite.height;
 
 	context.save();
-	context.strokeStyle = "black";
-	context.lineWidth = 5;
-	context.beginPath();
 	context.translate(x, y);
 	context.rotate(ang1);
 	context.scale(dist2 / dist1, 1);
-	context.rotate(-ang1);
-	context.rotate(ang2 - ang1);
-	context.moveTo(0, 0);
-	context.quadraticCurveTo(ctrlpoint.x, ctrlpoint.y, grabpoint1.x, grabpoint1.y);
-	context.stroke();
+	context.rotate(-ang1 + ang2);
+	context.translate(-armSprite.cx, -armSprite.cy);
+	context.drawImage(this.armsAtlas.image, armSprite.x, armSprite.y, w, h, 0, 0, w, h);
 	context.restore();
+}
+
+Soldier.prototype.generateArmSprite = function(which, angle, thickness, scale)
+{
+	var arm = this.weapon.arms[which];
+	var x = this.frame.arms[which].x;
+	var y = this.frame.arms[which].y;
+
+	var grabpoint = this.grabpoint(arm.grabx, arm.graby, angle, 0, 0);
+	grabpoint.x -= x;
+	grabpoint.y -= y;
+
+	var ctrlpoint = {
+		x: grabpoint.x * 0.5 + arm.offsx,
+		y: grabpoint.y * 0.5 + arm.offsy
+	};
+
+	var armAngle = to_deg(Math.atan2(grabpoint.y, grabpoint.x));
+
+	var point = svg.createSVGPoint();
+	var matrix = svg.createSVGMatrix();
+
+	matrix = matrix.rotate(-armAngle);
+
+	point.x = grabpoint.x;
+	point.y = grabpoint.y;
+	point = point.matrixTransform(matrix);
+
+	grabpoint.x = point.x;
+	grabpoint.y = point.y;
+
+	point.x = ctrlpoint.x;
+	point.y = ctrlpoint.y;
+	point = point.matrixTransform(matrix);
+
+	ctrlpoint.x = point.x;
+	ctrlpoint.y = point.y;
+
+	var xmin = Math.min(0, Math.min(grabpoint.x, ctrlpoint.x));
+	var ymin = Math.min(0, Math.min(grabpoint.y, ctrlpoint.y));
+	var xmax = Math.max(0, Math.max(grabpoint.x, ctrlpoint.x));
+	var ymax = Math.max(0, Math.max(grabpoint.y, ctrlpoint.y));
+
+	var image = document.createElement("canvas");
+	var context = image.getContext("2d");
+
+	image.width = Math.ceil((xmax - xmin + 2 * (thickness + 1)) * scale);
+	image.height = Math.ceil((ymax - ymin + 2 * (thickness + 1)) * scale);
+
+	context.strokeStyle = "black";
+	context.lineCap = "round";
+	context.lineWidth = thickness;
+	context.scale(scale, scale);
+	context.translate(thickness + 1 + Math.abs(xmin), thickness + 1 + Math.abs(ymin));
+	context.beginPath();
+	context.moveTo(0, 0);
+	context.quadraticCurveTo(ctrlpoint.x, ctrlpoint.y, grabpoint.x, 0);
+	context.stroke();
+
+	return {
+		image: image,
+		cx: (thickness + 1 + Math.abs(xmin)) * scale,
+		cy: (thickness + 1 + Math.abs(ymin)) * scale
+	};
+}
+
+Soldier.prototype.generateArmsAtlas = function()
+{
+	var sprites = [[],[]];
+	var blocks = [];
+	var interval = 6;
+	var thickness = 5;
+
+	for (var iArm = 0; iArm < 2; iArm++)
+	{
+		for (var i = 0; i <= (180 / 6); i++)
+		{
+			var angle = i * interval - 90;
+			var sprite = this.generateArmSprite(iArm, angle, thickness, 1);
+			var offset = crop(sprite.image);
+
+			sprite.cx -= offset.x0;
+			sprite.cy -= offset.y0;
+
+			blocks.push({
+				w: sprite.image.width + 1,
+				h: sprite.image.height + 1,
+				sprite: sprite
+			});
+
+			sprites[iArm].push(sprite);
+		}
+	}
+
+	blocks.sort(function(a, b) { return Math.max(b.w, b.h) < Math.max(a.w, a.h); });
+
+	var packer = new GrowingPacker();
+	packer.fit(blocks);
+
+	var w = packer.root.w + 1;
+	var h = packer.root.h + 1;
+
+	var atlas = document.createElement("canvas");
+	var context = atlas.getContext("2d");
+
+	atlas.width = w;
+	atlas.height = h;
+
+	for (var i = 0; i < blocks.length; i++)
+	{
+		var x = blocks[i].fit.x + 1;
+		var y = blocks[i].fit.y + 1;
+		var image = blocks[i].sprite.image;
+		var imageData = image.getContext("2d").getImageData(0, 0, image.width, image.height);
+
+		context.putImageData(imageData, x, y, 0, 0, image.width, image.height);
+
+		blocks[i].sprite.x = x;
+		blocks[i].sprite.y = y;
+		blocks[i].sprite.width = image.width;
+		blocks[i].sprite.height = image.height;
+
+		delete blocks[i].sprite.image;
+	}
+
+	return { image: atlas, sprites: sprites };
+}
+
+Soldier.prototype.grabpoint = function(x, y, angle, shakex, shakey)
+{
+	var matrix = svg.createSVGMatrix();
+	matrix = matrix.translate(shakex, shakey);
+	matrix = matrix.rotate(angle);
+	matrix = matrix.translate(this.weaponDistance(angle) - this.weapon.cx, -this.weapon.cy);
+
+	var result = svg.createSVGPoint();
+	result.x = x;
+	result.y = y;
+
+	return result.matrixTransform(matrix);
 }
 
 Soldier.prototype.weaponDistance = function(angle)
@@ -341,4 +466,83 @@ function clamp(value, a, b)
 function rand(min, max)
 {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function crop(image)
+{
+	var w = image.width;
+	var h = image.height;
+
+	var context = image.getContext("2d");
+	var imageData = context.getImageData(0, 0, w, h);
+	var data = imageData.data;
+
+	var size = w * h * 4;
+
+	var x0 = 0;
+	var x1 = w - 1;
+	var y0 = 0;
+	var y1 = h - 1;
+
+	// x0
+
+	for (var x = 0; x < w; x++)
+	{
+		for (var y = 0; y < h; y++)
+		{
+			if (data[(y * w + x) * 4 + 3] != 0)
+			{
+				x0 = x;
+				break;
+			}
+		}
+
+		if (y < h) break;
+	}
+
+	// x1
+
+	for (var x = w - 1; x >= 0; x--)
+	{
+		for (var y = 0; y < h; y++)
+		{
+			if (data[(y * w + x) * 4 + 3] != 0)
+			{
+				x1 = x;
+				break;
+			}
+		}
+
+		if (y < h) break;
+	}
+
+	// y0
+
+	for (var i = 0; i < size; i += 4)
+	{
+		if (data[i + 3] != 0)
+		{
+			y0 = Math.floor(i / (w * 4));
+			break;
+		}
+	}
+
+	// y1
+
+	for (var i = size - 4; i >= 0; i -= 4)
+	{
+		if (data[i + 3] != 0)
+		{
+			y1 = Math.floor(i / (w * 4));
+			break;
+		}
+	}
+
+	// crop
+
+	image.width = x1 - x0 + 1;
+	image.height = y1 - y0 + 1;
+	context.putImageData(imageData, -x0, -y0);
+
+	return { "x0": x0, "y0": y0 };
 }
