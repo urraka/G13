@@ -1,83 +1,61 @@
 // -----------------------------------------------------------------------------
-// Parameters
-// -----------------------------------------------------------------------------
-
-var soldier_frame = {
-	image: "soldier",
-	cx: 169,
-	cy: 330,
-	eyes: {
-		image: "eyes",
-		cx: 82,
-		cy: 7,
-		miny: -290,
-		maxy: -90,
-		arc: { x: -30, y: -185, r: 180 }
-	},
-	arms: [
-		{ x: -108, y: -30 },
-		{ x:  108, y: -30 }
-	]
-};
-
-var soldier_weapon = {
-	image: "weapon",
-	cx: 337,
-	cy: 45,
-	distances: [400, 300, 275, 275, 250],
-	arms: [
-		{
-			grabx: 82,
-			graby: 82,
-			offsx: -20,
-			offsy: 30
-		},
-		{
-			grabx: 232,
-			graby: 71,
-			offsx: 20,
-			offsy: 30
-		}
-	]
-};
-
-// -----------------------------------------------------------------------------
-// Globals
-// -----------------------------------------------------------------------------
-
-var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-var canvas = null;
-var context = null;
-var SCALE = 0.5;
-var W = 0;
-var H = 0;
-var CX = 0;
-var CY = 0;
-var images = {};
-var timerID = null;
-var soldier = null;
-
-// -----------------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------------
 
+var stage = null;
+var soldier = null;
+
 function main()
 {
-	canvas = document.getElementsByTagName("canvas")[0];
-	context = canvas.getContext("2d");
+	// background
 
-	images["soldier"] = document.getElementById("soldier");
-	images["eyes"] = document.getElementById("eyes");
-	images["weapon"] = document.getElementById("weapon");
+	var backgroundLayer = new Kinetic.Layer({ id: "backgroundLayer" });
+	var background = new Kinetic.Rect({ id: "background", fill: "#CCC" });
 
-	soldier = new Soldier();
+	backgroundLayer.add(background);
 
-	window.onresize    = resize;
-	window.onmousemove = function(e) { mouse(e.clientX, e.clientY); };
-	window.onmousedown = function(e) { click(true); };
-	window.onmouseup   = function(e) { click(false); };
+	// scene
+
+	var scale = 1;
+	var sceneLayer = new Kinetic.Layer({ id: "sceneLayer" });
+	var scene = new Kinetic.Group({ id: "scene", scale: [scale, scale] });
+
+	sceneLayer.add(scene);
+	soldier = new Soldier(scene);
+
+	// overlay
+
+	var overlayLayer = new Kinetic.Layer({ id: "overlayLayer" });
+
+	for (var i = 0; i < 4; i++)
+	{
+		overlayLayer.add(new Kinetic.Line({
+			points: [0, 0, 0, 0],
+			stroke: "black",
+			strokeWidth: 1,
+			opacity: 0.1
+		}));
+	}
+
+	// stage
+
+	stage = new Kinetic.Stage({ container: "container" });
+	stage.getContent().style.display = "block";
+
+	stage.add(backgroundLayer);
+	stage.add(sceneLayer);
+	stage.add(overlayLayer);
+
+	stage.on("mousemove", mousemove);
+	stage.on("mousedown", mousedown);
+	stage.on("mouseup", mouseup);
+
+	window.addEventListener("resize", resize);
+	window.addEventListener("keydown", keydown);
+	window.addEventListener("keyup", keyup);
 
 	resize();
+	stage.draw();
 }
 
 // -----------------------------------------------------------------------------
@@ -86,358 +64,613 @@ function main()
 
 function resize()
 {
-	W = canvas.offsetWidth;
-	H = canvas.offsetHeight;
+	var w = window.innerWidth;
+	var h = window.innerHeight;
 
-	CX = Math.floor(W / 2) + 0.5;
-	CY = Math.floor(H / 2) + 0.5;
+	// update background
 
-	canvas.width = W;
-	canvas.height = H;
+	var background = stage.get("#background")[0];
 
-	draw();
+	background.setWidth(w);
+	background.setHeight(h);
+
+	// update scene
+
+	var sceneLayer = stage.get("#sceneLayer")[0];
+
+	sceneLayer.setOffsetX(-w / 2);
+	sceneLayer.setOffsetY(-h / 2);
+
+	// update overlay
+
+	var lines = stage.get("#overlayLayer")[0].get("Line");
+
+	var m  = Math.max(w, h);
+	var cx = Math.floor(w / 2) + 0.5;
+	var cy = Math.floor(h / 2) + 0.5;
+
+	lines[0].setPoints([[0, cy], [w, cy]]);
+	lines[1].setPoints([[cx, 0], [cx, h]]);
+	lines[2].setPoints([[cx - m, cy - m], [cx + m, cy + m]]);
+	lines[3].setPoints([[cx - m, cy + m], [cx + m, cy - m]]);
+
+	// update stage
+
+	stage.setWidth(w);
+	stage.setHeight(h);
 }
 
-function mouse(x, y)
+function mousemove(evt)
 {
-	soldier.target.x = (x - CX) * (1.0 / SCALE);
-	soldier.target.y = (y - CY) * (1.0 / SCALE);
-
-	draw();
+	soldier.setTarget(evt.clientX, evt.clientY);
 }
 
-function click(pressed)
+function mousedown()
 {
-	if (pressed && timerID === null)
-	{
-		soldier.shooting = true;
-		timerID = setInterval(draw, 1000 / 60);
-	}
-	else
-	{
-		soldier.shooting = false;
-		clearInterval(timerID);
-		timerID = null;
-	}
+	soldier.shoot(true);
 }
 
-// -----------------------------------------------------------------------------
-// Draw
-// -----------------------------------------------------------------------------
-
-function draw()
+function mouseup()
 {
-	context.save();
-	context.fillStyle = "#CCC";
-	context.strokeStyle = "rgba(0, 0, 0, 0.1)";
-	context.fillRect(0, 0, W, H);
+	soldier.shoot(false);
+}
 
-	context.translate(CX, CY);
-	context.scale(SCALE, SCALE);
+function keydown(evt)
+{
+	var code = evt.keyCode || evt.which;
 
-	soldier.draw(context);
+	if (code == "W".charCodeAt(0))
+		soldier.showWeapon(!soldier.weaponVisible);
 
-	// guides
+	if (code == "R".charCodeAt(0))
+		soldier.run(!soldier.running);
+}
 
-	context.setTransform(1, 0, 0, 1, 0, 0);
-
-	context.drawImage(images["atlas"], 0, 0);
-
-	context.beginPath();
-	context.moveTo(CX, 0);
-	context.lineTo(CX, H);
-	context.stroke();
-
-	context.beginPath();
-	context.moveTo(0, CY);
-	context.lineTo(W, CY);
-	context.stroke();
-
-	var M = Math.max(W, H);
-
-	context.beginPath();
-	context.moveTo(-M + CX,  M + CY);
-	context.lineTo( M + CX, -M + CY);
-	context.stroke();
-
-	context.beginPath();
-	context.moveTo(-M + CX, -M + CY);
-	context.lineTo( M + CX,  M + CY);
-	context.stroke();
-
-	context.restore();
+function keyup(evt)
+{
 }
 
 // -----------------------------------------------------------------------------
 // Soldier
 // -----------------------------------------------------------------------------
 
-function Soldier()
+function Soldier(parent)
 {
-	this.frame = soldier_frame;
-	this.weapon = soldier_weapon;
-	this.target = { x: 0, y: 0 };
-	this.weaponShake = { x: 0, y: 0 };
-	this.shooting = false;
-	this.armsAtlas = this.generateArmsAtlas();
+	var self = this;
 
-	images["atlas"] = this.armsAtlas.image;
+	this.strokeWidth = 5;
+	this.strokeColor = "black";
+	this.bodyColor = "blue";
+	this.headColor = "#FFCC99";
+	this.weaponColor = "#4C4C4C";
+
+	this.target = { x: 0, y: 0 };
+	this.shooting = false;
+	this.shake = { x: 0, y: 0 };
+	this.weaponVisible = true;
+	this.running = false;
+
+	this.root = new Kinetic.Group({ id: "soldier" });
+
+	this.addLegs();
+	this.addBody();
+	this.addHead();
+	this.addWeapon();
+	this.addArms();
+
+	this.animationCount = 0;
+	this.animation = new Kinetic.Animation(
+		function(frame) { self.update(frame); },
+		parent.getLayer()
+	);
+
+	this.update();
+
+	parent.add(this.root);
+
+	this.run(true);
 }
 
-Soldier.prototype.draw = function(context)
+Soldier.prototype.redraw = function()
 {
-	this.weaponShake.x = 0;
-	this.weaponShake.y = 0;
+	var layer = this.root.getLayer();
 
+	if (layer)
+		layer.batchDraw();
+}
+
+Soldier.prototype.showWeapon = function(show)
+{
+	this.weaponVisible = show;
+
+	if (!show && this.shooting)
+		this.shoot(false);
+
+	this.root.get("#weapon")[0].setVisible(show);
+
+	this.update();
+	this.redraw();
+}
+
+Soldier.prototype.run = function(run)
+{
+	if (this.running == run)
+		return;
+
+	this.running = run;
+
+	if (run)
+		this.play();
+	else
+		this.stop();
+
+	this.update();
+	this.redraw();
+}
+
+Soldier.prototype.shoot = function(shoot)
+{
+	if (!this.weaponVisible)
+		shoot = false;
+
+	if (this.shooting == shoot)
+		return;
+
+	this.shooting = shoot;
+
+	if (shoot)
+		this.play();
+	else
+		this.stop();
+}
+
+Soldier.prototype.play = function()
+{
+	if (this.animationCount === 0)
+		this.animation.start();
+
+	this.animationCount++;
+}
+
+Soldier.prototype.stop = function()
+{
+	this.animationCount--;
+
+	if (this.animationCount === 0)
+		this.animation.stop();
+}
+
+Soldier.prototype.update = function(frame)
+{
 	if (this.shooting)
 	{
 		var max = 5;
-
-		this.weaponShake.x = rand(-max, max);
-		this.weaponShake.y = rand(-max, max);
+		this.shake.x = rand(-max, max);
+		this.shake.y = rand(-max, max);
+	}
+	else
+	{
+		this.shake.x = 0;
+		this.shake.y = 0;
 	}
 
-	var angle = to_deg(Math.atan2(this.target.y, this.target.x));
+	this.updateBody();
+	this.updateEyes();
+	this.updateWeapon(true);
+	this.updateWeapon(false);
+	this.updateArms();
+	this.updateLegs(frame ? frame.time / 1000 : 0);
+}
+
+Soldier.prototype.updateEyes = function()
+{
+	var miny = -290;
+	var maxy = -90;
+	var arcx = -30;
+	var arcy = -185;
+	var arcr = 180;
+
+	var angle = this.getTargetAngle();
+
+	var y = miny + ((angle + 90) / 180) * (maxy - miny);
+	var x = Math.sqrt(Math.pow(arcr, 2) - Math.pow(y - arcy, 2)) + arcx;
+
+	var eyes = this.root.get("#eyes")[0];
+
+	eyes.setX(x);
+	eyes.setY(y);
+}
+
+Soldier.prototype.updateWeapon = function(dummy)
+{
+	var distances = [400, 300, 275, 275, 250];
+	var angle = this.getTargetAngle();
+
+	if (dummy)
+	{
+		var interval = 6;
+		angle = Math.floor((angle + 90) / interval) * interval - 90;
+	}
+
+	var theta = 180 / (distances.length - 1);
+	var a = Math.floor((angle + 90) / theta);
+	var b = Math.ceil((angle + 90) / theta);
+	var percent = (angle - (a * theta - 90)) / theta;
+	var distance = lerp(distances[a], distances[b], percent);
+
+	var weapon = dummy ? this.root.get("#dummy-weapon")[0] : this.root.get("#weapon")[0];
+
+	var offsetX = this.shake.x + 337 - distance;
+	var offsetY = this.shake.y + 45;
+
+	weapon.setRotationDeg(angle);
+	weapon.setOffsetX(offsetX);
+	weapon.setOffsetY(offsetY);
+}
+
+Soldier.prototype.updateArms = function()
+{
+	var grabpoints = null;
+	var ctrlpoints = null;
+	var transform = null;
+
+	if (this.weaponVisible)
+	{
+		var weapon = this.root.get("#weapon")[0];
+
+		transform = weapon.getTransform(true);
+
+		grabpoints = [
+			[ 82, 82],
+			[232, 71]
+		];
+
+		ctrlpoints = [
+			[-20, 30],
+			[ 20, 30]
+		];
+	}
+	else
+	{
+		grabpoints = [
+			[-108, 30],
+			[ 108, 30]
+		];
+
+		ctrlpoints = [
+			[-160, 0],
+			[ 160, 0]
+		];
+	}
+
+	var arms = [
+		this.root.get("#arm-front")[0],
+		this.root.get("#arm-back")[0]
+	];
+
+	for (var i = 0; i < 2; i++)
+	{
+		var arm = arms[i];
+
+		var x = arm.getStartPointX();
+		var y = arm.getStartPointY();
+
+		var grabpoint = grabpoints[i];
+		var ctrlpoint = ctrlpoints[i];
+
+		if (this.weaponVisible)
+		{
+			transform.multiplyPoint(grabpoint);
+
+			ctrlpoint[0] = x + (grabpoint[0] - x) * 0.5 + ctrlpoint[0];
+			ctrlpoint[1] = y + (grabpoint[1] - y) * 0.5 + ctrlpoint[1];
+		}
+
+		arm.setControlPoint(ctrlpoint);
+		arm.setEndPoint(grabpoint);
+	}
+}
+
+Soldier.prototype.updateLegs = function(time)
+{
+	var L = 110;
+
+	var legs = [
+		this.root.get("#leg-right")[0],
+		this.root.get("#leg-left")[0]
+	];
+
+	if (!this.running)
+	{
+		for (var i = 0; i < 2; i++)
+		{
+			var leg = legs[i];
+
+			var x = leg.getStartPointX();
+			var y = leg.getStartPointY();
+
+			leg.setControlPoint(x + 5, y + L / 4);
+			leg.setEndPoint(x, y + L);
+		}
+
+		return;
+	}
+
+	var keyframes = [
+		{ end: [70, L],         ctrl: [30, L / 2]},
+		{ end: [0, L * 0.8],    ctrl: [70, L / 2]},
+		{ end: [-70, L],        ctrl: [-30, L / 2]},
+		{ end: [-100, L * 0.4], ctrl: [-30, L / 2]},
+		{ end: [50, L * 0.7],    ctrl: [90, L * 0.3]}
+	];
+
+	var t = time / 0.2;
+	var n = keyframes.length;
+
+	for (var i = 0; i < 2; i++)
+	{
+		t += i * n / 2;
+
+		var leg = legs[i];
+
+		var x = leg.getStartPointX();
+		var y = leg.getStartPointY();
+
+		var a = Math.floor(t) % n;
+		var b = Math.ceil(t) % n;
+		var p = t - Math.floor(t);
+
+		var fa = keyframes[a];
+		var fb = keyframes[b];
+
+		var endx = lerp(fa.end[0], fb.end[0], p);
+		var endy = lerp(fa.end[1], fb.end[1], p);
+
+		var ctrlx = lerp(fa.ctrl[0], fb.ctrl[0], p);
+		var ctrly = lerp(fa.ctrl[1], fb.ctrl[1], p);
+
+		leg.setControlPoint(x + ctrlx, y + ctrly);
+		leg.setEndPoint(x + endx, y + endy);
+
+		if (a < 2)
+			this.root.setY(L - endy);
+	}
+}
+
+Soldier.prototype.updateBody = function()
+{
+	var offsetTop = this.running ? 8 : 0;
+	var offsetBottom = this.running ? -12 : 0;
+
+	var points = [
+		[-108 + offsetTop, -80],
+		[ 108 + offsetTop, -80],
+		[ 108 + offsetBottom, 66],
+		[-108 + offsetBottom, 66]
+	];
+
+	this.root.get("#body")[0].setPoints(points);
+	this.root.get("#head")[0].setX(6 + offsetTop);
+	this.root.get("#leg-right")[0].setX(offsetBottom);
+	this.root.get("#leg-left")[0].setX(offsetBottom);
+}
+
+Soldier.prototype.setTarget = function(x, y)
+{
+	this.target.x = x;
+	this.target.y = y;
+
+	var position = this.root.getAbsolutePosition();
+
+	var x = x - position.x;
+	var y = y - position.y;
+
+	this.root.setScaleX(x >= 0 ? 1 : -1);
+
+	this.update();
+	this.redraw();
+}
+
+Soldier.prototype.getTargetAngle = function()
+{
+	var position = this.root.getAbsolutePosition();
+
+	var x = this.target.x - position.x;
+	var y = this.target.y - position.y;
+
+	var angle = to_deg(Math.atan2(y, x));
 
 	if (angle < -90)
 		angle = -180 - angle;
 	else if (angle > 90)
 		angle =  180 - angle;
 
-	if (this.target.x < 0)
-		context.scale(-1, 1);
-
-	// body
-
-	context.save();
-	context.translate(-this.frame.cx, -this.frame.cy);
-	context.drawImage(images[this.frame.image], 0, 0);
-	context.restore();
-
-	// eyes
-
-	var eyes = this.frame.eyes;
-
-	var y = eyes.miny + ((angle + 90) / 180) * (eyes.maxy - eyes.miny);
-	var x = Math.sqrt(Math.pow(eyes.arc.r, 2) - Math.pow(y - eyes.arc.y, 2)) + eyes.arc.x;
-
-	context.save();
-	context.translate(x, y);
-	context.translate(-eyes.cx, -eyes.cy);
-	context.drawImage(images[eyes.image], 0, 0);
-	context.restore();
-
-	context.save();
-	context.beginPath();
-	context.arc(eyes.arc.x, eyes.arc.y, eyes.arc.r, 0, 2 * Math.PI);
-	context.stroke();
-	context.restore();
-
-	// arms/weapon
-
-	this.drawArm(context, 1, angle);
-
-	context.save();
-	context.translate(this.weaponShake.x, this.weaponShake.y);
-	context.rotate(to_rad(angle));
-	context.translate(this.weaponDistance(angle), 0);
-	context.translate(-this.weapon.cx, -this.weapon.cy);
-	context.drawImage(images[this.weapon.image], 0, 0);
-	context.restore();
-
-	this.drawArm(context, 0, angle);
+	return angle;
 }
 
-Soldier.prototype.drawArm = function(context, which, angle)
+Soldier.prototype.addBody = function()
 {
-	var interval = 6;
+	var points = [
+		[-108, -80],
+		[ 108, -80],
+		[ 108,  66],
+		[-108,  66]
+	];
 
-	var arm = this.weapon.arms[which];
-	var armIndex = Math.floor((angle + 90) / interval);
-	var armSprite = this.armsAtlas.sprites[which][armIndex];
+	var polygon = new Kinetic.Polygon({ id: "body", points: points });
 
-	var x = this.frame.arms[which].x;
-	var y = this.frame.arms[which].y;
+	polygon.setStroke(this.strokeColor);
+	polygon.setStrokeWidth(this.strokeWidth);
+	polygon.setFill(this.bodyColor);
 
-	var angle1 = armIndex * interval - 90;
-	var angle2 = angle;
-
-	var grabpoint1 = this.grabpoint(arm.grabx, arm.graby, angle1, 0, 0);
-	grabpoint1.x -= x;
-	grabpoint1.y -= y;
-
-	var grabpoint2 = this.grabpoint(arm.grabx, arm.graby, angle2, this.weaponShake.x, this.weaponShake.y);
-	grabpoint2.x -= x;
-	grabpoint2.y -= y;
-
-	var ang1 = Math.atan2(grabpoint1.y, grabpoint1.x);
-	var ang2 = Math.atan2(grabpoint2.y, grabpoint2.x);
-
-	var dist1 = Math.sqrt(Math.pow(grabpoint1.x, 2) + Math.pow(grabpoint1.y, 2));
-	var dist2 = Math.sqrt(Math.pow(grabpoint2.x, 2) + Math.pow(grabpoint2.y, 2));
-
-	var w = armSprite.width;
-	var h = armSprite.height;
-
-	context.save();
-	context.translate(x, y);
-	context.rotate(ang1);
-	context.scale(dist2 / dist1, 1);
-	context.rotate(-ang1 + ang2);
-	context.translate(-armSprite.cx, -armSprite.cy);
-	context.drawImage(this.armsAtlas.image, armSprite.x, armSprite.y, w, h, 0, 0, w, h);
-	context.restore();
+	this.root.add(polygon);
 }
 
-Soldier.prototype.generateArmSprite = function(which, angle, thickness, scale)
+Soldier.prototype.addLegs = function()
 {
-	var arm = this.weapon.arms[which];
-	var x = this.frame.arms[which].x;
-	var y = this.frame.arms[which].y;
+	var x = 100;
+	var y = 66;
+	var L = 110;
 
-	var grabpoint = this.grabpoint(arm.grabx, arm.graby, angle, 0, 0);
-	grabpoint.x -= x;
-	grabpoint.y -= y;
+	this.root.add(new Kinetic.Curve({
+		id: "leg-right",
+		startPoint: [x, y],
+		controlPoint: [x + 5, y + L / 4],
+		endPoint: [x, y + L],
+		stroke: this.strokeColor,
+		strokeWidth: this.strokeWidth,
+		lineCap: "round"
+	}));
 
-	var ctrlpoint = {
-		x: grabpoint.x * 0.5 + arm.offsx,
-		y: grabpoint.y * 0.5 + arm.offsy
-	};
-
-	var armAngle = to_deg(Math.atan2(grabpoint.y, grabpoint.x));
-
-	var point = svg.createSVGPoint();
-	var matrix = svg.createSVGMatrix();
-
-	matrix = matrix.rotate(-armAngle);
-
-	point.x = grabpoint.x;
-	point.y = grabpoint.y;
-	point = point.matrixTransform(matrix);
-
-	grabpoint.x = point.x;
-	grabpoint.y = point.y;
-
-	point.x = ctrlpoint.x;
-	point.y = ctrlpoint.y;
-	point = point.matrixTransform(matrix);
-
-	ctrlpoint.x = point.x;
-	ctrlpoint.y = point.y;
-
-	var xmin = Math.min(0, Math.min(grabpoint.x, ctrlpoint.x));
-	var ymin = Math.min(0, Math.min(grabpoint.y, ctrlpoint.y));
-	var xmax = Math.max(0, Math.max(grabpoint.x, ctrlpoint.x));
-	var ymax = Math.max(0, Math.max(grabpoint.y, ctrlpoint.y));
-
-	var image = document.createElement("canvas");
-	var context = image.getContext("2d");
-
-	image.width = Math.ceil((xmax - xmin + 2 * (thickness + 1)) * scale);
-	image.height = Math.ceil((ymax - ymin + 2 * (thickness + 1)) * scale);
-
-	context.strokeStyle = "black";
-	context.lineCap = "round";
-	context.lineWidth = thickness;
-	context.scale(scale, scale);
-	context.translate(thickness + 1 + Math.abs(xmin), thickness + 1 + Math.abs(ymin));
-	context.beginPath();
-	context.moveTo(0, 0);
-	context.quadraticCurveTo(ctrlpoint.x, ctrlpoint.y, grabpoint.x, 0);
-	context.stroke();
-
-	return {
-		image: image,
-		cx: (thickness + 1 + Math.abs(xmin)) * scale,
-		cy: (thickness + 1 + Math.abs(ymin)) * scale
-	};
+	this.root.add(new Kinetic.Curve({
+		id: "leg-left",
+		startPoint: [-x, y],
+		controlPoint: [-x + 5, y + L / 4],
+		endPoint: [-x, y + L],
+		stroke: this.strokeColor,
+		strokeWidth: this.strokeWidth,
+		lineCap: "round"
+	}));
 }
 
-Soldier.prototype.generateArmsAtlas = function()
+Soldier.prototype.addHead = function()
 {
-	var sprites = [[],[]];
-	var blocks = [];
-	var interval = 6;
-	var thickness = 5;
+	var head = new Kinetic.Group({ id: "head" });
 
-	for (var iArm = 0; iArm < 2; iArm++)
+	var ellipse = new Kinetic.Ellipse({
+		x: 6,
+		y: -180,
+		radius: [174, 174 * 0.85]
+	});
+
+	ellipse.setStroke(this.strokeColor);
+	ellipse.setStrokeWidth(this.strokeWidth);
+	ellipse.setFill(this.headColor);
+
+	var eyes = new Kinetic.Group({ id: "eyes" });
+
+	eyes.add(new Kinetic.Circle({ radius: 7, fill: "black" }));
+	eyes.add(new Kinetic.Circle({ x: -74, y: 12, radius: 7, fill: "black" }));
+
+	head.add(ellipse);
+	head.add(eyes);
+
+	this.root.add(head);
+}
+
+Soldier.prototype.addWeapon = function()
+{
+	this.root.add(new Kinetic.Shape({
+		id: "dummy-weapon",
+		image: null,
+		visible: false
+	}));
+
+	this.root.add(new Kinetic.Image({
+		id: "weapon",
+		image: this.generateWeaponImage()
+	}));
+}
+
+Soldier.prototype.addArms = function()
+{
+	var x = 108;
+	var y = -30;
+
+	var back = new Kinetic.Curve({
+		id: "arm-back",
+		startPoint: [x, y],
+		stroke: this.strokeColor,
+		strokeWidth: this.strokeWidth,
+		lineCap: "round"
+	});
+
+	var front = new Kinetic.Curve({
+		id: "arm-front",
+		startPoint: [-x, y],
+		stroke: this.strokeColor,
+		strokeWidth: this.strokeWidth
+	});
+
+	this.root.add(back);
+	this.root.add(front);
+
+	back.moveDown();
+}
+
+Soldier.prototype.generateWeaponImage = function()
+{
+	var source = document.getElementById("weapon");
+	var dest = document.createElement("canvas");
+	var context = dest.getContext("2d");
+
+	var w = source.width;
+	var h = source.height;
+
+	dest.width = w;
+	dest.height = h;
+
+	context.drawImage(source, 0, 0);
+
+	var imageData = context.getImageData(0, 0, w, h);
+	var data = imageData.data;
+
+	var color = Kinetic.Util.getRGB(this.weaponColor);
+	var r = color.r / 255;
+	var g = color.g / 255;
+	var b = color.b / 255;
+
+	for (var i = 0; i < w * h * 4; i += 4)
 	{
-		for (var i = 0; i <= (180 / 6); i++)
-		{
-			var angle = i * interval - 90;
-			var sprite = this.generateArmSprite(iArm, angle, thickness, 1);
-			var offset = crop(sprite.image);
-
-			sprite.cx -= offset.x0;
-			sprite.cy -= offset.y0;
-
-			blocks.push({
-				w: sprite.image.width + 1,
-				h: sprite.image.height + 1,
-				sprite: sprite
-			});
-
-			sprites[iArm].push(sprite);
-		}
+		data[i + 0] *= r;
+		data[i + 1] *= g;
+		data[i + 2] *= b;
 	}
 
-	blocks.sort(function(a, b) { return Math.max(b.w, b.h) < Math.max(a.w, a.h); });
+	context.putImageData(imageData, 0, 0);
 
-	var packer = new GrowingPacker();
-	packer.fit(blocks);
-
-	var w = packer.root.w + 1;
-	var h = packer.root.h + 1;
-
-	var atlas = document.createElement("canvas");
-	var context = atlas.getContext("2d");
-
-	atlas.width = w;
-	atlas.height = h;
-
-	for (var i = 0; i < blocks.length; i++)
-	{
-		var x = blocks[i].fit.x + 1;
-		var y = blocks[i].fit.y + 1;
-		var image = blocks[i].sprite.image;
-		var imageData = image.getContext("2d").getImageData(0, 0, image.width, image.height);
-
-		context.putImageData(imageData, x, y, 0, 0, image.width, image.height);
-
-		blocks[i].sprite.x = x;
-		blocks[i].sprite.y = y;
-		blocks[i].sprite.width = image.width;
-		blocks[i].sprite.height = image.height;
-
-		delete blocks[i].sprite.image;
-	}
-
-	return { image: atlas, sprites: sprites };
+	return dest;
 }
 
-Soldier.prototype.grabpoint = function(x, y, angle, shakex, shakey)
+// -----------------------------------------------------------------------------
+// Curve
+// -----------------------------------------------------------------------------
+
+Kinetic.Curve = function(config)
 {
-	var matrix = svg.createSVGMatrix();
-	matrix = matrix.translate(shakex, shakey);
-	matrix = matrix.rotate(angle);
-	matrix = matrix.translate(this.weaponDistance(angle) - this.weapon.cx, -this.weapon.cy);
-
-	var result = svg.createSVGPoint();
-	result.x = x;
-	result.y = y;
-
-	return result.matrixTransform(matrix);
+	this.___init(config);
 }
 
-Soldier.prototype.weaponDistance = function(angle)
+Kinetic.Curve.prototype.___init = function(config)
 {
-	var theta = 180 / (this.weapon.distances.length - 1);
-	var a = Math.floor((angle + 90) / theta);
-	var b = Math.ceil((angle + 90) / theta);
-	var percent = (angle - (a * theta - 90)) / theta;
-
-	return lerp(this.weapon.distances[a], this.weapon.distances[b], percent);
+	Kinetic.Shape.call(this, config);
+	this.className = 'Curve';
 }
+
+Kinetic.Curve.prototype.drawFunc = function(canvas)
+{
+	var context = canvas.getContext();
+
+	var x0 = this.getStartPointX();
+	var y0 = this.getStartPointY();
+
+	var xc = this.getControlPointX();
+	var yc = this.getControlPointY();
+
+	var x1 = this.getEndPointX();
+	var y1 = this.getEndPointY();
+
+	context.beginPath();
+	context.moveTo(x0, y0);
+	context.quadraticCurveTo(xc, yc, x1, y1);
+
+	canvas.stroke(this);
+}
+
+Kinetic.Util.extend(Kinetic.Curve, Kinetic.Shape);
+Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "startPoint", 0);
+Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "controlPoint", 0);
+Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "endPoint", 0);
 
 // -----------------------------------------------------------------------------
 // Helpers
@@ -458,91 +691,21 @@ function lerp(a, b, p)
 	return a + (b - a) * p;
 }
 
-function clamp(value, a, b)
-{
-	return Math.min(Math.max(value, a), b);
-}
-
 function rand(min, max)
 {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function crop(image)
-{
-	var w = image.width;
-	var h = image.height;
-
-	var context = image.getContext("2d");
-	var imageData = context.getImageData(0, 0, w, h);
-	var data = imageData.data;
-
-	var size = w * h * 4;
-
-	var x0 = 0;
-	var x1 = w - 1;
-	var y0 = 0;
-	var y1 = h - 1;
-
-	// x0
-
-	for (var x = 0; x < w; x++)
+Kinetic.Util.addMethods(Kinetic.Transform, {
+	multiplyPoint: function(point)
 	{
-		for (var y = 0; y < h; y++)
-		{
-			if (data[(y * w + x) * 4 + 3] != 0)
-			{
-				x0 = x;
-				break;
-			}
-		}
+		var x = point[0];
+		var y = point[1];
+		var m = this.m;
 
-		if (y < h) break;
+		point[0] = m[0] * x + m[2] * y + m[4];
+		point[1] = m[1] * x + m[3] * y + m[5];
+
+		return point;
 	}
-
-	// x1
-
-	for (var x = w - 1; x >= 0; x--)
-	{
-		for (var y = 0; y < h; y++)
-		{
-			if (data[(y * w + x) * 4 + 3] != 0)
-			{
-				x1 = x;
-				break;
-			}
-		}
-
-		if (y < h) break;
-	}
-
-	// y0
-
-	for (var i = 0; i < size; i += 4)
-	{
-		if (data[i + 3] != 0)
-		{
-			y0 = Math.floor(i / (w * 4));
-			break;
-		}
-	}
-
-	// y1
-
-	for (var i = size - 4; i >= 0; i -= 4)
-	{
-		if (data[i + 3] != 0)
-		{
-			y1 = Math.floor(i / (w * 4));
-			break;
-		}
-	}
-
-	// crop
-
-	image.width = x1 - x0 + 1;
-	image.height = y1 - y0 + 1;
-	context.putImageData(imageData, -x0, -y0);
-
-	return { "x0": x0, "y0": y0 };
-}
+});
