@@ -146,6 +146,9 @@ function Soldier(parent)
 
 	this.target = { x: 0, y: 0 };
 	this.shooting = false;
+	this.aimTime = 0;
+	this.aimStartAngle = 0;
+	this.aimCurrentAngle = 0;
 	this.shake = { x: 0, y: 0 };
 	this.weaponVisible = true;
 	this.running = false;
@@ -164,19 +167,10 @@ function Soldier(parent)
 		parent.getLayer()
 	);
 
-	this.update();
-
 	parent.add(this.root);
 
 	this.run(true);
-}
-
-Soldier.prototype.redraw = function()
-{
-	var layer = this.root.getLayer();
-
-	if (layer)
-		layer.batchDraw();
+	this.animation.start();
 }
 
 Soldier.prototype.showWeapon = function(show)
@@ -187,9 +181,6 @@ Soldier.prototype.showWeapon = function(show)
 		this.shoot(false);
 
 	this.root.get("#weapon")[0].setVisible(show);
-
-	this.update();
-	this.redraw();
 }
 
 Soldier.prototype.run = function(run)
@@ -199,13 +190,8 @@ Soldier.prototype.run = function(run)
 
 	this.running = run;
 
-	if (run)
-		this.play();
-	else
-		this.stop();
-
-	this.update();
-	this.redraw();
+	this.aimStartAngle = this.aimCurrentAngle;
+	this.aimTime = 1;
 }
 
 Soldier.prototype.shoot = function(shoot)
@@ -218,26 +204,8 @@ Soldier.prototype.shoot = function(shoot)
 
 	this.shooting = shoot;
 
-	if (shoot)
-		this.play();
-	else
-		this.stop();
-}
-
-Soldier.prototype.play = function()
-{
-	if (this.animationCount === 0)
-		this.animation.start();
-
-	this.animationCount++;
-}
-
-Soldier.prototype.stop = function()
-{
-	this.animationCount--;
-
-	if (this.animationCount === 0)
-		this.animation.stop();
+	this.aimStartAngle = this.aimCurrentAngle;
+	this.aimTime = 1;
 }
 
 Soldier.prototype.update = function(frame)
@@ -256,10 +224,10 @@ Soldier.prototype.update = function(frame)
 
 	this.updateBody();
 	this.updateEyes();
-	this.updateWeapon(true);
-	this.updateWeapon(false);
+	this.updateWeapon(frame, true);
+	this.updateWeapon(frame, false);
 	this.updateArms();
-	this.updateLegs(frame ? frame.time / 1000 : 0);
+	this.updateLegs(frame.time / 1000);
 }
 
 Soldier.prototype.updateEyes = function()
@@ -281,10 +249,28 @@ Soldier.prototype.updateEyes = function()
 	eyes.setY(y);
 }
 
-Soldier.prototype.updateWeapon = function(dummy)
+Soldier.prototype.updateWeapon = function(frame, dummy)
 {
 	var distances = [400, 300, 275, 275, 250];
-	var angle = this.getTargetAngle();
+
+	var angle = 0;
+
+	if (!this.running || this.shooting)
+		angle = this.getTargetAngle();
+	else
+		angle = (Math.cos((frame.time / 1000) / 0.2) - 1) * 2;
+
+	if (this.aimTime > 0)
+	{
+		var angle0 = this.aimStartAngle;
+		var percent = 1 - this.aimTime;
+
+		angle = lerp(angle0, angle, percent);
+
+		this.aimTime = Math.max(0, this.aimTime - frame.timeDiff / (this.shooting ? 100 : 200));
+	}
+
+	this.aimCurrentAngle = angle;
 
 	if (dummy)
 	{
@@ -466,9 +452,6 @@ Soldier.prototype.setTarget = function(x, y)
 	var y = y - position.y;
 
 	this.root.setScaleX(x >= 0 ? 1 : -1);
-
-	this.update();
-	this.redraw();
 }
 
 Soldier.prototype.getTargetAngle = function()
