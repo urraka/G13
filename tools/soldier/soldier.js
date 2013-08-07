@@ -152,6 +152,7 @@ function Soldier(parent)
 	this.shake = { x: 0, y: 0 };
 	this.weaponVisible = true;
 	this.running = false;
+	this.runningTime = 0;
 
 	this.root = new Kinetic.Group({ id: "soldier" });
 
@@ -189,6 +190,7 @@ Soldier.prototype.run = function(run)
 		return;
 
 	this.running = run;
+	this.runningTime = 0;
 
 	this.aimStartAngle = this.aimCurrentAngle;
 	this.aimTime = 1;
@@ -227,7 +229,7 @@ Soldier.prototype.update = function(frame)
 	this.updateWeapon(frame, true);
 	this.updateWeapon(frame, false);
 	this.updateArms();
-	this.updateLegs(frame.time / 1000);
+	this.updateLegs(frame);
 }
 
 Soldier.prototype.updateEyes = function()
@@ -357,7 +359,7 @@ Soldier.prototype.updateArms = function()
 	}
 }
 
-Soldier.prototype.updateLegs = function(time)
+Soldier.prototype.updateLegs = function(frame)
 {
 	var L = 110;
 
@@ -390,7 +392,14 @@ Soldier.prototype.updateLegs = function(time)
 		{ end: [50, L * 0.7],    ctrl: [90, L * 0.3]}
 	];
 
-	var t = time / 0.2;
+	var frameTime = 0.2;
+
+	this.runningTime += frame.timeDiff / 1000;
+
+	if (this.runningTime > keyframes.length * frameTime)
+		this.runningTime -= keyframes.length * frameTime;
+
+	var t = this.runningTime / frameTime + frameTime;
 	var n = keyframes.length;
 
 	for (var i = 0; i < 2; i++)
