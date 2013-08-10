@@ -16,7 +16,7 @@ function main()
 
 	// scene
 
-	var scale = 1;
+	var scale = 0.5;
 	var sceneLayer = new Kinetic.Layer({ id: "sceneLayer" });
 	var scene = new Kinetic.Group({ id: "scene", scale: [scale, scale] });
 
@@ -124,6 +124,12 @@ function keydown(evt)
 
 	if (code == "R".charCodeAt(0))
 		soldier.run(!soldier.running);
+
+	if (code == 107)
+		soldier.speed += 50;
+
+	if (code == 109)
+		soldier.speed = Math.max(40, soldier.speed - 50);
 }
 
 function keyup(evt)
@@ -153,6 +159,7 @@ function Soldier(parent)
 	this.weaponVisible = true;
 	this.running = false;
 	this.runningTime = 0;
+	this.speed = 140;
 
 	this.root = new Kinetic.Group({ id: "soldier" });
 
@@ -162,6 +169,10 @@ function Soldier(parent)
 	this.addWeapon();
 	this.addArms();
 
+	this.sprites = this.generateSprites();
+
+	this.initSprites();
+
 	this.animationCount = 0;
 	this.animation = new Kinetic.Animation(
 		function(frame) { self.update(frame); },
@@ -170,8 +181,237 @@ function Soldier(parent)
 
 	parent.add(this.root);
 
-	this.run(true);
 	this.animation.start();
+}
+
+Soldier.prototype.generateSprites = function()
+{
+	var scale = 1;
+	var angle = 0;
+	var padding = 1;
+	var blocks = [];
+	var sprites = {};
+	var frame = { time: 0, timeDiff: 0 };
+
+	// set state
+
+	this.run(false);
+	this.shoot(false);
+	this.aimTime = 0;
+
+	var getTargetAngle = this.getTargetAngle;
+	this.getTargetAngle = function() { return angle; };
+
+	// arms
+
+	var interval = 6;
+
+	var arms = [
+		this.root.get("#arm-front")[0],
+		this.root.get("#arm-back")[0]
+	];
+
+	sprites[arms[0].getId()] = [];
+	sprites[arms[1].getId()] = [];
+
+	for (var i = 0; i <= 180 / interval; i++)
+	{
+		angle = i * interval - 90;
+
+		this.update(frame);
+
+		for (var j = 0; j < 2; j++)
+		{
+			var arm = arms[j];
+
+			var x0 = arm.getStartPointX();
+			var y0 = arm.getStartPointY();
+			var x1 = arm.getEndPointX();
+			var y1 = arm.getEndPointY();
+
+			var curve = clone_node(arm, {
+				offsetX: x0,
+				offsetY: y0,
+				rotation: -Math.atan2(y1 - y0, x1 - x0)
+			});
+
+			var sprite = node_image(curve, scale);
+
+			blocks.push({
+				w: sprite.image.width + padding,
+				h: sprite.image.height + padding,
+				sprite: sprite
+			});
+
+			sprites[arm.getId()].push(sprite);
+		}
+	}
+
+	// body
+
+	var body = this.root.get("#body")[0];
+	var sprite = node_image(clone_node(body, { fill: "white" }), scale);
+
+	blocks.push({
+		w: sprite.image.width + padding,
+		h: sprite.image.height + padding,
+		sprite: sprite
+	});
+
+	sprites["body"] = sprite;
+
+	this.run(true);
+	this.update(frame);
+
+	var sprite = node_image(clone_node(body, { fill: "white" }), scale);
+
+	blocks.push({
+		w: sprite.image.width + padding,
+		h: sprite.image.height + padding,
+		sprite: sprite
+	});
+
+	sprites["body-running"] = sprite;
+
+	// head
+
+	var head = this.root.get("#head")[0];
+	var ellipse = head.get("Ellipse")[0];
+	var sprite = node_image(clone_node(ellipse, { x: 0, y: 0, fill: "white" }), scale);
+
+	blocks.push({
+		w: sprite.image.width + padding,
+		h: sprite.image.height + padding,
+		sprite: sprite
+	});
+
+	sprites["head"] = sprite;
+
+	// eye
+
+	var eyes = head.get("#eyes")[0];
+	var circle = eyes.get("Circle")[0];
+	var sprite = node_image(clone_node(circle, { x: 0, y: 0 }), scale);
+
+	blocks.push({
+		w: sprite.image.width + padding,
+		h: sprite.image.height + padding,
+		sprite: sprite
+	});
+
+	sprites["eye"] = sprite;
+
+	// legs
+
+	var leg = this.root.get("#leg-right")[0];
+
+	frame.time = 0;
+	frame.timeDiff = 1000 / 60;
+
+	this.speed = 140;
+	this.run(true);
+
+	sprites["leg"] = [];
+
+	for (var i = 0; i < 60; i++)
+	{
+		this.update(frame);
+
+		var x = leg.getStartPointX();
+		var y = leg.getStartPointY();
+
+		var curve = clone_node(leg, { offsetX: x, offsetY: y });
+		var sprite = node_image(curve, scale);
+
+		blocks.push({
+			w: sprite.image.width + padding,
+			h: sprite.image.height + padding,
+			sprite: sprite
+		});
+
+		sprites["leg"].push(sprite);
+	}
+
+	this.run(false);
+	this.update(frame);
+
+	var x = leg.getStartPointX();
+	var y = leg.getStartPointY();
+
+	var curve = clone_node(leg, { offsetX: x, offsetY: y });
+	var sprite = node_image(curve, scale);
+
+	blocks.push({
+		w: sprite.image.width + padding,
+		h: sprite.image.height + padding,
+		sprite: sprite
+	});
+
+	sprites["leg-standing"] = sprite;
+
+	// weapon
+
+	var weaponColor = this.weaponColor;
+	this.weaponColor = "#FFFFFF";
+
+	var image = this.generateWeaponImage();
+	var offset = crop_image(image);
+
+	var sprite = {
+		image: image,
+		cx: 337 - offset.x,
+		cy: 45 - offset.y
+	};
+
+	blocks.push({
+		w: sprite.image.width + padding,
+		h: sprite.image.height + padding,
+		sprite: sprite
+	});
+
+	sprites["weapon"] = sprite;
+
+	// generate atlas
+
+	blocks.sort(function(a, b) { return Math.max(b.w, b.h) - Math.max(a.w, a.h); });
+
+	var packer = new GrowingPacker();
+	packer.fit(blocks);
+
+	var w = packer.root.w + padding;
+	var h = packer.root.h + padding;
+
+	var atlas = document.createElement("canvas");
+	var context = atlas.getContext("2d");
+
+	atlas.width = w;
+	atlas.height = h;
+
+	for (var i = 0; i < blocks.length; i++)
+	{
+		var x = blocks[i].fit.x + padding;
+		var y = blocks[i].fit.y + padding;
+		var image = blocks[i].sprite.image;
+		var imageData = image.getContext("2d").getImageData(0, 0, image.width, image.height);
+
+		context.putImageData(imageData, x, y, 0, 0, image.width, image.height);
+
+		blocks[i].sprite.x = x;
+		blocks[i].sprite.y = y;
+		blocks[i].sprite.width = image.width;
+		blocks[i].sprite.height = image.height;
+
+		delete blocks[i].sprite.image;
+	}
+
+	console.log(atlas.toDataURL());
+
+	// restore state
+
+	this.getTargetAngle = getTargetAngle;
+	this.update({ time: 0, timeDiff: 0 });
+
+	return { image: atlas, info: sprites };
 }
 
 Soldier.prototype.showWeapon = function(show)
@@ -260,7 +500,7 @@ Soldier.prototype.updateWeapon = function(frame, dummy)
 	if (!this.running || this.shooting)
 		angle = this.getTargetAngle();
 	else
-		angle = (Math.cos((frame.time / 1000) / 0.2) - 1) * 2;
+		angle = (Math.cos(this.runningTime * Math.PI * 2) - 0.5) * 2;
 
 	if (this.aimTime > 0)
 	{
@@ -274,9 +514,9 @@ Soldier.prototype.updateWeapon = function(frame, dummy)
 
 	this.aimCurrentAngle = angle;
 
-	if (dummy)
+	if (dummy && this.sprites)
 	{
-		var interval = 6;
+		var interval = 180 / (this.sprites.info["arm-back"].length - 1);
 		angle = Math.floor((angle + 90) / interval) * interval - 90;
 	}
 
@@ -288,8 +528,14 @@ Soldier.prototype.updateWeapon = function(frame, dummy)
 
 	var weapon = dummy ? this.root.get("#dummy-weapon")[0] : this.root.get("#weapon")[0];
 
-	var offsetX = this.shake.x + 337 - distance;
-	var offsetY = this.shake.y + 45;
+	var offsetX = 337 - distance;
+	var offsetY = 45;
+
+	if (!dummy)
+	{
+		offsetX += this.shake.x;
+		offsetY += this.shake.y;
+	}
 
 	weapon.setRotationDeg(angle);
 	weapon.setOffsetX(offsetX);
@@ -343,8 +589,8 @@ Soldier.prototype.updateArms = function()
 		var x = arm.getStartPointX();
 		var y = arm.getStartPointY();
 
-		var grabpoint = grabpoints[i];
-		var ctrlpoint = ctrlpoints[i];
+		var grabpoint = [grabpoints[i][0], grabpoints[i][1]];
+		var ctrlpoint = [ctrlpoints[i][0], ctrlpoints[i][1]];
 
 		if (this.weaponVisible)
 		{
@@ -356,6 +602,55 @@ Soldier.prototype.updateArms = function()
 
 		arm.setControlPoint(ctrlpoint);
 		arm.setEndPoint(grabpoint);
+	}
+
+	if (this.sprites)
+	{
+		var dummy = this.root.get("#dummy-weapon")[0];
+		var transform = dummy.getTransform();
+
+		var angle = Math.round(dummy.getRotationDeg());
+		var interval = 180 / (this.sprites.info["arm-back"].length - 1);
+		var index = (angle + 90) / interval;
+
+		var armSprites = [
+			this.root.get("#arm-front-sprite")[0],
+			this.root.get("#arm-back-sprite")[0]
+		];
+
+		var spritesInfo = [
+			this.sprites.info["arm-front"][index],
+			this.sprites.info["arm-back"][index]
+		];
+
+		for (var i = 0; i < 2; i++)
+		{
+			var arm = arms[i];
+			var armSprite = armSprites[i];
+			var info = spritesInfo[i];
+			var grabpoint = grabpoints[i];
+
+			transform.multiplyPoint(grabpoint);
+
+			var x0 = arm.getStartPointX();
+			var y0 = arm.getStartPointY();
+			var x1 = arm.getEndPointX();
+			var y1 = arm.getEndPointY();
+			var x1b = grabpoint[0];
+			var y1b = grabpoint[1];
+
+			var rotation = Math.atan2(y1 - y0, x1 - x0);
+
+			var dist1 = Math.sqrt(Math.pow(x1b - x0, 2) + Math.pow(y1b - y0, 2));
+			var dist2 = Math.sqrt(Math.pow(x1  - x0, 2) + Math.pow(y1  - y0, 2));
+
+			armSprite.setCrop({ x: info.x, y: info.y, width: info.width, height: info.height });
+			armSprite.setWidth(info.width);
+			armSprite.setHeight(info.height);
+			armSprite.setOffset(info.cx, info.cy);
+			armSprite.setRotation(rotation);
+			armSprite.setScaleX(dist2 / dist1);
+		}
 	}
 }
 
@@ -392,15 +687,8 @@ Soldier.prototype.updateLegs = function(frame)
 		{ end: [50, L * 0.7],    ctrl: [90, L * 0.3]}
 	];
 
-	var frameTime = 0.2;
-
-	this.runningTime += frame.timeDiff / 1000;
-
-	if (this.runningTime > keyframes.length * frameTime)
-		this.runningTime -= keyframes.length * frameTime;
-
-	var t = this.runningTime / frameTime + frameTime;
 	var n = keyframes.length;
+	var t = 3 + this.runningTime * n;
 
 	for (var i = 0; i < 2; i++)
 	{
@@ -430,6 +718,16 @@ Soldier.prototype.updateLegs = function(frame)
 		if (a < 2)
 			this.root.setY(L - endy);
 	}
+
+	// 5 fps -> 140 units/s -> frameTime = 140 / (this.speed * 5) = 28 / this.speed
+
+	var frameTime = 28 / this.speed;
+	var totalTime = n * frameTime;
+
+	this.runningTime += (frame.timeDiff / 1000) / totalTime;
+
+	if (this.runningTime > 1)
+		this.runningTime -= 1;
 }
 
 Soldier.prototype.updateBody = function()
@@ -573,8 +871,7 @@ Soldier.prototype.addArms = function()
 		id: "arm-back",
 		startPoint: [x, y],
 		stroke: this.strokeColor,
-		strokeWidth: this.strokeWidth,
-		lineCap: "round"
+		strokeWidth: this.strokeWidth
 	});
 
 	var front = new Kinetic.Curve({
@@ -584,10 +881,46 @@ Soldier.prototype.addArms = function()
 		strokeWidth: this.strokeWidth
 	});
 
+	var backSprite = new Kinetic.Image({
+		id: "arm-back-sprite",
+		image: null,
+		visible: false,
+		x: x,
+		y: y
+	});
+
+	var frontSprite = new Kinetic.Image({
+		id: "arm-front-sprite",
+		image: null,
+		visible: false,
+		x: -x,
+		y: y
+	});
+
 	this.root.add(back);
+	this.root.add(backSprite);
 	this.root.add(front);
+	this.root.add(frontSprite);
 
 	back.moveDown();
+	backSprite.moveDown();
+}
+
+Soldier.prototype.initSprites = function()
+{
+	var sprites = [
+		this.root.get("#arm-back-sprite")[0],
+		this.root.get("#arm-front-sprite")[0]
+	];
+
+	for (var i = 0; i < sprites.length; i++)
+	{
+		sprites[i].setImage(this.sprites.image);
+		sprites[i].setVisible(true)
+	}
+
+	this.root.get("#arm-back")[0].setVisible(false);
+	this.root.get("#arm-front")[0].setVisible(false);
 }
 
 Soldier.prototype.generateWeaponImage = function()
@@ -625,7 +958,7 @@ Soldier.prototype.generateWeaponImage = function()
 }
 
 // -----------------------------------------------------------------------------
-// Curve
+// Kinetic.Curve
 // -----------------------------------------------------------------------------
 
 Kinetic.Curve = function(config)
@@ -665,6 +998,252 @@ Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "controlPoint", 0);
 Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "endPoint", 0);
 
 // -----------------------------------------------------------------------------
+// Kinetic.Transform
+// -----------------------------------------------------------------------------
+
+Kinetic.Util.addMethods(Kinetic.Transform, {
+	multiplyPoint: function(point)
+	{
+		var x = point[0];
+		var y = point[1];
+		var m = this.m;
+
+		point[0] = m[0] * x + m[2] * y + m[4];
+		point[1] = m[1] * x + m[3] * y + m[5];
+
+		return point;
+	}
+});
+
+// -----------------------------------------------------------------------------
+// Kinetic getBounds
+// -----------------------------------------------------------------------------
+
+function get_points_bounds(points, transform)
+{
+	if (points.length === 0)
+		return { x0: 0, y0: 0, x1: 0, y1: 0 };
+
+	var transformedPoints = [];
+	var len = points.length;
+
+	for (var i = 0; i < len; i++)
+	{
+		var point = [points[i].x, points[i].y];
+
+		transform.multiplyPoint(point);
+		transformedPoints.push({ x: point[0], y: point[1] });
+	}
+
+	var bounds = {
+		x0: transformedPoints[0].x,
+		y0: transformedPoints[0].y,
+		x1: transformedPoints[0].x,
+		y1: transformedPoints[0].y
+	};
+
+	for (var i = 1; i < len; i++)
+	{
+		if (transformedPoints[i].x < bounds.x0) bounds.x0 = transformedPoints[i].x;
+		if (transformedPoints[i].y < bounds.y0) bounds.y0 = transformedPoints[i].y;
+		if (transformedPoints[i].x > bounds.x1) bounds.x1 = transformedPoints[i].x;
+		if (transformedPoints[i].y > bounds.y1) bounds.y1 = transformedPoints[i].y;
+	}
+
+	bounds.x0 = Math.floor(bounds.x0);
+	bounds.y0 = Math.floor(bounds.y0);
+	bounds.x1 = Math.floor(bounds.x1);
+	bounds.y1 = Math.floor(bounds.y1);
+
+	return bounds;
+}
+
+Kinetic.Util.addMethods(Kinetic.Polygon, {
+	getBounds: function()
+	{
+		return get_points_bounds(this.getPoints(), this.getTransform());
+	}
+});
+
+Kinetic.Util.addMethods(Kinetic.Ellipse, {
+	getBounds: function()
+	{
+		var rx = this.getRadiusX();
+		var ry = this.getRadiusY();
+
+		var points = [
+			{ x: -rx, y:  ry },
+			{ x:  rx, y: -ry }
+		];
+
+		return get_points_bounds(points, this.getTransform());
+	}
+});
+
+Kinetic.Util.addMethods(Kinetic.Circle, {
+	getBounds: function()
+	{
+		var r = this.getRadius();
+
+		var points = [
+			{ x: -r, y:  r },
+			{ x:  r, y: -r }
+		];
+
+		return get_points_bounds(points, this.getTransform());
+	}
+});
+
+Kinetic.Util.addMethods(Kinetic.Curve, {
+	getBounds: function()
+	{
+		var points = [
+			this.getStartPoint(),
+			this.getEndPoint(),
+			this.getControlPoint()
+		];
+
+		return get_points_bounds(points, this.getTransform());
+	}
+});
+
+// -----------------------------------------------------------------------------
+// Kinetic helpers
+// -----------------------------------------------------------------------------
+
+function clone_node(node, config)
+{
+	var id = null;
+
+	if ("id" in node.attrs)
+	{
+		id = node.attrs.id;
+		delete node.attrs.id;
+	}
+
+	var result = node.clone(config);
+
+	if (id !== null)
+		node.attrs.id = id;
+
+	return result;
+}
+
+function node_image(node, scale)
+{
+	var bounds = node.getBounds();
+	var margin = node.getStrokeWidth() + 1 || 0;
+
+	var x = margin - bounds.x0;
+	var y = margin - bounds.y0;
+
+	node.move(x, y);
+
+	var scene = new Kinetic.SceneCanvas({
+		width: Math.ceil((bounds.x1 - bounds.x0 + 1 + 2 * margin) * scale),
+		height: Math.ceil((bounds.y1 - bounds.y0 + 1 + 2 * margin) * scale),
+		pixelRatio: 1
+	});
+
+	var wrapper = new Kinetic.Group({ scaleX: scale, scaleY: scale });
+	wrapper.add(node);
+
+	node.drawScene(scene);
+
+	var image = scene.element;
+	var offset = crop_image(image);
+
+	var result = {
+		image: image,
+		cx: x * scale - offset.x0,
+		cy: y * scale - offset.y0
+	};
+
+	node.move(-x, -y);
+
+	return result;
+}
+
+function crop_image(image)
+{
+	var w = image.width;
+	var h = image.height;
+
+	var context = image.getContext("2d");
+	var imageData = context.getImageData(0, 0, w, h);
+	var data = imageData.data;
+
+	var size = w * h * 4;
+
+	var x0 = 0;
+	var x1 = w - 1;
+	var y0 = 0;
+	var y1 = h - 1;
+
+	// x0
+
+	for (var x = 0; x < w; x++)
+	{
+		for (var y = 0; y < h; y++)
+		{
+			if (data[(y * w + x) * 4 + 3] != 0)
+			{
+				x0 = x;
+				break;
+			}
+		}
+
+		if (y < h) break;
+	}
+
+	// x1
+
+	for (var x = w - 1; x >= 0; x--)
+	{
+		for (var y = 0; y < h; y++)
+		{
+			if (data[(y * w + x) * 4 + 3] != 0)
+			{
+				x1 = x;
+				break;
+			}
+		}
+
+		if (y < h) break;
+	}
+
+	// y0
+
+	for (var i = 0; i < size; i += 4)
+	{
+		if (data[i + 3] != 0)
+		{
+			y0 = Math.floor(i / (w * 4));
+			break;
+		}
+	}
+
+	// y1
+
+	for (var i = size - 4; i >= 0; i -= 4)
+	{
+		if (data[i + 3] != 0)
+		{
+			y1 = Math.floor(i / (w * 4));
+			break;
+		}
+	}
+
+	// crop
+
+	image.width = x1 - x0 + 1;
+	image.height = y1 - y0 + 1;
+	context.putImageData(imageData, -x0, -y0);
+
+	return { "x0": x0, "y0": y0 };
+}
+
+// -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
 
@@ -687,17 +1266,3 @@ function rand(min, max)
 {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-Kinetic.Util.addMethods(Kinetic.Transform, {
-	multiplyPoint: function(point)
-	{
-		var x = point[0];
-		var y = point[1];
-		var m = this.m;
-
-		point[0] = m[0] * x + m[2] * y + m[4];
-		point[1] = m[1] * x + m[3] * y + m[5];
-
-		return point;
-	}
-});
