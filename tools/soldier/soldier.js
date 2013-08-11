@@ -16,7 +16,7 @@ function main()
 
 	// scene
 
-	var scale = 0.5;
+	var scale = 1;
 	var sceneLayer = new Kinetic.Layer({ id: "sceneLayer" });
 	var scene = new Kinetic.Group({ id: "scene", scale: [scale, scale] });
 
@@ -318,10 +318,19 @@ Soldier.prototype.generateSprites = function()
 	{
 		this.update(frame);
 
-		var x = leg.getStartPointX();
-		var y = leg.getStartPointY();
+		var x0 = leg.getStartPointX();
+		var y0 = leg.getStartPointY();
+		var x1 = leg.getEndPointX();
+		var y1 = leg.getEndPointY();
 
-		var curve = clone_node(leg, { offsetX: x, offsetY: y });
+		var curve = clone_node(leg, {
+			x: 0,
+			y: 0,
+			offsetX: x0,
+			offsetY: y0,
+			rotation: -Math.atan2(y1 - y0, x1 - x0)
+		});
+
 		var sprite = node_image(curve, scale);
 
 		blocks.push({
@@ -694,6 +703,7 @@ Soldier.prototype.updateLegs = function(frame)
 				legSprites[i].setOffset(info.cx, info.cy);
 				legSprites[i].setWidth(info.width);
 				legSprites[i].setHeight(info.height);
+				legSprites[i].setRotation(0);
 			}
 		}
 
@@ -709,20 +719,22 @@ Soldier.prototype.updateLegs = function(frame)
 	];
 
 	var n = keyframes.length;
-	var t = 3 + this.runningTime * n;
+	var keyframe0 = 3;
+	var t = keyframe0 + this.runningTime * n;
 
 	for (var i = 0; i < 2; i++)
 	{
 		t += i * n / 2;
+		t %= n;
 
 		var leg = legs[i];
 
 		var x = leg.getStartPointX();
 		var y = leg.getStartPointY();
 
-		var a = Math.floor(t) % n;
+		var a = Math.floor(t);
 		var b = Math.ceil(t) % n;
-		var p = t - Math.floor(t);
+		var p = t - a;
 
 		var fa = keyframes[a];
 		var fb = keyframes[b];
@@ -744,13 +756,30 @@ Soldier.prototype.updateLegs = function(frame)
 			var legSprite = legSprites[i];
 			var frames = this.sprites.info["leg"];
 			var nFrames = frames.length;
-			var index = Math.floor((t / n) * nFrames) % nFrames;
+			var index = Math.floor((((t - keyframe0 + n) % n) / n) * nFrames) % nFrames;
 			var info = frames[index];
+
+			var t2 = (keyframe0 + n * index / nFrames) % n;
+
+			var a = Math.floor(t2);
+			var b = Math.ceil(t2) % n;
+			var p = t2 - a;
+
+			var fa = keyframes[a];
+			var fb = keyframes[b];
+
+			var endx2 = lerp(fa.end[0], fb.end[0], p);
+			var endy2 = lerp(fa.end[1], fb.end[1], p);
+
+			var dist1 = Math.sqrt(Math.pow(endx2, 2) + Math.pow(endy2, 2));
+			var dist2 = Math.sqrt(Math.pow(endx, 2) + Math.pow(endy, 2));
 
 			legSprite.setCrop({ x: info.x, y: info.y, width: info.width, height: info.height });
 			legSprite.setOffset(info.cx, info.cy);
 			legSprite.setWidth(info.width);
 			legSprite.setHeight(info.height);
+			legSprite.setRotation(Math.atan2(endy, endx));
+			legSprite.setScaleX(dist2 / dist1);
 		}
 	}
 
@@ -781,6 +810,7 @@ Soldier.prototype.updateBody = function()
 	this.root.get("#head")[0].setX(6 + offsetTop);
 	this.root.get("#leg-right")[0].setX(offsetBottom);
 	this.root.get("#leg-left")[0].setX(offsetBottom);
+	this.root.get("#leg-sprites")[0].setX(offsetBottom);
 }
 
 Soldier.prototype.setTarget = function(x, y)
@@ -857,7 +887,9 @@ Soldier.prototype.addLegs = function()
 		lineCap: "round"
 	}));
 
-	this.root.add(new Kinetic.Image({
+	var legSprites = new Kinetic.Group({ id: "leg-sprites" });
+
+	legSprites.add(new Kinetic.Image({
 		id: "leg-right-sprite",
 		image: null,
 		visible: false,
@@ -865,13 +897,15 @@ Soldier.prototype.addLegs = function()
 		y: y
 	}));
 
-	this.root.add(new Kinetic.Image({
+	legSprites.add(new Kinetic.Image({
 		id: "leg-left-sprite",
 		image: null,
 		visible: false,
 		x: -x,
 		y: y
 	}));
+
+	this.root.add(legSprites);
 }
 
 Soldier.prototype.addHead = function()
