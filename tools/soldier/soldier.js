@@ -694,8 +694,6 @@ Soldier.prototype.updateLegs = function(frame)
 				legSprites[i].setOffset(info.cx, info.cy);
 				legSprites[i].setWidth(info.width);
 				legSprites[i].setHeight(info.height);
-				// legSprites[i].setScale(1, 1);
-				// legSprites[i].setSkew(0, 0);
 			}
 		}
 
@@ -747,30 +745,12 @@ Soldier.prototype.updateLegs = function(frame)
 			var frames = this.sprites.info["leg"];
 			var nFrames = frames.length;
 			var index = Math.floor((t / n) * nFrames) % nFrames;
-
-			// var t2 = n * index / nFrames;
-
-			// var a = Math.floor(t2) % n;
-			// var b = Math.ceil(t2) % n;
-			// var p = t2 - Math.floor(t2);
-
-			// var fa = keyframes[a];
-			// var fb = keyframes[b];
-
-			// var endx2 = lerp(fa.end[0], fb.end[0], p);
-			// var endy2 = lerp(fa.end[1], fb.end[1], p);
-
-			// var dx = endx - endx2;
-			// var dy = endy - endy2;
-
 			var info = frames[index];
 
 			legSprite.setCrop({ x: info.x, y: info.y, width: info.width, height: info.height });
 			legSprite.setOffset(info.cx, info.cy);
 			legSprite.setWidth(info.width);
 			legSprite.setHeight(info.height);
-			// legSprites[i].setScale(1 + dx / info.width, 1 + dy / info.height);
-			// legSprites[i].setSkewX(Math.atan2(-dx, Math.abs(endy - y)));
 		}
 	}
 
