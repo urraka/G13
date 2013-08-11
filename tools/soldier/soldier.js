@@ -304,16 +304,17 @@ Soldier.prototype.generateSprites = function()
 	// legs
 
 	var leg = this.root.get("#leg-right")[0];
+	var fps = 60;
 
 	frame.time = 0;
-	frame.timeDiff = 1000 / 60;
+	frame.timeDiff = 1000 / fps;
 
 	this.speed = 140;
 	this.run(true);
 
 	sprites["leg"] = [];
 
-	for (var i = 0; i < 60; i++)
+	for (var i = 0; i < fps; i++)
 	{
 		this.update(frame);
 
@@ -663,8 +664,15 @@ Soldier.prototype.updateLegs = function(frame)
 		this.root.get("#leg-left")[0]
 	];
 
+	var legSprites = [
+		this.root.get("#leg-right-sprite")[0],
+		this.root.get("#leg-left-sprite")[0]
+	];
+
 	if (!this.running)
 	{
+		this.root.setY(0);
+
 		for (var i = 0; i < 2; i++)
 		{
 			var leg = legs[i];
@@ -674,6 +682,21 @@ Soldier.prototype.updateLegs = function(frame)
 
 			leg.setControlPoint(x + 5, y + L / 4);
 			leg.setEndPoint(x, y + L);
+		}
+
+		if (this.sprites)
+		{
+			var info = this.sprites.info["leg-standing"];
+
+			for (var i = 0; i < 2; i++)
+			{
+				legSprites[i].setCrop({ x: info.x, y: info.y, width: info.width, height: info.height });
+				legSprites[i].setOffset(info.cx, info.cy);
+				legSprites[i].setWidth(info.width);
+				legSprites[i].setHeight(info.height);
+				// legSprites[i].setScale(1, 1);
+				// legSprites[i].setSkew(0, 0);
+			}
 		}
 
 		return;
@@ -717,6 +740,38 @@ Soldier.prototype.updateLegs = function(frame)
 
 		if (a < 2)
 			this.root.setY(L - endy);
+
+		if (this.sprites)
+		{
+			var legSprite = legSprites[i];
+			var frames = this.sprites.info["leg"];
+			var nFrames = frames.length;
+			var index = Math.floor((t / n) * nFrames) % nFrames;
+
+			// var t2 = n * index / nFrames;
+
+			// var a = Math.floor(t2) % n;
+			// var b = Math.ceil(t2) % n;
+			// var p = t2 - Math.floor(t2);
+
+			// var fa = keyframes[a];
+			// var fb = keyframes[b];
+
+			// var endx2 = lerp(fa.end[0], fb.end[0], p);
+			// var endy2 = lerp(fa.end[1], fb.end[1], p);
+
+			// var dx = endx - endx2;
+			// var dy = endy - endy2;
+
+			var info = frames[index];
+
+			legSprite.setCrop({ x: info.x, y: info.y, width: info.width, height: info.height });
+			legSprite.setOffset(info.cx, info.cy);
+			legSprite.setWidth(info.width);
+			legSprite.setHeight(info.height);
+			// legSprites[i].setScale(1 + dx / info.width, 1 + dy / info.height);
+			// legSprites[i].setSkewX(Math.atan2(-dx, Math.abs(endy - y)));
+		}
 	}
 
 	// 5 fps -> 140 units/s -> frameTime = 140 / (this.speed * 5) = 28 / this.speed
@@ -821,6 +876,22 @@ Soldier.prototype.addLegs = function()
 		strokeWidth: this.strokeWidth,
 		lineCap: "round"
 	}));
+
+	this.root.add(new Kinetic.Image({
+		id: "leg-right-sprite",
+		image: null,
+		visible: false,
+		x: x,
+		y: y
+	}));
+
+	this.root.add(new Kinetic.Image({
+		id: "leg-left-sprite",
+		image: null,
+		visible: false,
+		x: -x,
+		y: y
+	}));
 }
 
 Soldier.prototype.addHead = function()
@@ -910,7 +981,9 @@ Soldier.prototype.initSprites = function()
 {
 	var sprites = [
 		this.root.get("#arm-back-sprite")[0],
-		this.root.get("#arm-front-sprite")[0]
+		this.root.get("#arm-front-sprite")[0],
+		this.root.get("#leg-left-sprite")[0],
+		this.root.get("#leg-right-sprite")[0]
 	];
 
 	for (var i = 0; i < sprites.length; i++)
@@ -921,6 +994,8 @@ Soldier.prototype.initSprites = function()
 
 	this.root.get("#arm-back")[0].setVisible(false);
 	this.root.get("#arm-front")[0].setVisible(false);
+	this.root.get("#leg-right")[0].setVisible(false);
+	this.root.get("#leg-left")[0].setVisible(false);
 }
 
 Soldier.prototype.generateWeaponImage = function()
