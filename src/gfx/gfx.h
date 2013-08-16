@@ -54,4 +54,8 @@ void transform(const glm::mat4 &matrix);
 template<typename T> const Attributes *attributes();
 template<typename T> Shader *default_shader();
 
+ColorVertex  color_vertex(float x, float y, Color color);
+SpriteVertex sprite_vertex(float x, float y, float u, float v, Color color);
+TextVertex   text_vertex(float x, float y, uint16_t u, uint16_t v);
+
 } // gfx

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <ostream>
+#include <iosfwd>
 
 namespace math {
 namespace fpm {

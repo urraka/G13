@@ -10,13 +10,35 @@ public:
 	T previous;
 	T current;
 
-	interpolable() : previous(), current() {}
-	interpolable(T value) : previous(value), current(value) {}
+	interpolable()
+		:	previous(),
+			current(),
+			interpolatedValue_()
+	{}
 
-	void update()     { previous = current; }
-	void set(T value) { previous = current = value; }
+	interpolable(T value)
+		:	previous(value),
+			current(value),
+			interpolatedValue_(value)
+	{}
 
-	T value(float percent) const { return glm::mix(previous, current, percent); };
+	void set(T value)
+	{
+		previous = current = interpolatedValue_ = value;
+	}
+
+	T interpolate(float percent) const
+	{
+		return interpolatedValue_ = glm::mix(previous, current, percent);
+	};
+
+	operator const T&() const
+	{
+		return interpolatedValue_;
+	}
+
+private:
+	mutable T interpolatedValue_;
 };
 
 } // math

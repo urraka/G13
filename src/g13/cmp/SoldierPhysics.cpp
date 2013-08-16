@@ -105,7 +105,7 @@ void SoldierPhysics::update(Time dt)
 					delta.y = (dest->x - position.x) * delta.y / delta.x;
 					delta.x = dest->x - position.x;
 
-					if (input->run)
+					if (input->run && !ducked_)
 					{
 						currentNode_ = 0;
 					}

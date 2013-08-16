@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Sprite.h"
 #include <stddef.h>
 
 namespace gfx {
@@ -9,6 +8,7 @@ class IBO;
 class VBO;
 class Texture;
 class Shader;
+class Sprite;
 
 class SpriteBatch
 {
@@ -20,6 +20,12 @@ public:
 	void add(const Sprite &sprite);
 	void texture(Texture *texture);
 	void shader(Shader *shader);
+
+	template<size_t N> inline void add(const Sprite (&sprites)[N])
+	{
+		for (size_t i = 0; i < N; i++)
+			add(sprites[i]);
+	}
 
 	Texture *texture() const;
 	size_t   size   () const;

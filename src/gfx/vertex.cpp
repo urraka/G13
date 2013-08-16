@@ -3,6 +3,7 @@
 	template Shader *default_shader<T>();
 
 #include "vertex.h"
+#include "Color.h"
 #include "attributes.h"
 #include "Context.h"
 #include "gfx.h"
@@ -18,21 +19,21 @@ static Attributes text_attr();
 // Constructors
 // -----------------------------------------------------------------------------
 
-ColorVertex color_vertex(float x, float y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+ColorVertex color_vertex(float x, float y, Color color)
 {
 	ColorVertex vertex;
 
 	vertex.x = x;
 	vertex.y = y;
-	vertex.r = r;
-	vertex.g = g;
-	vertex.b = b;
-	vertex.a = a;
+	vertex.r = color.r;
+	vertex.g = color.g;
+	vertex.b = color.b;
+	vertex.a = color.a;
 
 	return vertex;
 }
 
-SpriteVertex sprite_vertex(float x, float y, float u, float v, uint8_t opacity)
+SpriteVertex sprite_vertex(float x, float y, float u, float v, Color color)
 {
 	SpriteVertex vertex;
 
@@ -40,7 +41,10 @@ SpriteVertex sprite_vertex(float x, float y, float u, float v, uint8_t opacity)
 	vertex.y = y;
 	vertex.u = u;
 	vertex.v = v;
-	vertex.opacity = opacity;
+	vertex.r = color.r;
+	vertex.g = color.g;
+	vertex.b = color.b;
+	vertex.a = color.a;
 
 	return vertex;
 }
@@ -140,7 +144,7 @@ Attributes sprite_attr()
 
 	a.add(attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, x)));
 	a.add(attr("in_texcoords", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SpriteVertex, u)));
-	a.add(attr("in_opacity", 1, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(SpriteVertex, opacity)));
+	a.add(attr("in_color", 4, GL_UNSIGNED_BYTE, GL_TRUE, sz, (GLvoid*)offsetof(SpriteVertex, r)));
 
 	return a;
 }

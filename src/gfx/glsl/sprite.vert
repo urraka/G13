@@ -1,13 +1,13 @@
 uniform   mat4  mvp;
 attribute vec2  in_position;
 attribute vec2  in_texcoords;
-attribute float in_opacity;
+attribute vec4  in_color;
 varying   vec2  texcoords;
-varying   float opacity;
+varying   vec4  color;
 
 void main()
 {
-	opacity = in_opacity;
+	color = in_color;
 	texcoords = in_texcoords;
 	gl_Position = mvp * vec4(in_position, 0.0, 1.0);
 }

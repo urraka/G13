@@ -1,26 +1,30 @@
 #pragma once
 
-#include "vertex.h"
+#include "Color.h"
+#include <glm/glm.hpp>
 
 namespace gfx {
 
 class Texture;
+struct SpriteVertex;
 
 class Sprite
 {
 public:
 	Sprite();
 
-	float x, y;
+	Color color;
+	Texture *texture;
+
 	float width;
 	float height;
-	float cx, cy; // center
-	float sx, sy; // scale
-	float angle;
-	float u[2], v[2]; // texcoords; 0: top-left, 1: bottom-right
-	float opacity;
+	float rotation;
 
-	Texture *texture;
+	glm::vec2 tx0, tx1;
+	glm::vec2 position;
+	glm::vec2 center;
+	glm::vec2 scale;
+	glm::mat4 transform;
 
 	void vertices(SpriteVertex (&vertex)[4]) const;
 };

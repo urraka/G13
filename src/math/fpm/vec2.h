@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fixed.h"
+#include <iosfwd>
 
 namespace math {
 namespace fpm {

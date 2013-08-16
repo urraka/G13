@@ -22,8 +22,8 @@ void Camera::update(Time dt)
 
 	float dts = sys::to_seconds(dt);
 
-	position_.update();
-	zoom_.update();
+	position_.previous = position_.current;
+	zoom_.previous = zoom_.current;
 
 	zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);
 	zoomVelocity_ = zoomTarget_ - zoom_.current;
@@ -58,13 +58,13 @@ float Camera::scale(float framePercent) const
 	const float initialWidth = 1200.0f; // in world units
 	const float initialScale = width_ * worldUnitsPerPixel / initialWidth;
 
-	return initialScale * glm::exp(maxZoom_ * zoom_.value(framePercent));
+	return initialScale * glm::exp(maxZoom_ * zoom_.interpolate(framePercent));
 }
 
 mat4 Camera::matrix(float framePercent, MatrixMode mode) const
 {
 	float scaleFactor = scale(framePercent);
-	vec2 position = position_.value(framePercent);
+	vec2 position = position_.interpolate(framePercent);
 
 	if (mode == MatrixInverted)
 	{

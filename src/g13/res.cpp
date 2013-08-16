@@ -21,7 +21,8 @@ static FontInfo    fonts   [FontCount   ] = {};
 
 void initialize()
 {
-	textures[Soldier].filename = "data/guy.png";
+	// textures[Soldier].filename = "data/guy.png";
+	textures[Soldier].filename = "data/soldier.png";
 
 	fonts[DefaultFont].filename = "data/NotoSans-Bold.ttf";
 	fonts[Monospace].filename = "data/consolab.ttf";
@@ -51,7 +52,7 @@ void terminate()
 gfx::Texture *texture(TextureID id)
 {
 	if (textures[id].texture == 0)
-		textures[id].texture = new gfx::Texture(textures[id].filename, false);
+		textures[id].texture = new gfx::Texture(textures[id].filename, true);
 
 	return textures[id].texture;
 }

@@ -1,4 +1,5 @@
 #include <fix16.h>
+#include <ostream>
 #include "fixed.h"
 
 namespace math {

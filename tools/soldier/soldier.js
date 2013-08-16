@@ -144,7 +144,7 @@ function Soldier(parent)
 {
 	var self = this;
 
-	this.strokeWidth = 5;
+	this.strokeWidth = 10;
 	this.strokeColor = "black";
 	this.bodyColor = "blue";
 	this.headColor = "#FFCC99";
@@ -188,7 +188,7 @@ Soldier.prototype.generateSprites = function()
 {
 	var scale = 1;
 	var angle = 0;
-	var padding = 1;
+	var padding = 6;
 	var blocks = [];
 	var sprites = {};
 	var frame = { time: 0, timeDiff: 0 };
@@ -369,8 +369,8 @@ Soldier.prototype.generateSprites = function()
 
 	var sprite = {
 		image: image,
-		cx: 337 - offset.x,
-		cy: 45 - offset.y
+		cx: 337 - offset.x0,
+		cy: 45 - offset.y0
 	};
 
 	blocks.push({
@@ -397,6 +397,9 @@ Soldier.prototype.generateSprites = function()
 	atlas.width = w;
 	atlas.height = h;
 
+	sprites["width"] = w;
+	sprites["height"] = h;
+
 	for (var i = 0; i < blocks.length; i++)
 	{
 		var x = blocks[i].fit.x + padding;
@@ -415,6 +418,7 @@ Soldier.prototype.generateSprites = function()
 	}
 
 	console.log(atlas.toDataURL());
+	console.log("data:text/octet-stream," + encodeURIComponent(JSON.stringify(sprites)));
 
 	// restore state
 
@@ -704,6 +708,7 @@ Soldier.prototype.updateLegs = function(frame)
 				legSprites[i].setWidth(info.width);
 				legSprites[i].setHeight(info.height);
 				legSprites[i].setRotation(0);
+				legSprites[i].setScaleX(1);
 			}
 		}
 
@@ -807,7 +812,7 @@ Soldier.prototype.updateBody = function()
 	];
 
 	this.root.get("#body")[0].setPoints(points);
-	this.root.get("#head")[0].setX(6 + offsetTop);
+	this.root.get("#head")[0].setX(offsetTop);
 	this.root.get("#leg-right")[0].setX(offsetBottom);
 	this.root.get("#leg-left")[0].setX(offsetBottom);
 	this.root.get("#leg-sprites")[0].setX(offsetBottom);
@@ -924,8 +929,8 @@ Soldier.prototype.addHead = function()
 
 	var eyes = new Kinetic.Group({ id: "eyes" });
 
-	eyes.add(new Kinetic.Circle({ radius: 7, fill: "black" }));
-	eyes.add(new Kinetic.Circle({ x: -74, y: 12, radius: 7, fill: "black" }));
+	eyes.add(new Kinetic.Circle({ radius: 10, fill: "black" }));
+	eyes.add(new Kinetic.Circle({ x: -74, y: 12, radius: 10, fill: "black" }));
 
 	head.add(ellipse);
 	head.add(eyes);

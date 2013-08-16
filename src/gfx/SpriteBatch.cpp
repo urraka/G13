@@ -1,4 +1,5 @@
 #include "SpriteBatch.h"
+#include "Sprite.h"
 #include "IBO.h"
 #include "VBO.h"
 #include "vertex.h"

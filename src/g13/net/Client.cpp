@@ -360,6 +360,17 @@ void Client::draw(float framePercent)
 {
 	if (active() && players_[id_].state() == Player::Playing)
 	{
+		{
+			double mx;
+			double my;
+
+			sys::mouse(&mx, &my);
+
+			mat4 m = camera_.matrix(framePercent, ent::Camera::MatrixInverted);
+
+			players_[id_].soldier()->graphics.target = vec2(m * glm::vec4(mx, my, 0.0f, 1.0f));
+		}
+
 		gfx::matrix(mat4(1.0f));
 		gfx::draw(background_);
 
@@ -371,7 +382,7 @@ void Client::draw(float framePercent)
 			{
 				ent::Soldier *soldier = players_[i].soldier();
 				soldier->graphics.frame(framePercent);
-				spriteBatch_->add(soldier->graphics.sprite);
+				spriteBatch_->add(soldier->graphics.sprites());
 			}
 		}
 
@@ -395,7 +406,8 @@ void Client::draw(float framePercent)
 				const cmp::SoldierPhysics &physics = players_[i].soldier()->physics;
 				const cmp::SoldierGraphics &graph = players_[i].soldier()->graphics;
 
-				vec2 pos = vec2(graph.sprite.x + 2.0f, graph.sprite.y - 20.0f);
+				vec2 pos = graph.position;
+				pos += vec2(2.0f, -20.0f);
 
 				if (physics.ducking())
 					pos.y -= physics.bboxDucked.height().to_float();
@@ -407,14 +419,8 @@ void Client::draw(float framePercent)
 
 				gfx::matrix(mat4(1.0f));
 
-				float shadow = 2.0f;
-
-				gfx::translate(pos.x - 0.5f * bounds.width + shadow, pos.y + shadow);
-				text->color(gfx::Color(0, 0, 0, 200));
-				gfx::draw(text);
-
-				gfx::translate(-shadow, -shadow);
-				text->color(gfx::Color(255, 255, 255));
+				gfx::translate(pos.x - 0.5f * bounds.width, glm::floor(pos.y));
+				text->color(gfx::Color(0, 0, 0));
 				gfx::draw(text);
 
 				gfx::matrix(m);
@@ -539,17 +545,17 @@ void Client::onResize(int width, int height)
 	float w = (float)width;
 	float h = (float)height;
 
-	vertex[0] = gfx::color_vertex(0.0f, 0.0f,   0,   0, 255, 255);
-	vertex[1] = gfx::color_vertex(w   , 0.0f,   0,   0, 255, 255);
-	vertex[2] = gfx::color_vertex(w   , h   , 200, 200, 255, 255);
-	vertex[3] = gfx::color_vertex(0.0f, h   , 200, 200, 255, 255);
+	vertex[0] = gfx::color_vertex(0.0f, 0.0f, gfx::Color(255, 255, 255)); //gfx::Color(  0,   0, 255));
+	vertex[1] = gfx::color_vertex(w   , 0.0f, gfx::Color(255, 255, 255)); //gfx::Color(  0,   0, 255));
+	vertex[2] = gfx::color_vertex(w   , h   , gfx::Color(255, 255, 255)); //gfx::Color(200, 200, 255));
+	vertex[3] = gfx::color_vertex(0.0f, h   , gfx::Color(255, 255, 255)); //gfx::Color(200, 200, 255));
 
 	background_->set(vertex, 0, 4);
 
-	vertex[0] = gfx::color_vertex(0.0f, h - 30.0f, 64, 64, 64, 200);
-	vertex[1] = gfx::color_vertex(w   , h - 30.0f, 64, 64, 64, 200);
-	vertex[2] = gfx::color_vertex(w   , h        , 64, 64, 64, 200);
-	vertex[3] = gfx::color_vertex(0.0f, h        , 64, 64, 64, 200);
+	vertex[0] = gfx::color_vertex(0.0f, h - 30.0f, gfx::Color(64, 64, 64, 200));
+	vertex[1] = gfx::color_vertex(w   , h - 30.0f, gfx::Color(64, 64, 64, 200));
+	vertex[2] = gfx::color_vertex(w   , h        , gfx::Color(64, 64, 64, 200));
+	vertex[3] = gfx::color_vertex(0.0f, h        , gfx::Color(64, 64, 64, 200));
 
 	chatBackground_->set(vertex, 0, 4);
 }
