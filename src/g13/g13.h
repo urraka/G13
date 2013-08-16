@@ -12,6 +12,13 @@ typedef sys::Event Event;
 	extern Debugger *dbg;
 #endif
 
+struct Frame
+{
+	Time time;
+	Time delta;
+	float percent;
+};
+
 void initialize();
 void display();
 void terminate();

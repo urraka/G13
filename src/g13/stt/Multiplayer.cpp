@@ -50,10 +50,10 @@ void Multiplayer::update(Time dt)
 	client_->update(dt);
 }
 
-void Multiplayer::draw(float percent)
+void Multiplayer::draw(const Frame &frame)
 {
 	gfx::clear();
-	client_->draw(percent);
+	client_->draw(frame);
 }
 
 bool Multiplayer::event(Event *evt)

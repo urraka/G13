@@ -1,14 +1,17 @@
 #pragma once
 
+#include "vertex.h"
+#include "Sprite.h"
+#include "VBO.h"
+
 #include <stddef.h>
+#include <assert.h>
 
 namespace gfx {
 
 class IBO;
-class VBO;
 class Texture;
 class Shader;
-class Sprite;
 
 class SpriteBatch
 {
@@ -23,8 +26,15 @@ public:
 
 	template<size_t N> inline void add(const Sprite (&sprites)[N])
 	{
+		assert(size_ + N <= maxSize_);
+
+		SpriteVertex v[N][4];
+
 		for (size_t i = 0; i < N; i++)
-			add(sprites[i]);
+			sprites[i].vertices(v[i]);
+
+		vbo_->set(&v[0][0], 4 * size_, 4 * N);
+		size_ += N;
 	}
 
 	Texture *texture() const;

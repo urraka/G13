@@ -356,17 +356,19 @@ void Client::onGameState(msg::GameState *gameState)
 	}
 }
 
-void Client::draw(float framePercent)
+void Client::draw(const Frame &frame)
 {
 	if (active() && players_[id_].state() == Player::Playing)
 	{
+		camera_.frame(frame);
+
 		{
 			double mx;
 			double my;
 
 			sys::mouse(&mx, &my);
 
-			mat4 m = camera_.matrix(framePercent, ent::Camera::MatrixInverted);
+			const mat4 &m = camera_.matrixinv();
 
 			players_[id_].soldier()->graphics.target = vec2(m * glm::vec4(mx, my, 0.0f, 1.0f));
 		}
@@ -381,12 +383,12 @@ void Client::draw(float framePercent)
 			if (players_[i].state() == Player::Playing)
 			{
 				ent::Soldier *soldier = players_[i].soldier();
-				soldier->graphics.frame(framePercent);
+				soldier->graphics.frame(frame);
 				spriteBatch_->add(soldier->graphics.sprites());
 			}
 		}
 
-		gfx::matrix(camera_.matrix(framePercent));
+		gfx::matrix(camera_.matrix());
 
 		map_->draw();
 

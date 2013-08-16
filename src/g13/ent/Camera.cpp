@@ -38,6 +38,27 @@ void Camera::update(Time dt)
 	position_.current += velocity_ * dts;
 }
 
+void Camera::frame(const Frame &frame)
+{
+	const float worldUnitsPerPixel = 1.0f;
+	const float initialWidth = 1200.0f; // in world units
+	const float initialScale = width_ * worldUnitsPerPixel / initialWidth;
+
+	zoom_.interpolate(frame.percent);
+	position_.interpolate(frame.percent);
+
+	float scale = initialScale * glm::exp(maxZoom_ * (float)zoom_);
+	const vec2 &pos = position_;
+
+	matrix_ = glm::translate(width_ / 2.0f, height_ / 2.0f, 0.0f);
+	matrix_ *= glm::scale(scale, scale, 1.0f);
+	matrix_ *= glm::translate(-pos.x, -pos.y, 0.0f);
+
+	matrixinv_ = glm::translate(pos.x, pos.y, 0.0f);
+	matrixinv_ *= glm::scale(1.0f / scale, 1.0f / scale, 1.0f);
+	matrixinv_ *= glm::translate(-width_ / 2.0f, -height_ / 2.0f, 0.0f);
+}
+
 void Camera::target(const vec2 *target)
 {
 	target_ = target;
@@ -50,32 +71,6 @@ void Camera::viewport(int width, int height)
 {
 	width_ = width;
 	height_ = height;
-}
-
-float Camera::scale(float framePercent) const
-{
-	const float worldUnitsPerPixel = 1.0f;
-	const float initialWidth = 1200.0f; // in world units
-	const float initialScale = width_ * worldUnitsPerPixel / initialWidth;
-
-	return initialScale * glm::exp(maxZoom_ * zoom_.interpolate(framePercent));
-}
-
-mat4 Camera::matrix(float framePercent, MatrixMode mode) const
-{
-	float scaleFactor = scale(framePercent);
-	vec2 position = position_.interpolate(framePercent);
-
-	if (mode == MatrixInverted)
-	{
-		return glm::translate(position.x, position.y, 0.0f) *
-			glm::scale(1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f) *
-			glm::translate(-width_ / 2.0f, -height_ / 2.0f, 0.0f);
-	}
-
-	return glm::translate(width_ / 2.0f, height_ / 2.0f, 0.0f) *
-		glm::scale(scaleFactor, scaleFactor, 1.0f) *
-		glm::translate(-position.x, -position.y, 0.0f);
 }
 
 void Camera::zoom(ZoomType zoomType)

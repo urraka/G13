@@ -31,7 +31,7 @@ public:
 	bool connect(const char *host, int port);
 	void disconnect();
 	void update(Time dt);
-	void draw(float framePercent);
+	void draw(const Frame &frame);
 	bool event(Event *evt);
 
 	bool active() const;

@@ -92,15 +92,10 @@ int Spritesheet::H = 0;
 
 static Spritesheet spritesheet;
 
-SoldierGraphics::AnimationData SoldierGraphics::data_;
-
 SoldierGraphics::SoldierGraphics()
 	:	moving_(false),
 		flip_(false)
 {
-	animation.data(data_.frames, data_.animations);
-	animation.set(Standing);
-	updateSprite(animation.frame());
 }
 
 void SoldierGraphics::update(Time dt, const SoldierState &state)
@@ -108,49 +103,11 @@ void SoldierGraphics::update(Time dt, const SoldierState &state)
 	position.previous = position.current;
 	position.current = from_fixed(state.position);
 
-	int notMoving = Standing;
-	int moving = Walking;
-	int jumping = Jumping;
-	int falling = Falling;
-
-	if (state.duck)
-	{
-		notMoving = Ducking;
-		moving = DuckWalking;
-		jumping = DuckJumping;
-		falling = DuckFalling;
-	}
-
-	if (state.floor)
-	{
-		if (state.velocity.x != 0 && animation.id() != moving)
-		{
-			int frame = data_.animations[moving].first;
-
-			if (animation.frameIndex() == frame)
-				frame++;
-
-			animation.set(moving, frame);
-		}
-		else if (state.velocity.x == 0)
-			animation.set(notMoving);
-	}
-	else
-	{
-		animation.set(state.velocity.y <= 0 ? jumping : falling);
-	}
-
-	animation.update(dt);
-	updateSprite(animation.frame());
-
-	sprite.scale.x = state.flip ? -1.f : 1.0f;
-
-
 	moving_ = state.floor && state.velocity.x != 0;
 	flip_ = !state.flip;
 }
 
-void SoldierGraphics::frame(float percent)
+void SoldierGraphics::frame(const Frame &frame)
 {
 	gfx::Sprite *body   = &sprites_[2];
 	gfx::Sprite *head   = &sprites_[3];
@@ -159,7 +116,7 @@ void SoldierGraphics::frame(float percent)
 	gfx::Sprite *arms[] = { &sprites_[8], &sprites_[6] };
 	gfx::Sprite *legs[] = { &sprites_[0], &sprites_[1] };
 
-	const vec2 worldpos = position.interpolate(percent);
+	const vec2 worldpos = position.interpolate(frame.percent);
 	const vec2 scale = vec2(0.15f);
 	const int armsAngleInterval = 180 / (spritesheet.armsfront.size() - 1);
 
@@ -357,50 +314,6 @@ void SoldierGraphics::frame(float percent)
 const gfx::Sprite (&SoldierGraphics::sprites())[9]
 {
 	return sprites_;
-}
-
-void SoldierGraphics::updateSprite(const Frame *frame)
-{
-	sprite.width = (float)frame->width;
-	sprite.height = (float)frame->height;
-
-	sprite.center.x = (float)frame->cx;
-	sprite.center.y = (float)frame->cy;
-
-	vec2 tx0 = vec2((float)frame->x, (float)frame->y);
-	vec2 tx1 = tx0 + vec2(sprite.width, sprite.height);
-	vec2 txSize(375.0f, 82.0f);
-
-	sprite.tx0 = tx0 / txSize;
-	sprite.tx1 = tx1 / txSize;
-}
-
-// animation data
-
-SoldierGraphics::AnimationData::AnimationData()
-{
-	int cx = 26;
-	int cy = 78;
-	int w = 54;
-	int h = 82;
-
-	frames[Standing00   ] = Frame(  0, 0, w, h, cx, cy, 0);
-	frames[Ducking00    ] = Frame(212, 0, w, h, cx, cy, 0);
-	frames[Walking00    ] = Frame( 53, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
-	frames[Walking01    ] = Frame(106, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
-	frames[DuckWalking00] = Frame(265, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
-	frames[DuckWalking01] = Frame(318, 0, w, h, cx, cy, sys::time<sys::Seconds>(0.1));
-	frames[Falling00    ] = Frame( 53, 0, w, h, cx, cy, 0);
-	frames[DuckFalling00] = Frame(265, 0, w, h, cx, cy, 0);
-
-	animations[Standing    ] = AnimationInfo(Standing00   , Standing00   );
-	animations[Ducking     ] = AnimationInfo(Ducking00    , Ducking00    );
-	animations[Walking     ] = AnimationInfo(Walking00    , Walking01    );
-	animations[DuckWalking ] = AnimationInfo(DuckWalking00, DuckWalking01);
-	animations[Jumping     ] = AnimationInfo(Walking01    , Walking01    );
-	animations[Falling     ] = AnimationInfo(Walking00    , Walking00    );
-	animations[DuckJumping ] = AnimationInfo(DuckWalking01, DuckWalking01);
-	animations[DuckFalling ] = AnimationInfo(DuckWalking00, DuckWalking00);
 }
 
 }} // g13::cmp

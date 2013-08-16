@@ -14,10 +14,10 @@ namespace g13 {
 
 static stt::State *state = 0;
 
-static Time time         = 0;
-static Time accumulator  = 0;
-static Time fps_time     = 0;
-static int  fps_count    = 0;
+static Time time        = 0;
+static Time accumulator = 0;
+static Time fps_time    = 0;
+static int  fps_count   = 0;
 
 static const Time dt        = sys::time<sys::Milliseconds>(30);
 static const Time sec       = sys::time<sys::Seconds>(1);
@@ -105,12 +105,6 @@ void display()
 		}
 	}
 
-	state->draw(accumulator / (double)dt);
-
-	#ifdef DEBUG
-		dbg->drawConsole();
-	#endif
-
 	Time newTime = sys::time();
 	Time frameTime = newTime - time;
 	Time frozenTime = 0;
@@ -135,6 +129,15 @@ void display()
 	}
 
 	time = newTime - frozenTime;
+
+	Frame frame = {time, frameTime, float(accumulator / (double)dt)};
+
+	state->draw(frame);
+
+	#ifdef DEBUG
+		dbg->drawConsole();
+	#endif
+
 	accumulator += frameTime;
 
 	while (accumulator >= dt)

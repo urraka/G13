@@ -11,7 +11,7 @@ public:
 	virtual ~State() {}
 
 	virtual void update(Time dt) = 0;
-	virtual void draw(float percent) = 0;
+	virtual void draw(const Frame &frame) = 0;
 	virtual bool event(Event *evt) = 0;
 };
 

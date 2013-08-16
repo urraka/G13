@@ -18,7 +18,7 @@ public:
 	~Multiplayer();
 
 	void update(Time dt);
-	void draw(float percent);
+	void draw(const Frame &frame);
 	bool event(Event *evt);
 
 private:

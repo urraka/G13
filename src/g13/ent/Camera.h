@@ -18,18 +18,15 @@ public:
 		ZoomOut = -1
 	};
 
-	enum MatrixMode
-	{
-		MatrixNormal,
-		MatrixInverted
-	};
-
 	void update(Time dt);
+	void frame(const Frame &frame);
+
 	void target(const vec2 *target);
 	void viewport(int width, int height);
-	float scale(float framePercent) const;
-	mat4 matrix(float framePercent, MatrixMode mode = MatrixNormal) const;
 	void zoom(ZoomType zoomType);
+
+	const mat4 &matrix()    const { return matrix_; }
+	const mat4 &matrixinv() const { return matrixinv_; }
 
 private:
 	math::interpolable<float> zoom_;
@@ -43,6 +40,9 @@ private:
 	const vec2 *target_;
 	math::interpolable<vec2> position_;
 	vec2 velocity_;
+
+	mat4 matrix_;
+	mat4 matrixinv_;
 };
 
 }} // g13::ent
