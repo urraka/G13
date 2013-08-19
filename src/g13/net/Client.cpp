@@ -125,13 +125,24 @@ void Client::update(Time dt)
 		if (players_[id_].state() == Player::Playing)
 		{
 			input_.update();
+
+			players_[id_].soldier()->graphics.aim(input_.angle, input_.rightwards);
+
 			players_[id_].onInput(tick_, input_);
 			players_[id_].update(dt, tick_);
 
-			msg::Input inputMsg;
-			inputMsg.tick = tick_;
-			inputMsg.input = input_.serialize();
-			send(&inputMsg, peer_);
+			msg::Input input;
+
+			input.tick       = tick_;
+			input.rightwards = input_.rightwards;
+			input.angle      = input_.angle;
+			input.left       = input_.left;
+			input.right      = input_.right;
+			input.jump       = input_.jump;
+			input.run        = input_.run;
+			input.duck       = input_.duck;
+
+			send(&input, peer_);
 		}
 
 		for (size_t i = 0; i < MaxPlayers; i++)
@@ -194,11 +205,13 @@ void Client::onDisconnect(ENetPeer *peer)
 	id_ = Player::InvalidId;
 	state_ = Disconnected;
 	textInputMode_ = false;
+	target_ = vec2(0.0f);
 
 	for (size_t i = 0; i < MaxPlayers; i++)
 	{
 		players_[i].onDisconnect();
 		playersText_[i].time = 0;
+		players_[i].soldier()->graphics.target = 0;
 	}
 }
 
@@ -240,6 +253,7 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	}
 
 	players_[id_].mode(Player::Local);
+	players_[id_].soldier()->graphics.target = &target_;
 
 	debug_log("Received server info. Players: " << info->nPlayers << "/" << MaxPlayers << ".");
 
@@ -370,7 +384,7 @@ void Client::draw(const Frame &frame)
 
 			const mat4 &m = camera_.matrixinv();
 
-			players_[id_].soldier()->graphics.target = vec2(m * glm::vec4(mx, my, 0.0f, 1.0f));
+			target_ = vec2(m * glm::vec4(mx, my, 0.0f, 1.0f));
 		}
 
 		gfx::matrix(mat4(1.0f));

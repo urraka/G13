@@ -30,10 +30,7 @@ void Player::update(Time dt, uint32_t tick)
 
 			if (inputs_.size() == 1)
 			{
-				cmp::SoldierInput input;
-				input.unserialize(inputs_[0]);
-				soldier_.update(dt, &input);
-
+				soldier_.update(dt, &inputs_[0]);
 				inputs_.clear();
 			}
 		}
@@ -118,6 +115,7 @@ void Player::update(Time dt, uint32_t tick)
 				else
 				{
 					state.position = sa->position + (sb->position - sa->position) * percent;
+					state.angle = sa->angle + (sb->angle - sa->angle) * percent.to_float();
 				}
 			}
 			else
@@ -143,13 +141,8 @@ void Player::update(Time dt, uint32_t tick)
 			}
 			else
 			{
-				for (size_t i = 0; i < inputs_.size(); i++)
-				{
-					cmp::SoldierInput input;
-					input.unserialize(inputs_[i]);
-					soldier_.update(dt, &input);
-					tick_++;
-				}
+				for (size_t i = 0; i < inputs_.size(); i++, tick_++)
+					soldier_.update(dt, &inputs_[i]);
 
 				inputs_.clear();
 			}
@@ -200,7 +193,7 @@ void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)
 {
 	if (tick > lastInputTick_)
 	{
-		inputs_.push_back(input.serialize());
+		inputs_.push_back(input);
 		lastInputTick_ = tick;
 	}
 }

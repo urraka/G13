@@ -44,6 +44,7 @@ private:
 	uint8_t id_;
 	char name_[Player::MaxNameLength + 1];
 	cmp::SoldierInput input_;
+	vec2 target_;
 
 	int connectingCount_;
 

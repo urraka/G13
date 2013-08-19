@@ -69,6 +69,29 @@ void SpriteBatch::add(const Sprite &sprite)
 	size_++;
 }
 
+void SpriteBatch::add(const Sprite *sprites, size_t count)
+{
+	assert(size_ + count <= maxSize_);
+
+	const size_t N = 128;
+	size_t uploaded = 0;
+
+	SpriteVertex v[N][4];
+
+	while (uploaded < count)
+	{
+		size_t n = std::min(count - uploaded, N);
+
+		for (size_t i = 0; i < n; i++)
+			sprites[uploaded + i].vertices(v[i]);
+
+		vbo_->set(&v[0][0], 4 * size_, 4 * n);
+
+		uploaded += n;
+		size_ += n;
+	}
+}
+
 void SpriteBatch::texture(Texture *texture)
 {
 	texture_ = texture;

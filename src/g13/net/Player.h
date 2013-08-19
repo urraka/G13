@@ -61,7 +61,7 @@ private:
 	ent::Soldier soldier_;
 	uint32_t joinTick_;
 	uint32_t lastInputTick_;
-	std::vector<uint8_t> inputs_;
+	std::vector<cmp::SoldierInput> inputs_;
 	uint32_t tick_;
 
 	struct SoldierState

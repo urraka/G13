@@ -11,37 +11,27 @@
 namespace g13 {
 namespace cmp {
 
+// -----------------------------------------------------------------------------
+// Spritesheet
+// -----------------------------------------------------------------------------
+
 struct Spritesheet
 {
-	static int W;
-	static int H;
-
 	struct Sprite
 	{
 		Sprite() {}
-
-		Sprite(const Json::Value &info)
-		{
-			float x = info["x"].asFloat();
-			float y = info["y"].asFloat();
-
-			width = info["width"].asFloat();
-			height = info["height"].asFloat();
-
-			center.x = info["cx"].asFloat();
-			center.y = info["cy"].asFloat();
-
-			tx0.x = x / W;
-			tx0.y = y / H;
-			tx1.x = (x + width) / W;
-			tx1.y = (y + height) / H;
-		}
+		Sprite(const Json::Value &info, const Spritesheet *spritesheet);
 
 		vec2 center;
 		vec2 tx0, tx1;
 		float width;
 		float height;
 	};
+
+	Spritesheet();
+
+	int width;
+	int height;
 
 	Sprite eye;
 	Sprite head;
@@ -52,49 +42,26 @@ struct Spritesheet
 	std::vector<Sprite> legs;
 	std::vector<Sprite> armsfront;
 	std::vector<Sprite> armsback;
-
-	Spritesheet()
-	{
-		Json::Value root;
-
-		Json::Reader json(Json::Features::strictMode());
-		json.parse(hlp::read("data/soldier.json"), root);
-
-		W = root["width"].asInt();
-		H = root["height"].asInt();
-
-		eye      = Sprite(root["eye"]);
-		head     = Sprite(root["head"]);
-		body     = Sprite(root["body"]);
-		bodyrun  = Sprite(root["body-running"]);
-		legstand = Sprite(root["leg-standing"]);
-		weapon   = Sprite(root["weapon"]);
-
-		const Json::Value *list = &root["leg"];
-
-		for (size_t i = 0; i < list->size(); i++)
-			legs.push_back(Sprite((*list)[i]));
-
-		list = &root["arm-front"];
-
-		for (size_t i = 0; i < list->size(); i++)
-			armsfront.push_back(Sprite((*list)[i]));
-
-		list = &root["arm-back"];
-
-		for (size_t i = 0; i < list->size(); i++)
-			armsback.push_back(Sprite((*list)[i]));
-	}
 };
 
-int Spritesheet::W = 0;
-int Spritesheet::H = 0;
+static const Spritesheet &get_spritesheet()
+{
+	static Spritesheet spritesheet;
+	return spritesheet;
+}
 
-static Spritesheet spritesheet;
+// -----------------------------------------------------------------------------
+// SoldierGraphics
+// -----------------------------------------------------------------------------
 
 SoldierGraphics::SoldierGraphics()
-	:	moving_(false),
-		flip_(false)
+	:	target(0),
+		running_(false),
+		air_(false),
+		runningTime_(0.0f),
+		speed_(0.0f),
+		angle_(1 << 15),
+		rightwards_(true)
 {
 }
 
@@ -103,20 +70,30 @@ void SoldierGraphics::update(Time dt, const SoldierState &state)
 	position.previous = position.current;
 	position.current = from_fixed(state.position);
 
-	moving_ = state.floor && state.velocity.x != 0;
-	flip_ = !state.flip;
+	angle_.previous = angle_.current;
+	angle_.current = state.angle;
+
+	speed_      = state.velocity.x.to_float();
+	air_        = !state.floor;
+	running_    = state.floor && state.velocity.x != 0;
+	rightwards_ = state.rightwards;
 }
 
 void SoldierGraphics::frame(const Frame &frame)
 {
-	gfx::Sprite *body   = &sprites_[2];
-	gfx::Sprite *head   = &sprites_[3];
-	gfx::Sprite *weapon = &sprites_[7];
-	gfx::Sprite *eyes[] = { &sprites_[4], &sprites_[5] };
-	gfx::Sprite *arms[] = { &sprites_[8], &sprites_[6] };
-	gfx::Sprite *legs[] = { &sprites_[0], &sprites_[1] };
+	gfx::Sprite *body   = &sprites_[Body];
+	gfx::Sprite *head   = &sprites_[Head];
+	gfx::Sprite *weapon = &sprites_[Weapon];
+	gfx::Sprite *eyes[2] = {&sprites_[Eye1], &sprites_[Eye2]};
+	gfx::Sprite *arms[2] = {&sprites_[ArmFront], &sprites_[ArmBack]};
+	gfx::Sprite *legs[2] = {&sprites_[Leg1], &sprites_[Leg2]};
 
-	const vec2 worldpos = position.interpolate(frame.percent);
+	position.interpolate(frame.percent);
+	angle_.interpolate(frame.percent);
+
+	const Spritesheet &spritesheet = get_spritesheet();
+
+	const vec2 &worldpos = position;
 	const vec2 scale = vec2(0.15f);
 	const int armsAngleInterval = 180 / (spritesheet.armsfront.size() - 1);
 
@@ -124,31 +101,123 @@ void SoldierGraphics::frame(const Frame &frame)
 	vec2 headOffset = vec2(0.0f);
 	vec2 legsOffset = vec2(0.0f);
 
-	if (moving_)
+	float legangle[2] = {0.0f, 0.0f};
+	float legscale[2] = {1.0f, 1.0f};
+
+	const Spritesheet::Sprite *leginfo[2] = {
+		&spritesheet.legstand,
+		&spritesheet.legstand
+	};
+
+	if (running_ || air_)
 	{
+		float offsety = 0.0f;
+
+		bool backwards = false;
+
+		if (target != 0)
+		{
+			if (glm::sign(target->x - worldpos.x - bodyOffset.x) != glm::sign(speed_))
+				backwards = true;
+		}
+		else
+		{
+			if ((rightwards_ ? 1.0f : -1.0f) != glm::sign(speed_))
+				backwards = true;
+		}
+
+		const int nFrames = spritesheet.legs.size();
+
+		const vec2 legkeys[] = {
+			vec2(  70.0f, 110.0f       ),
+			vec2(   0.0f, 110.0f * 0.8f),
+			vec2( -70.0f, 110.0f       ),
+			vec2(-100.0f, 110.0f * 0.4f),
+			vec2(  50.0f, 110.0f * 0.7f)
+		};
+
+		if (air_)
+			runningTime_ = 0.28f;
+
+		const float N = (float)countof(legkeys);
+		const float basekey = 3.5f;
+
+		float t1 = basekey + runningTime_ * N;
+
+		for (int i = 0; i < 2; i++, t1 += N / 2.0f)
+		{
+			t1 = glm::mod(t1, N);
+
+			const int iFrame = (int)glm::floor(nFrames * glm::mod(t1 - basekey + N, N) / N) % nFrames;
+
+			const float t2 = glm::mod(basekey + N * iFrame / nFrames, N);
+
+			int a1 = glm::floor(t1);
+			int b1 = glm::mod(glm::ceil(t1), N);
+
+			int a2 = glm::floor(t2);
+			int b2 = glm::mod(glm::ceil(t2), N);
+
+			vec2 end1 = glm::mix(legkeys[a1], legkeys[b1], t1 - a1);
+			vec2 end2 = glm::mix(legkeys[a2], legkeys[b2], t2 - a2);
+
+			leginfo[i]  = &spritesheet.legs[iFrame];
+			legscale[i] = glm::length(end1) / glm::length(end2);
+			legangle[i] = glm::atan(end1.y, end1.x) * (180.0f / M_PI);
+
+			if (t1 <= 2.0f)
+				offsety = 110.0f - end1.y;
+		}
+
 		headOffset.x += 8.0f;
 		legsOffset.x -= 12.0f;
+		bodyOffset.y += offsety;
+
+		const float frameTime = 28.0f / glm::abs(speed_);
+		const float totalTime = N * frameTime;
+		const float delta = sys::to_seconds(frame.delta) / totalTime;
+
+		if (backwards)
+		{
+			runningTime_ -= delta;
+
+			if (runningTime_ < 0.0f)
+				runningTime_ += 1.0f;
+		}
+		else
+		{
+			runningTime_ += delta;
+
+			if (runningTime_ > 1.0f)
+				runningTime_ -= 1.0f;
+		}
+	}
+	else
+	{
+		runningTime_ = 0.0f;
 	}
 
-	// TODO: update bodyoffset according to leg frame before calculating angle
+	float angle = 0.0f; // weapon angle [-90, 90]
 
-	float angle = 0.0f;       // weapon angle [-90, 90]
-	float fixedAngle = 0.0f;  // weapon angle fixed to armsAngleInterval
-	int   armIndex = 0;
-
+	if (target != 0)
 	{
-		vec2 v = target - worldpos - bodyOffset * scale;
+		vec2 v = *target - worldpos - bodyOffset * scale;
 		angle = glm::atan(v.y, v.x) * (180.0f / M_PI);
 
 		angle = angle < -90.0f ? -180.0f - angle :
 		        angle >  90.0f ?  180.0f - angle :
 		        angle;
 
-		armIndex = glm::floor((angle + 90.0f) / armsAngleInterval);
-		fixedAngle = armIndex * armsAngleInterval - 90.0f;
-
-		flip_ = v.x < 0.0f;
+		angle_.set((uint16_t)(((angle + 90.0f) / 180.0f) * ((1 << 16) - 1)));
+		rightwards_ = v.x >= 0.0f;
 	}
+	else
+	{
+		angle = ((uint16_t)angle_ / float((1 << 16) - 1)) * 180.0f - 90.0f;
+	}
+
+	int armIndex = glm::floor((angle + 90.0f) / armsAngleInterval);
+	float fixedAngle = armIndex * armsAngleInterval - 90.0f;
 
 	// colors
 
@@ -160,7 +229,7 @@ void SoldierGraphics::frame(const Frame &frame)
 
 	// body
 
-	const Spritesheet::Sprite &bodyInfo = moving_ ? spritesheet.bodyrun : spritesheet.body;
+	const Spritesheet::Sprite &bodyInfo = running_ ? spritesheet.bodyrun : spritesheet.body;
 
 	body->position = vec2(0.0f);
 	body->width    = bodyInfo.width;
@@ -214,11 +283,13 @@ void SoldierGraphics::frame(const Frame &frame)
 	{
 		legs[i]->position += legsOffset;
 
-		legs[i]->width  = spritesheet.legstand.width;
-		legs[i]->height = spritesheet.legstand.height;
-		legs[i]->center = spritesheet.legstand.center;
-		legs[i]->tx0    = spritesheet.legstand.tx0;
-		legs[i]->tx1    = spritesheet.legstand.tx1;
+		legs[i]->width    = leginfo[i]->width;
+		legs[i]->height   = leginfo[i]->height;
+		legs[i]->center   = leginfo[i]->center;
+		legs[i]->tx0      = leginfo[i]->tx0;
+		legs[i]->tx1      = leginfo[i]->tx1;
+		legs[i]->rotation = legangle[i];
+		legs[i]->scale.x  = legscale[i];
 	}
 
 	// weapon
@@ -303,7 +374,7 @@ void SoldierGraphics::frame(const Frame &frame)
 		transform *= glm::scale(scale.x, scale.y, 1.0f);
 		transform *= glm::translate(bodyOffset.x, bodyOffset.y, 1.0f);
 
-		if (flip_)
+		if (!rightwards_)
 			transform *= glm::scale(-1.0f, 1.0f, 1.0f);
 
 		for (size_t i = 0; i < countof(sprites_); i++)
@@ -314,6 +385,60 @@ void SoldierGraphics::frame(const Frame &frame)
 const gfx::Sprite (&SoldierGraphics::sprites())[9]
 {
 	return sprites_;
+}
+
+// -----------------------------------------------------------------------------
+// Spritesheet
+// -----------------------------------------------------------------------------
+
+Spritesheet::Spritesheet()
+{
+	Json::Value root;
+
+	Json::Reader json(Json::Features::strictMode());
+	json.parse(hlp::read("data/soldier.json"), root);
+
+	width = root["width"].asInt();
+	height = root["height"].asInt();
+
+	eye      = Sprite(root["eye"], this);
+	head     = Sprite(root["head"], this);
+	body     = Sprite(root["body"], this);
+	bodyrun  = Sprite(root["body-running"], this);
+	legstand = Sprite(root["leg-standing"], this);
+	weapon   = Sprite(root["weapon"], this);
+
+	const Json::Value *list = &root["leg"];
+
+	for (size_t i = 0; i < list->size(); i++)
+		legs.push_back(Sprite((*list)[i], this));
+
+	list = &root["arm-front"];
+
+	for (size_t i = 0; i < list->size(); i++)
+		armsfront.push_back(Sprite((*list)[i], this));
+
+	list = &root["arm-back"];
+
+	for (size_t i = 0; i < list->size(); i++)
+		armsback.push_back(Sprite((*list)[i], this));
+}
+
+Spritesheet::Sprite::Sprite(const Json::Value &info, const Spritesheet *spritesheet)
+{
+	float x = info["x"].asFloat();
+	float y = info["y"].asFloat();
+
+	width = info["width"].asFloat();
+	height = info["height"].asFloat();
+
+	center.x = info["cx"].asFloat();
+	center.y = info["cy"].asFloat();
+
+	tx0.x = x / spritesheet->width;
+	tx0.y = y / spritesheet->height;
+	tx1.x = (x + width) / spritesheet->width;
+	tx1.y = (y + height) / spritesheet->height;
 }
 
 }} // g13::cmp

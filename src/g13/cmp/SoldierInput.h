@@ -15,6 +15,8 @@ public:
 	uint8_t serialize() const;
 	void unserialize(uint8_t data);
 
+	uint16_t angle;
+	bool rightwards;
 	bool left;
 	bool right;
 	bool jump;

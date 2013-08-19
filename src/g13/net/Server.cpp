@@ -240,7 +240,14 @@ void Server::onPlayerInput(Player *player, msg::Input *input)
 	}
 
 	cmp::SoldierInput soldierInput;
-	soldierInput.unserialize(input->input);
+
+	soldierInput.rightwards = input->rightwards;
+	soldierInput.angle      = input->angle;
+	soldierInput.left       = input->left;
+	soldierInput.right      = input->right;
+	soldierInput.jump       = input->jump;
+	soldierInput.run        = input->run;
+	soldierInput.duck       = input->duck;
 
 	player->onInput(input->tick, soldierInput);
 }

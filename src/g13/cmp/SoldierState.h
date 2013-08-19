@@ -7,11 +7,12 @@ namespace cmp {
 
 struct SoldierState
 {
-	fixvec2 position;
-	fixvec2 velocity;
-	bool    flip;
-	bool    duck;
-	bool    floor;
+	fixvec2  position;
+	fixvec2  velocity;
+	uint16_t angle;
+	bool     rightwards;
+	bool     duck;
+	bool     floor;
 };
 
 }} // g13::cmp

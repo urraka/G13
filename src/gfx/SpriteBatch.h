@@ -21,6 +21,7 @@ public:
 
 	void clear();
 	void add(const Sprite &sprite);
+	void add(const Sprite *sprites, size_t count);
 	void texture(Texture *texture);
 	void shader(Shader *shader);
 

@@ -724,7 +724,7 @@ Soldier.prototype.updateLegs = function(frame)
 	];
 
 	var n = keyframes.length;
-	var keyframe0 = 3;
+	var keyframe0 = 3.5;
 	var t = keyframe0 + this.runningTime * n;
 
 	for (var i = 0; i < 2; i++)

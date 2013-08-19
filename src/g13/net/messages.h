@@ -21,10 +21,22 @@ END
 
 MESSAGE(Input)
 	uint32_t tick;
-	uint8_t  input;
+	uint16_t angle;
+	bool rightwards;
+	bool left;
+	bool right;
+	bool jump;
+	bool run;
+	bool duck;
 BEGIN
 	Integer(tick)
-	Bits(input, cmp::SoldierInput::MaxBits)
+	Integer(angle)
+	Bool(rightwards)
+	Bool(left)
+	Bool(right)
+	Bool(jump)
+	Bool(run)
+	Bool(duck)
 END
 
 MESSAGE(Chat)
@@ -86,7 +98,8 @@ LIST(SoldierState, soldier)
 	Fixed(soldier.state.position.y)
 	Fixed(soldier.state.velocity.x)
 	Fixed(soldier.state.velocity.y)
-	Bool(soldier.state.flip)
+	Integer(soldier.state.angle)
+	Bool(soldier.state.rightwards)
 	Bool(soldier.state.duck)
 	Bool(soldier.state.floor)
 LISTEND

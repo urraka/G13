@@ -25,7 +25,7 @@ private:
 	net::Client *client_;
 	net::Server *server_;
 
-	bool onKeyPressed(int key);
+	bool onKeyPressed(const Event::KeyEvent &key);
 };
 
 }} // g13::stt

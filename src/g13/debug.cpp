@@ -25,7 +25,7 @@ Debugger::Debugger()
 		extrapolation(false),
 		ticksBehind(4),
 		showFontAtlas(false),
-		consoleEnabled_(false),
+		consoleEnabled(false),
 		collisionHulls(),
 		consoleText_(0)
 {
@@ -241,7 +241,7 @@ void Debugger::drawFontAtlas()
 
 void Debugger::drawConsole()
 {
-	if (!consoleEnabled_)
+	if (!consoleEnabled)
 		return;
 
 	if (consoleText_ == 0)
@@ -280,13 +280,13 @@ bool Debugger::event(sys::Event *evt)
 
 bool Debugger::onKeyPressed(int key)
 {
-	if (key == sys::F1 || (consoleEnabled_ && key == sys::Escape))
+	if (key == sys::F1 || (consoleEnabled && key == sys::Escape))
 	{
-		consoleEnabled_ = !consoleEnabled_;
+		consoleEnabled = !consoleEnabled;
 		return false;
 	}
 
-	if (!consoleEnabled_)
+	if (!consoleEnabled)
 		return true;
 
 	bool result = false;

@@ -27,7 +27,7 @@ public:
 		previous = current = interpolatedValue_ = value;
 	}
 
-	T interpolate(float percent) const
+	const T &interpolate(float percent) const
 	{
 		return interpolatedValue_ = glm::mix(previous, current, percent);
 	};

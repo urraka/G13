@@ -65,18 +65,18 @@ bool Multiplayer::event(Event *evt)
 	}
 
 	if (evt->type == Event::KeyPressed)
-		return onKeyPressed(evt->key.code);
+		return onKeyPressed(evt->key);
 
 	return true;
 }
 
-bool Multiplayer::onKeyPressed(int key)
+bool Multiplayer::onKeyPressed(const Event::KeyEvent &key)
 {
-	switch (key)
+	switch (key.code)
 	{
 		case 'S':
 		{
-			if (server_->state() == net::Server::Stopped)
+			if (key.ctrl && server_->state() == net::Server::Stopped)
 			{
 				int port;
 				std::string host;
@@ -89,7 +89,7 @@ bool Multiplayer::onKeyPressed(int key)
 
 		case 'C':
 		{
-			if (client_->state() == net::Client::Disconnected)
+			if (key.ctrl && client_->state() == net::Client::Disconnected)
 			{
 				int port;
 				std::string host;

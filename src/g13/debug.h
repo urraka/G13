@@ -51,9 +51,9 @@ public:
 	bool extrapolation;
 	int  ticksBehind;
 	bool showFontAtlas;
+	bool consoleEnabled;
 
 private:
-	bool consoleEnabled_;
 	gfx::VBO *collisionHulls[2];
 	gfx::Text *consoleText_;
 };

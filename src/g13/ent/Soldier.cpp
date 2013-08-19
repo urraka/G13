@@ -6,10 +6,11 @@ namespace ent {
 Soldier::Soldier()
 {
 	physics.input = &input;
-	state_.flip = false;
+	input.rightwards = true;
+	input.angle = 1U << 15;
 }
 
-void Soldier::update(Time dt, cmp::SoldierInput *inpt)
+void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 {
 	if (inpt != 0)
 		input = *inpt;
@@ -24,6 +25,9 @@ void Soldier::reset(fixvec2 pos)
 {
 	physics.reset(pos);
 	graphics.position.set(from_fixed(pos));
+
+	input.rightwards = true;
+	input.angle = 1U << 15;
 }
 
 void Soldier::map(const Collision::Map *map)
@@ -38,8 +42,11 @@ cmp::SoldierState Soldier::state()
 	state_.duck  = physics.ducking();
 	state_.floor = physics.floor();
 
-	if (input.right) state_.flip = true;
-	if (input.left) state_.flip = false;
+	state_.rightwards = input.rightwards;
+	state_.angle = input.angle;
+
+	// if (input.right) state_.flip = true;
+	// if (input.left) state_.flip = false;
 
 	return state_;
 }

@@ -18,11 +18,11 @@ void SoldierInput::update()
 {
 	reset();
 
-	left  = sys::pressed(sys::Left);
-	right = sys::pressed(sys::Right);
-	jump  = sys::pressed(sys::Up);
+	left  = sys::pressed('A');
+	right = sys::pressed('D');
+	jump  = sys::pressed('W');
 	run   = sys::pressed(sys::LeftShift) || sys::pressed(sys::RightShift);
-	duck  = sys::pressed(sys::Down);
+	duck  = sys::pressed('S');
 
 	if (left && right) left = right = false;
 }
