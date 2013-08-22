@@ -28,6 +28,8 @@ bool Server::start(int port)
 		return false;
 	}
 
+	enet_host_compress_with_range_coder(connection_);
+
 	tick_ = 1;
 	state_ = Running;
 

@@ -8,6 +8,7 @@ namespace res {
 enum TextureID
 {
 	Soldier,
+	Rocks,
 	TextureCount
 };
 

@@ -115,8 +115,8 @@ vector<uint16_t> triangulate(const vector<vec2> &polygon)
 				}
 			}
 
-			if (current->reflex)
-				reflexVertices.remove(current);
+			// if (current->reflex)
+			// 	reflexVertices.remove(current);
 
 			iTriangle += 3;
 			nVertices--;

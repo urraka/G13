@@ -2,6 +2,7 @@
 
 #include "Collision.h"
 #include <gfx/forward.h>
+#include <vector>
 
 namespace g13 {
 
@@ -16,6 +17,7 @@ public:
 
 protected:
 	std::vector<gfx::VBO*> vbos_;
+	gfx::SpriteBatch *rocks_;
 	Collision::Map collisionMap_;
 };
 

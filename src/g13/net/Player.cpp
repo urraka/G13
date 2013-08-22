@@ -4,6 +4,8 @@
 #include <g13/Collision.h>
 
 #include <hlp/assign.h>
+#include <math/mix_angle.h>
+#include <math/wrap_angle.h>
 
 namespace g13 {
 namespace net {
@@ -115,7 +117,29 @@ void Player::update(Time dt, uint32_t tick)
 				else
 				{
 					state.position = sa->position + (sb->position - sa->position) * percent;
-					state.angle = sa->angle + (sb->angle - sa->angle) * percent.to_float();
+
+					if (sa->rightwards != sb->rightwards)
+					{
+						float a = M_PI * sa->angle / ((1U << 16) - 1) - M_PI / 2;
+						float b = M_PI * sb->angle / ((1U << 16) - 1) - M_PI / 2;
+
+						if (!sa->rightwards) a = -a + M_PI;
+						if (!sb->rightwards) b = -b + M_PI;
+
+						float angle = math::mix_angle(a, b, percent.to_float());
+						angle = math::wrap_angle(angle, -M_PI / 2);
+
+						state.rightwards = (angle <= M_PI / 2);
+
+						if (!state.rightwards)
+							angle = -angle + M_PI;
+
+						state.angle = (uint16_t)(((1U << 16) - 1) * (angle + M_PI / 2) / M_PI);
+					}
+					else
+					{
+						state.angle = glm::mix(sa->angle, sb->angle, percent.to_float());
+					}
 				}
 			}
 			else

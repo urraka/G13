@@ -1,4 +1,6 @@
 Networking
+  - Interpolate angle properly when direction changes (use shortest direction).
+  x Set compression stuff.
   - Set timeouts on both client and server.
   - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.
   - Consider adding range checks on packet serialization.
@@ -9,7 +11,8 @@ Networking
   - Client side prediction is not correcting if out of sync.
 
 Game
-  / New soldier animations with ability to aim at arbitrary angles.
+  - Maybe some refactor in collision class. Or pass is_floor predicate from Map at least.
+  x New soldier animations with ability to aim at arbitrary angles.
   - Replace network.txt with config.cfg and move it ro root directory.
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.

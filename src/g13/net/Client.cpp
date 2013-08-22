@@ -86,6 +86,8 @@ bool Client::connect(const char *host, int port)
 		return false;
 	}
 
+	enet_host_compress_with_range_coder(connection_);
+
 	ENetAddress address;
 	enet_address_set_host(&address, host);
 	address.port = port;
@@ -561,17 +563,17 @@ void Client::onResize(int width, int height)
 	float w = (float)width;
 	float h = (float)height;
 
-	vertex[0] = gfx::color_vertex(0.0f, 0.0f, gfx::Color(255, 255, 255)); //gfx::Color(  0,   0, 255));
-	vertex[1] = gfx::color_vertex(w   , 0.0f, gfx::Color(255, 255, 255)); //gfx::Color(  0,   0, 255));
-	vertex[2] = gfx::color_vertex(w   , h   , gfx::Color(255, 255, 255)); //gfx::Color(200, 200, 255));
-	vertex[3] = gfx::color_vertex(0.0f, h   , gfx::Color(255, 255, 255)); //gfx::Color(200, 200, 255));
+	vertex[0] = gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xCC));
+	vertex[1] = gfx::color_vertex(w   , 0.0f, gfx::Color(0xCC));
+	vertex[2] = gfx::color_vertex(w   , h   , gfx::Color(0xCC));
+	vertex[3] = gfx::color_vertex(0.0f, h   , gfx::Color(0xCC));
 
 	background_->set(vertex, 0, 4);
 
-	vertex[0] = gfx::color_vertex(0.0f, h - 30.0f, gfx::Color(64, 64, 64, 200));
-	vertex[1] = gfx::color_vertex(w   , h - 30.0f, gfx::Color(64, 64, 64, 200));
-	vertex[2] = gfx::color_vertex(w   , h        , gfx::Color(64, 64, 64, 200));
-	vertex[3] = gfx::color_vertex(0.0f, h        , gfx::Color(64, 64, 64, 200));
+	vertex[0] = gfx::color_vertex(0.0f, h - 30.0f, gfx::Color(64, 200));
+	vertex[1] = gfx::color_vertex(w   , h - 30.0f, gfx::Color(64, 200));
+	vertex[2] = gfx::color_vertex(w   , h        , gfx::Color(64, 200));
+	vertex[3] = gfx::color_vertex(0.0f, h        , gfx::Color(64, 200));
 
 	chatBackground_->set(vertex, 0, 4);
 }

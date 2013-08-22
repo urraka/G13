@@ -23,6 +23,7 @@ void initialize()
 {
 	// textures[Soldier].filename = "data/guy.png";
 	textures[Soldier].filename = "data/soldier.png";
+	textures[Rocks].filename = "data/rocks.png";
 
 	fonts[DefaultFont].filename = "data/NotoSans-Bold.ttf";
 	fonts[Monospace].filename = "data/consolab.ttf";
