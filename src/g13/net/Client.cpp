@@ -126,7 +126,7 @@ void Client::update(Time dt)
 	{
 		if (players_[id_].state() == Player::Playing)
 		{
-			input_.update();
+			// input_.update();
 
 			players_[id_].soldier()->graphics.aim(input_.angle, input_.rightwards);
 
@@ -479,6 +479,8 @@ bool Client::event(Event *evt)
 			if (evt->key.code == sys::NumpadAdd || evt->key.code == sys::NumpadSubtract)
 				camera_.zoom(ent::Camera::ZoomNone);
 
+			input_.onKeyRelease(evt->key);
+
 			break;
 
 		case Event::KeyPressed:
@@ -514,6 +516,8 @@ bool Client::event(Event *evt)
 
 			if (!textInputMode_)
 			{
+				input_.onKeyPress(evt->key);
+
 				if (evt->key.code == sys::NumpadAdd)
 					camera_.zoom(ent::Camera::ZoomIn);
 				else if (evt->key.code == sys::NumpadSubtract)

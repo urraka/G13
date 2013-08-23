@@ -14,8 +14,6 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 {
 	if (inpt != 0)
 		input = *inpt;
-	else
-		input.update();
 
 	physics.update(dt);
 	graphics.update(dt, state());

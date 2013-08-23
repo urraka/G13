@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sys/Event.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -10,20 +11,19 @@ class SoldierInput
 {
 public:
 	SoldierInput();
-	void update();
-	void reset();
-	uint8_t serialize() const;
-	void unserialize(uint8_t data);
+
+	void onKeyPress(const sys::Event::KeyEvent &event);
+	void onKeyRelease(const sys::Event::KeyEvent &event);
 
 	uint16_t angle;
 	bool rightwards;
 	bool left;
 	bool right;
+	bool realLeft;
+	bool realRight;
 	bool jump;
 	bool run;
 	bool duck;
-
-	static const size_t MaxBits = 5;
 };
 
 }} // g13::cmp

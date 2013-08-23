@@ -8,53 +8,44 @@ namespace cmp {
 SoldierInput::SoldierInput()
 	:	left(false),
 		right(false),
+		realLeft(false),
+		realRight(false),
 		jump(false),
 		run(false),
 		duck(false)
 {
 }
 
-void SoldierInput::update()
+void SoldierInput::onKeyPress(const sys::Event::KeyEvent &event)
 {
-	reset();
+	switch (event.code)
+	{
+		case 'A': left  = realLeft  = true; right = false; break;
+		case 'D': right = realRight = true; left  = false; break;
+		case 'S': duck  = true; break;
+		case 'W': jump  = true; break;
 
-	left  = sys::pressed('A');
-	right = sys::pressed('D');
-	jump  = sys::pressed('W');
-	run   = sys::pressed(sys::LeftShift) || sys::pressed(sys::RightShift);
-	duck  = sys::pressed('S');
-
-	if (left && right) left = right = false;
+		case sys::LeftShift:
+		case sys::RightShift:
+			run = true;
+			break;
+	}
 }
 
-void SoldierInput::reset()
+void SoldierInput::onKeyRelease(const sys::Event::KeyEvent &event)
 {
-	left  = false;
-	right = false;
-	jump  = false;
-	run   = false;
-	duck  = false;
-}
+	switch (event.code)
+	{
+		case 'A': left  = realLeft  = false; right = realRight; break;
+		case 'D': right = realRight = false; left  = realLeft;  break;
+		case 'S': duck  = false; break;
+		case 'W': jump  = false; break;
 
-uint8_t SoldierInput::serialize() const
-{
-	uint8_t data = 0;
-	data |= 0x01 * left;
-	data |= 0x02 * right;
-	data |= 0x04 * jump;
-	data |= 0x08 * run;
-	data |= 0x10 * duck;
-
-	return data;
-}
-
-void SoldierInput::unserialize(uint8_t data)
-{
-	left  = data & 0x01;
-	right = data & 0x02;
-	jump  = data & 0x04;
-	run   = data & 0x08;
-	duck  = data & 0x10;
+		case sys::LeftShift:
+		case sys::RightShift:
+			run = false;
+			break;
+	}
 }
 
 }} // g13::cmp
