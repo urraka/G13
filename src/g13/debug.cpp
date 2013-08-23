@@ -232,7 +232,7 @@ void Debugger::drawFontAtlas()
 		sprite.texture = font->texture(0);
 		sprite.width = sprite.texture->width();
 		sprite.height = sprite.texture->height();
-		sprite.color.a = 127;
+		// sprite.color.a = 127;
 
 		gfx::matrix(mat4(1.0f));
 		gfx::draw(sprite);

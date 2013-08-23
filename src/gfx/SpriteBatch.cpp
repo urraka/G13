@@ -11,7 +11,7 @@ namespace gfx {
 IBO *SpriteBatch::ibo_ = 0;
 int SpriteBatch::refcount_ = 0;
 
-SpriteBatch::SpriteBatch(size_t maxSize)
+SpriteBatch::SpriteBatch(size_t maxSize, Usage usage)
 	:	vbo_(new VBO()),
 		texture_(0),
 		size_(0),
@@ -36,7 +36,7 @@ SpriteBatch::SpriteBatch(size_t maxSize)
 	}
 
 	vbo_ = new VBO(ibo_);
-	vbo_->allocate<SpriteVertex>(maxSize * 4, Dynamic);
+	vbo_->allocate<SpriteVertex>(maxSize * 4, usage);
 
 	refcount_++;
 }

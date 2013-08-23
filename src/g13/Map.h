@@ -18,6 +18,7 @@ public:
 protected:
 	std::vector<gfx::VBO*> vbos_;
 	gfx::SpriteBatch *rocks_;
+	gfx::SpriteBatch *trees_;
 	Collision::Map collisionMap_;
 };
 

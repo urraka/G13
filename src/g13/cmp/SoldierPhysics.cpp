@@ -195,6 +195,53 @@ void SoldierPhysics::update(Time dt)
 
 					currentHull_ = collision.hull;
 					currentNode_ = &currentHull_.nodes[collision.iHullNode];
+
+					// sometimes we hit a floor line but position is out of its bounds, derp
+					// the next if hacks together a fix for that, hopefully without side effects
+
+					if (currentNode_->floor)
+					{
+						const fixvec2 *a = &currentNode_->line.p1;
+						const fixvec2 *b = &currentNode_->line.p2;
+
+						if (a->x > b->x)
+							std::swap(a, b);
+
+						const Collision::Node *nextNode = 0;
+
+						if (position.x < a->x)
+						{
+							if (a == &currentNode_->line.p1)
+								nextNode = currentNode_->prev;
+							else
+								nextNode = currentNode_->next;
+						}
+						else if (position.x > b->x)
+						{
+							if (b == &currentNode_->line.p1)
+								nextNode = currentNode_->prev;
+							else
+								nextNode = currentNode_->next;
+						}
+
+						if (nextNode != 0)
+						{
+							if (!nextNode->floor)
+							{
+								nextNode = 0;
+							}
+							else
+							{
+								bool isHullNode = nextNode >= &currentHull_.nodes[0] &&
+									nextNode <= &currentHull_.nodes[2];
+
+								if (!isHullNode)
+									currentHull_ = Collision::createHull(nextNode, bbox);
+
+								currentNode_ = nextNode;
+							}
+						}
+					}
 				}
 			}
 			else if (currentNode_ != 0 && !currentNode_->floor)

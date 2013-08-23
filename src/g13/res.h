@@ -9,6 +9,7 @@ enum TextureID
 {
 	Soldier,
 	Rocks,
+	Tree,
 	TextureCount
 };
 

@@ -38,7 +38,7 @@ static inline bool is_floor(const ivec2 &a, const ivec2 &b)
 	return is_floor(vec2(a), vec2(b));
 }
 
-Map::Map() : rocks_(0)
+Map::Map() : rocks_(0), trees_(0)
 {
 }
 
@@ -52,11 +52,15 @@ Map::~Map()
 
 	if (rocks_ != 0)
 		delete rocks_;
+
+	if (trees_ != 0)
+		delete trees_;
 }
 
 void Map::load()
 {
 	std::vector< std::vector<ivec2> > lineStrips = line_strips();
+
 	collisionMap_.create(lineStrips);
 
 	// find strips which are floors and create "platforms"
@@ -115,6 +119,40 @@ void Map::load()
 			}
 		}
 
+		// create a tree spritebatch
+
+		if (0)
+		{
+			std::vector<gfx::Sprite> sprites(floorstrips.size());
+
+			gfx::Texture *texture = res::texture(res::Tree);
+
+			for (size_t i = 0; i < floorstrips.size(); i++)
+			{
+				const LineStrip &strip = floorstrips[i];
+
+				const int index = rand() % (strip.size() - 1);
+
+				const vec2 &a = strip[index + 0];
+				const vec2 &b = strip[index + 1];
+
+				const vec2 n = normal(a, b);
+				const float angle = glm::degrees(glm::atan(n.y, n.x)) + 90.0f;
+
+				sprites[i].position = glm::mix(a, b, glm::linearRand(0.0f, 1.0f));
+				sprites[i].width = texture->width();
+				sprites[i].height = texture->height();
+				sprites[i].center = vec2(168.0f, 252.0f);
+				sprites[i].color = gfx::Color(0x66);
+				sprites[i].scale = vec2(glm::linearRand(0.7f, 1.0f));
+				sprites[i].rotation = angle;// + glm::linearRand(-10.0f, 10.0f);
+			}
+
+			trees_ = new gfx::SpriteBatch(sprites.size(), gfx::Static);
+			trees_->texture(texture);
+			trees_->add(sprites.data(), sprites.size());
+		}
+
 		// find a bunch of points where rock sprites will be placed
 
 		std::vector<vec2> rockpoints;
@@ -142,8 +180,6 @@ void Map::load()
 		}
 
 		std::random_shuffle(rockpoints.begin(), rockpoints.end());
-
-		std::cout << "Rock count: " << rockpoints.size() << std::endl;
 
 		// create a sprite batch for the rocks
 
@@ -192,6 +228,8 @@ void Map::load()
 				}
 			}
 
+			// create the sprite batch
+
 			std::vector<gfx::Sprite> rocks(rockpoints.size());
 
 			for (size_t i = 0; i < rockpoints.size(); i++)
@@ -209,7 +247,7 @@ void Map::load()
 				rocks[i].scale = vec2(0.15f);
 			}
 
-			rocks_ = new gfx::SpriteBatch(rocks.size());
+			rocks_ = new gfx::SpriteBatch(rocks.size(), gfx::Static);
 			rocks_->texture(res::texture(res::Rocks));
 			rocks_->add(rocks.data(), rocks.size());
 
@@ -219,110 +257,109 @@ void Map::load()
 
 		// convert each floorstrip into a platform
 
-		LineStripArray platforms(floorstrips.size());
-
-		for (size_t i = 0; i < floorstrips.size(); i++)
-		{
-			const LineStrip &strip = floorstrips[i];
-
-			const size_t N = strip.size();
-
-			LineStrip &platform = platforms[i];
-			platform.resize(N * 2);
-
-			const float offset = 20.0f;
-
-			for (size_t j = 0; j < N; j++)
-				platform[j] = strip[j] - vec2(0.0f, offset);
-
-			for (size_t j = 0; j < N; j++)
-				platform[N + j] = strip[(N - j - 1)] + vec2(0.0f, offset);
-		}
-
-		// triangulate platforms and create a vbo for each one
-
 		if (0)
 		{
-			const gfx::Color color(200);
+			LineStripArray platforms(floorstrips.size());
 
-			std::vector<gfx::ColorVertex> vertices;
-
-			for (size_t i = 0; i < platforms.size(); i++)
+			for (size_t i = 0; i < floorstrips.size(); i++)
 			{
-				const LineStrip &platform = platforms[i];
+				const LineStrip &strip = floorstrips[i];
 
-				vertices.resize(platform.size());
+				const size_t N = strip.size();
 
-				for (size_t j = 0; j < platform.size(); j++)
-					vertices[j] = gfx::color_vertex(platform[j].x, platform[j].y, color);
+				LineStrip &platform = platforms[i];
+				platform.resize(N * 2);
 
-				std::vector<uint16_t> indices = math::triangulate(platforms[i]);
+				const float offset = 20.0f;
 
-				gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
-				ibo->set(indices.data(), 0, indices.size());
+				for (size_t j = 0; j < N; j++)
+					platform[j] = strip[j] - vec2(0.0f, offset);
 
-				gfx::VBO *vbo = new gfx::VBO(ibo);
-				vbo->allocate<gfx::ColorVertex>(vertices.size(), gfx::Static);
-				vbo->set(vertices.data(), 0, vertices.size());
-
-				vboPlatforms.push_back(vbo);
-			}
-		}
-
-		// add strips as lines
-
-		if (0)
-		{
-			const LineStripArray &strips = platforms;
-
-			size_t nVertices = 0;
-			size_t nIndices = 0;
-
-			for (size_t i = 0; i < strips.size(); i++)
-			{
-				nVertices += strips[i].size();
-				nIndices += 2 * (strips[i].size() - 1);
+				for (size_t j = 0; j < N; j++)
+					platform[N + j] = strip[(N - j - 1)] + vec2(0.0f, offset);
 			}
 
-			std::vector<gfx::ColorVertex> vertices(nVertices);
-			std::vector<uint16_t> indices(nIndices);
+			// triangulate platforms and create a vbo for each one
 
-			size_t iv = 0;
-			size_t ii = 0;
-
-			for (size_t i = 0; i < strips.size(); i++)
 			{
-				const gfx::Color color(0, 0, 255);
+				const gfx::Color color(200);
 
-				vertices[iv++] = gfx::color_vertex(strips[i][0].x, strips[i][0].y, color);
+				std::vector<gfx::ColorVertex> vertices;
 
-				for (size_t j = 1; j < strips[i].size(); j++)
+				for (size_t i = 0; i < platforms.size(); i++)
 				{
-					vertices[iv++] = gfx::color_vertex(strips[i][j].x, strips[i][j].y, color);
+					const LineStrip &platform = platforms[i];
 
-					indices[ii++] = iv - 2;
-					indices[ii++] = iv - 1;
+					vertices.resize(platform.size());
+
+					for (size_t j = 0; j < platform.size(); j++)
+						vertices[j] = gfx::color_vertex(platform[j].x, platform[j].y, color);
+
+					std::vector<uint16_t> indices = math::triangulate(platforms[i]);
+
+					gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
+					ibo->set(indices.data(), 0, indices.size());
+
+					gfx::VBO *vbo = new gfx::VBO(ibo);
+					vbo->allocate<gfx::ColorVertex>(vertices.size(), gfx::Static);
+					vbo->set(vertices.data(), 0, vertices.size());
+
+					vboPlatforms.push_back(vbo);
 				}
 			}
 
-			gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
-			gfx::VBO *vbo = new gfx::VBO(ibo);
+			// add strips as lines
 
-			ibo->set(indices.data(), 0, indices.size());
-			vbo->allocate<gfx::ColorVertex>(vertices.size(), gfx::Static);
-			vbo->set(vertices.data(), 0, vertices.size());
-			vbo->mode(gfx::Lines);
+			if (0)
+			{
+				const LineStripArray &strips = platforms;
 
-			vboPlatforms.push_back(vbo);
+				size_t nVertices = 0;
+				size_t nIndices = 0;
+
+				for (size_t i = 0; i < strips.size(); i++)
+				{
+					nVertices += strips[i].size();
+					nIndices += 2 * (strips[i].size() - 1);
+				}
+
+				std::vector<gfx::ColorVertex> vertices(nVertices);
+				std::vector<uint16_t> indices(nIndices);
+
+				size_t iv = 0;
+				size_t ii = 0;
+
+				for (size_t i = 0; i < strips.size(); i++)
+				{
+					const gfx::Color color(0, 0, 255);
+
+					vertices[iv++] = gfx::color_vertex(strips[i][0].x, strips[i][0].y, color);
+
+					for (size_t j = 1; j < strips[i].size(); j++)
+					{
+						vertices[iv++] = gfx::color_vertex(strips[i][j].x, strips[i][j].y, color);
+
+						indices[ii++] = iv - 2;
+						indices[ii++] = iv - 1;
+					}
+				}
+
+				gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
+				gfx::VBO *vbo = new gfx::VBO(ibo);
+
+				ibo->set(indices.data(), 0, indices.size());
+				vbo->allocate<gfx::ColorVertex>(vertices.size(), gfx::Static);
+				vbo->set(vertices.data(), 0, vertices.size());
+				vbo->mode(gfx::Lines);
+
+				vboPlatforms.push_back(vbo);
+			}
 		}
 	}
 
 	// triangulate line strips and create vbos
 
 	{
-		std::vector<vec2> polygon;
-		std::vector<gfx::ColorVertex> vert;
-
 		// first line strip is map bounds, replace it with a new strip that makes a polygon around it
 		// note: this part actually modifies lineStrips[0]
 
@@ -365,33 +402,105 @@ void Map::load()
 			lineStrips[0].swap(firstStrip);
 		}
 
-		// the rest of the strips are normal polygons
+		// triangulate polygons and fill vbo/ibo
 
-		const gfx::Color color(0x00);
-
-		for (size_t iStrip = 0; iStrip < lineStrips.size(); iStrip++)
 		{
-			const std::vector<ivec2> &strip = lineStrips[iStrip];
-			std::vector<vec2> polygon(strip.size() - 1);
-
-			vert.resize(polygon.size());
-
-			for (size_t i = 0; i < strip.size() - 1; i++)
+			struct section_t
 			{
-				polygon[i] = vec2((float)strip[i].x, (float)strip[i].y);
-				vert[i] = gfx::color_vertex(polygon[i].x, polygon[i].y, color);
+				std::vector<vec2> polygon;
+				std::vector<uint16_t> indices;
+			};
+
+			const size_t nSections = lineStrips.size();
+			section_t *sections = new section_t[nSections];
+
+			uint16_t nVertices = 0;
+			size_t nIndices = 0;
+
+			for (size_t i = 0; i < nSections; i++)
+			{
+				section_t &section = sections[i];
+				const std::vector<ivec2> &strip = lineStrips[i];
+
+				section.polygon.resize(strip.size() - 1);
+
+				for (size_t j = 0; j < strip.size() - 1; j++)
+					section.polygon[j] = vec2(strip[j]);
+
+				section.indices = math::triangulate(section.polygon);
+
+				for (size_t j = 0; j < section.indices.size(); j++)
+					section.indices[j] += nVertices;
+
+				nVertices += section.polygon.size();
+				nIndices += section.indices.size();
 			}
 
-			std::vector<uint16_t> indices = math::triangulate(polygon);
+			const gfx::Color color(0);
+
+			std::vector<gfx::ColorVertex> vertices(nVertices);
+			std::vector<uint16_t> indices(nIndices);
+
+			size_t iv = 0;
+			size_t ii = 0;
+
+			for (size_t i = 0; i < nSections; i++)
+			{
+				const section_t &s = sections[i];
+
+				for (size_t j = 0; j < s.polygon.size(); j++)
+					vertices[iv + j] = gfx::color_vertex(s.polygon[j].x, s.polygon[j].y, color);
+
+				for (size_t j = 0; j < s.indices.size(); j++)
+					indices[ii + j] = s.indices[j];
+
+				iv += s.polygon.size();
+				ii += s.indices.size();
+			}
+
+			delete[] sections;
 
 			gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
 			ibo->set(indices.data(), 0, indices.size());
 
 			gfx::VBO *vbo = new gfx::VBO(ibo);
-			vbo->allocate<gfx::ColorVertex>(vert.size(), gfx::Static);
-			vbo->set(vert.data(), 0, vert.size());
+			vbo->allocate<gfx::ColorVertex>(vertices.size(), gfx::Static);
+			vbo->set(vertices.data(), 0, vertices.size());
 
 			vbos_.push_back(vbo);
+		}
+
+		if (0)
+		{
+			const gfx::Color color(0x00);
+
+			std::vector<vec2> polygon;
+			std::vector<gfx::ColorVertex> vert;
+
+			for (size_t iStrip = 0; iStrip < lineStrips.size(); iStrip++)
+			{
+				const std::vector<ivec2> &strip = lineStrips[iStrip];
+				std::vector<vec2> polygon(strip.size() - 1);
+
+				vert.resize(polygon.size());
+
+				for (size_t i = 0; i < strip.size() - 1; i++)
+				{
+					polygon[i] = vec2((float)strip[i].x, (float)strip[i].y);
+					vert[i] = gfx::color_vertex(polygon[i].x, polygon[i].y, color);
+				}
+
+				std::vector<uint16_t> indices = math::triangulate(polygon);
+
+				gfx::IBO *ibo = new gfx::IBO(indices.size(), gfx::Static);
+				ibo->set(indices.data(), 0, indices.size());
+
+				gfx::VBO *vbo = new gfx::VBO(ibo);
+				vbo->allocate<gfx::ColorVertex>(vert.size(), gfx::Static);
+				vbo->set(vert.data(), 0, vert.size());
+
+				vbos_.push_back(vbo);
+			}
 		}
 	}
 
@@ -406,6 +515,9 @@ const Collision::Map *Map::collisionMap() const
 
 void Map::draw()
 {
+	if (trees_ != 0)
+		gfx::draw(trees_);
+
 	#ifdef DEBUG
 		gfx::wireframe(dbg->wireframe);
 	#endif

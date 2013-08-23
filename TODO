@@ -1,24 +1,26 @@
 Networking
-  - Interpolate angle properly when direction changes (use shortest direction).
+  x Interpolate angle properly when direction changes (use shortest direction).
   x Set compression stuff.
   - Set timeouts on both client and server.
   - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.
   - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
-  - Server asserts when client tick > server tick. Make it kill the client.
+  - Server asserts when client tick > server tick. Make it kill the client or something.
   - The number of ticks that remote players are rendered behind is hardcoded, fix that.
   - Extrapolation
   - Client side prediction is not correcting if out of sync.
 
 Game
+  - Add some real menu. Consider removing debug menu.
+  - Think how the event system should work. Consider some minimalistic ui system.
   - Maybe some refactor in collision class. Or pass is_floor predicate from Map at least.
   x New soldier animations with ability to aim at arbitrary angles.
   - Replace network.txt with config.cfg and move it ro root directory.
+  - Add some INI parsing lib.
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
     x Run from bottom-left to the right until blocked by the "wall", then walk left.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
-  - Consider making components private with methods to access as const.
 
 Graphics
   - Add special case in text shader for black/white color.

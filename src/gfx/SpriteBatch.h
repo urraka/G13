@@ -1,5 +1,6 @@
 #pragma once
 
+#include "enums.h"
 #include "vertex.h"
 #include "Sprite.h"
 #include "VBO.h"
@@ -16,7 +17,7 @@ class Shader;
 class SpriteBatch
 {
 public:
-	SpriteBatch(size_t maxSize);
+	SpriteBatch(size_t maxSize, Usage usage = Dynamic);
 	~SpriteBatch();
 
 	void clear();
