@@ -1,7 +1,6 @@
 #pragma once
 
-namespace hlp
-{
+namespace hlp {
 
 struct countof_check {
 	class Is_pointer;
@@ -11,7 +10,7 @@ struct countof_check {
 	static Is_array check_type(const void*, const void*);
 };
 
-}
+} // hlp
 
 #define countof(arr) ( \
 	0 * sizeof(reinterpret_cast<const ::hlp::countof_check*>(arr)) + \

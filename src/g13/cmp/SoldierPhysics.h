@@ -1,6 +1,7 @@
 #pragma once
 
 #include <g13/g13.h>
+#include <g13/math.h>
 #include <g13/Collision.h>
 
 namespace g13 {
@@ -13,7 +14,7 @@ class SoldierPhysics
 public:
 	SoldierPhysics();
 
-	void update(Time time);
+	void update(Time dt);
 	void reset(fixvec2 pos);
 	bool ducking() const;
 	bool floor() const;

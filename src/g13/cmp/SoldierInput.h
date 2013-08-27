@@ -14,6 +14,8 @@ public:
 
 	void onKeyPress(const sys::Event::KeyEvent &event);
 	void onKeyRelease(const sys::Event::KeyEvent &event);
+	void onMousePress(const sys::Event::MouseButtonEvent &event);
+	void onMouseRelease(const sys::Event::MouseButtonEvent &event);
 
 	uint16_t angle;
 	bool rightwards;
@@ -24,6 +26,7 @@ public:
 	bool jump;
 	bool run;
 	bool duck;
+	bool shoot;
 };
 
 }} // g13::cmp

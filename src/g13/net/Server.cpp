@@ -250,6 +250,7 @@ void Server::onPlayerInput(Player *player, msg::Input *input)
 	soldierInput.jump       = input->jump;
 	soldierInput.run        = input->run;
 	soldierInput.duck       = input->duck;
+	soldierInput.shoot      = input->shoot;
 
 	player->onInput(input->tick, soldierInput);
 }

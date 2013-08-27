@@ -1087,9 +1087,9 @@ Kinetic.Curve.prototype.drawFunc = function(canvas)
 }
 
 Kinetic.Util.extend(Kinetic.Curve, Kinetic.Shape);
-Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "startPoint", 0);
-Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "controlPoint", 0);
-Kinetic.Node.addPointGetterSetter(Kinetic.Curve, "endPoint", 0);
+Kinetic.Factory.addPointGetterSetter(Kinetic.Curve, "startPoint", 0);
+Kinetic.Factory.addPointGetterSetter(Kinetic.Curve, "controlPoint", 0);
+Kinetic.Factory.addPointGetterSetter(Kinetic.Curve, "endPoint", 0);
 
 // -----------------------------------------------------------------------------
 // Kinetic.Transform

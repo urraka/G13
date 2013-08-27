@@ -10,6 +10,7 @@ enum TextureID
 	Soldier,
 	Rocks,
 	Tree,
+	Bullet,
 	TextureCount
 };
 

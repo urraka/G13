@@ -50,8 +50,8 @@ private:
 
 	ent::Camera camera_;
 	gfx::VBO *background_;
-	gfx::Texture *texture_;
-	gfx::SpriteBatch *spriteBatch_;
+	gfx::SpriteBatch *soldiers_;
+	gfx::SpriteBatch *bullets_;
 	gfx::Text *chatText_;
 	gfx::VBO *chatBackground_;
 

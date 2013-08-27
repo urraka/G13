@@ -12,7 +12,8 @@ SoldierInput::SoldierInput()
 		realRight(false),
 		jump(false),
 		run(false),
-		duck(false)
+		duck(false),
+		shoot(false)
 {
 }
 
@@ -45,6 +46,22 @@ void SoldierInput::onKeyRelease(const sys::Event::KeyEvent &event)
 		case sys::RightShift:
 			run = false;
 			break;
+	}
+}
+
+void SoldierInput::onMousePress(const sys::Event::MouseButtonEvent &event)
+{
+	switch (event.code)
+	{
+		case sys::MouseLeft: shoot = true; break;
+	}
+}
+
+void SoldierInput::onMouseRelease(const sys::Event::MouseButtonEvent &event)
+{
+	switch (event.code)
+	{
+		case sys::MouseLeft: shoot = false; break;
 	}
 }
 

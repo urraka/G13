@@ -224,7 +224,8 @@ void Debugger::drawFontAtlas()
 	if (!showFontAtlas)
 		return;
 
-	gfx::Font *font = res::font(res::DefaultFont);
+	gfx::Font *font = res::font(res::Monospace);
+	// gfx::Font *font = res::font(res::DefaultFont);
 
 	if (font->texture(0) != 0)
 	{
@@ -260,7 +261,7 @@ void Debugger::drawConsole()
 		text += "M: Show collision data\n";
 
 		consoleText_ = new gfx::Text();
-		consoleText_->size(11);
+		consoleText_->size(9);
 		consoleText_->font(res::font(res::Monospace));
 		consoleText_->value(text.c_str());
 	}

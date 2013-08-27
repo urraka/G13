@@ -35,6 +35,8 @@ void main()
 		b = mix(curr.r, prev.b, z);
 	}
 
+	// gl_FragColor = vec4(r, g, b, 1.0);
+
 	vec4 result = vec4(color.rgb, (r + g + b) / 3.0);
 
 	float mn = min(min(r, g), b);

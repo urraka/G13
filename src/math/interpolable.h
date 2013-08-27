@@ -4,7 +4,19 @@
 
 namespace math {
 
-template<typename T> class interpolable
+namespace _ {
+	template<typename T> inline T mix_default(T const &a, T const &b, float const &percent)
+	{
+		return glm::mix(a, b, percent);
+	}
+
+	template<typename T> struct mix_t
+	{
+		typedef T (*type)(T const&, T const&, float const&);
+	};
+}
+
+template<typename T, typename _::mix_t<T>::type F = (_::mix_default<T>)> class interpolable
 {
 public:
 	T previous;
@@ -27,9 +39,9 @@ public:
 		previous = current = interpolatedValue_ = value;
 	}
 
-	const T &interpolate(float percent) const
+	const T &interpolate(float percent)
 	{
-		return interpolatedValue_ = glm::mix(previous, current, percent);
+		return interpolatedValue_ = F(previous, current, percent);
 	};
 
 	operator const T&() const
@@ -38,7 +50,7 @@ public:
 	}
 
 private:
-	mutable T interpolatedValue_;
+	T interpolatedValue_;
 };
 
 } // math

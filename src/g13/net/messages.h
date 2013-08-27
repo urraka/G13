@@ -28,6 +28,7 @@ MESSAGE(Input)
 	bool jump;
 	bool run;
 	bool duck;
+	bool shoot;
 BEGIN
 	Integer(tick)
 	Integer(angle)
@@ -37,6 +38,7 @@ BEGIN
 	Bool(jump)
 	Bool(run)
 	Bool(duck)
+	Bool(shoot)
 END
 
 MESSAGE(Chat)

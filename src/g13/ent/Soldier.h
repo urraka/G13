@@ -7,6 +7,7 @@
 #include <g13/cmp/SoldierPhysics.h>
 #include <g13/cmp/SoldierGraphics.h>
 #include <g13/cmp/SoldierState.h>
+#include <g13/ent/Bullet.h>
 
 namespace g13 {
 namespace ent {
@@ -23,6 +24,7 @@ public:
 	cmp::SoldierInput input;
 	cmp::SoldierPhysics physics;
 	cmp::SoldierGraphics graphics;
+	ent::Bullet bullet;
 
 	cmp::SoldierState state();
 

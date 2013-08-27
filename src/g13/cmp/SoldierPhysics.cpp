@@ -22,7 +22,7 @@ void SoldierPhysics::update(Time dt)
 	assert(input != 0);
 
 	fixed dts = fixed((int)dt / 1000) / fixed(1000);
-	const fixed kGravity = fixed(1470); // 9.8 * 150
+	const fixed kGravity = fixed(1470); // 9.8 * 150 - warning: duplicated in BulletPhysics.cpp
 	const fixed kJumpVel = fixed(-550);
 	const fixed kWalkVel = fixed(250);
 	const fixed kDuckVel = fixed(150);

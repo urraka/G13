@@ -11,6 +11,8 @@ Networking
   - Client side prediction is not correcting if out of sync.
 
 Game
+  - kGravity constant repeated in different files.
+  - Map should carry some parameters (like gravity).
   - Add some real menu. Consider removing debug menu.
   - Think how the event system should work. Consider some minimalistic ui system.
   - Maybe some refactor in collision class. Or pass is_floor predicate from Map at least.
@@ -23,7 +25,7 @@ Game
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Graphics
-  - Add special case in text shader for black/white color.
+  - Add special case in text shader for black/white color. Fix blending.
   - Add easy to draw rectangles.
   - Text crashing with weird character 0x2584.
   - Add global_opacity to shaders and gfx::opacity() to set it.
@@ -37,6 +39,7 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
+  - Possible bug in fpm::rect. Check header.
   - Add some overflow checks in fpm functions (example: in length(), if (x.x or x.y > 175 warning! 175*175 = 30625))
   - Consider using int64 in some functions if necessary.
 

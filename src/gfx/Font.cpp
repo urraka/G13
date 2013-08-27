@@ -12,6 +12,7 @@ namespace gfx {
 
 static const int hres = 100;
 static const int depth = 3;
+static const gfx::TexFilter tex_filter = gfx::Linear;
 
 // -----------------------------------------------------------------------------
 // Font
@@ -144,7 +145,7 @@ Font::Glyph Font::load(uint32_t codepoint)
 
 	FT_UInt iGlyph = FT_Get_Char_Index(face, codepoint);
 
-	if (FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER /*| FT_LOAD_FORCE_AUTOHINT*/ | FT_LOAD_TARGET_LCD) != 0)
+	if (FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_TARGET_LCD) != 0)
 		return glyph;
 
 	FT_Bitmap &bitmap = face->glyph->bitmap;
@@ -192,16 +193,16 @@ Font::Glyph Font::load(uint32_t codepoint)
 
 	glyph.x =  face->glyph->bitmap_left;
 	glyph.y = -face->glyph->bitmap_top ;
-	glyph.w =  wBounds - padding;
-	glyph.h =  hBounds - padding;
-
-	region.width -= padding;
-	region.height -= padding;
+	glyph.w =  region.width; // includes right padding
+	glyph.h =  region.height - padding;
 
 	glyph.u0 = region.x;
 	glyph.v0 = region.y;
-	glyph.u1 = glyph.u0 + region.width ;
-	glyph.v1 = glyph.v0 + region.height;
+	glyph.u1 = glyph.u0 + region.width; // includes right padding
+	glyph.v1 = glyph.v0 + region.height - padding;
+
+	region.width -= padding;
+	region.height -= padding;
 
 	atlas->set(region, bitmap.buffer, bitmap.pitch);
 
@@ -221,7 +222,7 @@ Font::Atlas::Atlas() : texture_(0), buffer_(0)
 	int height = 128;
 
 	texture_ = new Texture(width, height, depth, false);
-	// texture_->filter(Nearest);
+	texture_->filter(tex_filter);
 
 	if (texture_->id() == 0)
 	{
@@ -400,7 +401,7 @@ bool Font::Atlas::enlarge()
 		return false;
 
 	Texture *tx = new Texture(newWidth, newHeight, depth, false);
-	// tx->filter(Nearest);
+	tx->filter(tex_filter);
 
 	if (tx->id() == 0)
 	{

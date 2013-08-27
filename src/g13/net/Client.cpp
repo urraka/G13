@@ -21,8 +21,8 @@ Client::Client()
 		peer_(0),
 		id_(Player::InvalidId),
 		background_(0),
-		texture_(0),
-		spriteBatch_(0),
+		soldiers_(0),
+		bullets_(0),
 		chatText_(0),
 		chatBackground_(0),
 		textInputMode_(false)
@@ -41,9 +41,11 @@ Client::Client()
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
 	background_->mode(gfx::TriangleFan);
 
-	texture_ = res::texture(res::Soldier);
-	spriteBatch_ = new gfx::SpriteBatch(MaxPlayers);
-	spriteBatch_->texture(texture_);
+	soldiers_ = new gfx::SpriteBatch(MaxPlayers);
+	soldiers_->texture(res::texture(res::Soldier));
+
+	bullets_ = new gfx::SpriteBatch(MaxPlayers);
+	bullets_->texture(res::texture(res::Bullet));
 
 	gfx::Font *font = res::font(res::DefaultFont);
 	gfx::Color fontColor(255, 255, 255);
@@ -71,7 +73,8 @@ Client::~Client()
 
 	delete chatText_;
 	delete background_;
-	delete spriteBatch_;
+	delete soldiers_;
+	delete bullets_;
 }
 
 bool Client::connect(const char *host, int port)
@@ -143,6 +146,7 @@ void Client::update(Time dt)
 			input.jump       = input_.jump;
 			input.run        = input_.run;
 			input.duck       = input_.duck;
+			input.shoot      = input_.shoot;
 
 			send(&input, peer_);
 		}
@@ -208,6 +212,8 @@ void Client::onDisconnect(ENetPeer *peer)
 	state_ = Disconnected;
 	textInputMode_ = false;
 	target_ = vec2(0.0f);
+	input_ = cmp::SoldierInput();
+	camera_ = ent::Camera();
 
 	for (size_t i = 0; i < MaxPlayers; i++)
 	{
@@ -391,20 +397,9 @@ void Client::draw(const Frame &frame)
 
 		gfx::matrix(mat4(1.0f));
 		gfx::draw(background_);
-
-		spriteBatch_->clear();
-
-		for (size_t i = 0; i < MaxPlayers; i++)
-		{
-			if (players_[i].state() == Player::Playing)
-			{
-				ent::Soldier *soldier = players_[i].soldier();
-				soldier->graphics.frame(frame);
-				spriteBatch_->add(soldier->graphics.sprites());
-			}
-		}
-
 		gfx::matrix(camera_.matrix());
+
+		// draw map
 
 		map_->draw();
 
@@ -412,7 +407,46 @@ void Client::draw(const Frame &frame)
 			dbg->drawCollisionHulls();
 		#endif
 
-		gfx::draw(spriteBatch_);
+		// draw soldiers
+
+		soldiers_->clear();
+
+		for (size_t i = 0; i < MaxPlayers; i++)
+		{
+			if (players_[i].state() == Player::Playing)
+			{
+				ent::Soldier *soldier = players_[i].soldier();
+
+				soldier->graphics.frame(frame);
+				soldiers_->add(soldier->graphics.sprites());
+
+				soldier->bullet.graphics.frame(frame);
+			}
+		}
+
+		gfx::draw(soldiers_);
+
+		// draw bullets
+
+		bullets_->clear();
+
+		for (size_t i = 0; i < MaxPlayers; i++)
+		{
+			if (players_[i].state() == Player::Playing)
+			{
+				ent::Soldier *soldier = players_[i].soldier();
+
+				if (soldier->bullet.state == ent::Bullet::Alive)
+				{
+					soldier->bullet.graphics.frame(frame);
+					bullets_->add(soldier->bullet.graphics.sprite());
+				}
+			}
+		}
+
+		gfx::draw(bullets_);
+
+		// draw chat text
 
 		for (size_t i = 0; i < MaxPlayers; i++)
 		{
@@ -469,19 +503,37 @@ bool Client::event(Event *evt)
 	switch (evt->type)
 	{
 		case Event::Resized:
+		{
 			onResize(evt->size.fboWidth, evt->size.fboHeight);
-			break;
+		}
+		break;
 
 		case Event::FocusLost:
+		{
 			camera_.zoom(ent::Camera::ZoomNone);
+		}
+		break;
+
+		case Event::MouseButtonPressed:
+		{
+			input_.onMousePress(evt->mouseButton);
+		}
+		break;
+
+		case Event::MouseButtonReleased:
+		{
+			input_.onMouseRelease(evt->mouseButton);
+		}
+		break;
 
 		case Event::KeyReleased:
+		{
 			if (evt->key.code == sys::NumpadAdd || evt->key.code == sys::NumpadSubtract)
 				camera_.zoom(ent::Camera::ZoomNone);
 
 			input_.onKeyRelease(evt->key);
-
-			break;
+		}
+		break;
 
 		case Event::KeyPressed:
 		{
@@ -526,8 +578,10 @@ bool Client::event(Event *evt)
 				break;
 			}
 		}
+		// go through
 
 		case Event::KeyRepeat:
+		{
 			if (textInputMode_)
 			{
 				if (evt->key.code == sys::Backspace && chatString_.size() > 0)
@@ -538,9 +592,11 @@ bool Client::event(Event *evt)
 
 				result = false;
 			}
-			break;
+		}
+		break;
 
 		case Event::TextEntered:
+		{
 			if (textInputMode_)
 			{
 				if (chatString_.size() < 100)
@@ -548,9 +604,11 @@ bool Client::event(Event *evt)
 					chatString_ += evt->text.ch;
 					chatText_->value(chatString_ + caret_);
 				}
+
 				result = false;
 			}
-			break;
+		}
+		break;
 
 		default: break;
 	}

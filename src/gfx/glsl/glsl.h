@@ -129,6 +129,8 @@ const char *text_frag =
 	"\t\tb = mix(curr.r, prev.b, z);\n"
 	"\t}\n"
 	"\n"
+	"\t// gl_FragColor = vec4(r, g, b, 1.0);\n"
+	"\n"
 	"\tvec4 result = vec4(color.rgb, (r + g + b) / 3.0);\n"
 	"\n"
 	"\tfloat mn = min(min(r, g), b);\n"

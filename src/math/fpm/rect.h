@@ -16,6 +16,7 @@ public:
 	rect(vec2 TL, vec2 BR)                   : tl(TL)  , br(BR)   {}
 	rect(fixed l, fixed t, fixed r, fixed b) : tl(l, t), br(r, b) {}
 
+	// TODO: missing +1? check where this is used (hint: Collision::createHull).
 	vec2  size  () const { return br - tl; }
 	fixed width () const { return br.x - tl.x; }
 	fixed height() const { return br.y - tl.y; }
