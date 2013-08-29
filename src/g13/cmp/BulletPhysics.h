@@ -10,7 +10,7 @@ namespace cmp {
 class BulletPhysics
 {
 public:
-	bool update(Time dt);
+	bool update(Time dt, const Collision::Map *map);
 
 	fixvec2 position;
 	fixvec2 velocity;

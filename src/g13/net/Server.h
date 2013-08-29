@@ -29,6 +29,24 @@ public:
 private:
 	State state_;
 
+	struct BulletInfo
+	{
+		BulletInfo(uint8_t ID, const fixvec2 &p, const fixed &s, const fixed &a)
+			:	id(ID),
+				position(p),
+				speed(s),
+				angle(a)
+		{
+		}
+
+		uint8_t id;
+		fixvec2 position;
+		fixed speed;
+		fixed angle;
+	};
+
+	std::vector<BulletInfo> createdBullets_;
+
 	void onConnect   (ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);
 	void onMessage   (msg::Message *msg, ENetPeer *from);
@@ -37,6 +55,8 @@ private:
 	void onPlayerReady(Player *player, msg::Ready *ready);
 	void onPlayerInput(Player *player, msg::Input *input);
 	void onPlayerChat (Player *player, msg::Chat  *chat);
+
+	void onBulletCreated(uint8_t id, const fixvec2 &position, const fixed &speed, const fixed &angle);
 };
 
 }} // net

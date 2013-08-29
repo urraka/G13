@@ -13,8 +13,10 @@ class Bullet
 public:
 	enum State { Alive, Impact, Dead };
 
-	void update(Time dt);
-	void spawn(const Collision::Map *map, fixvec2 position, fixed speed, fixed angle);
+	Bullet();
+	Bullet(const fixvec2 &position, const fixed &speed, const fixed &angle);
+
+	void update(Time dt, const Collision::Map *map);
 
 	cmp::BulletPhysics physics;
 	cmp::BulletGraphics graphics;

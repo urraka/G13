@@ -81,14 +81,47 @@ void Server::update(Time dt)
 		}
 	}
 
+	updateBullets(dt);
+
 	if (state_ == Stopping && activePlayers == 0)
 	{
+		// TODO: call some finalize() instead
+
 		LOG("Disconnected.");
 		state_ = Stopped;
 		enet_host_destroy(connection_);
 		connection_ = 0;
+		bullets_.clear();
+		createdBullets_.clear();
+
 		return;
 	}
+
+	size_t n = createdBullets_.size();
+
+	while (n > 0)
+	{
+		size_t base = createdBullets_.size() - n;
+
+		msg::Bullet msg;
+		msg.nBullets = std::min(32u, createdBullets_.size());
+
+		for (size_t i = 0; i < msg.nBullets; i++)
+		{
+			const BulletInfo &info = createdBullets_[base + i];
+
+			msg.bullets[i].playerId = info.id;
+			msg.bullets[i].position = info.position;
+			msg.bullets[i].speed = info.speed;
+			msg.bullets[i].angle = info.angle;
+		}
+
+		send(&msg);
+
+		n -= msg.nBullets;
+	}
+
+	createdBullets_.clear();
 
 	if (tick_ & 1)
 	{
@@ -272,6 +305,11 @@ void Server::onPlayerChat(Player *player, msg::Chat *chat)
 		if (players_[i].connected())
 			send(chat, players_[i].peer());
 	}
+}
+
+void Server::onBulletCreated(uint8_t id, const fixvec2 &position, const fixed &speed, const fixed &angle)
+{
+	createdBullets_.push_back(BulletInfo(id, position, speed, angle));
 }
 
 }} // g13::net

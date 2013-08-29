@@ -21,8 +21,8 @@ Client::Client()
 		peer_(0),
 		id_(Player::InvalidId),
 		background_(0),
-		soldiers_(0),
-		bullets_(0),
+		soldiersBatch_(0),
+		bulletsBatch_(0),
 		chatText_(0),
 		chatBackground_(0),
 		textInputMode_(false)
@@ -41,11 +41,11 @@ Client::Client()
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
 	background_->mode(gfx::TriangleFan);
 
-	soldiers_ = new gfx::SpriteBatch(MaxPlayers);
-	soldiers_->texture(res::texture(res::Soldier));
+	soldiersBatch_ = new gfx::SpriteBatch(MaxPlayers);
+	soldiersBatch_->texture(res::texture(res::Soldier));
 
-	bullets_ = new gfx::SpriteBatch(MaxPlayers);
-	bullets_->texture(res::texture(res::Bullet));
+	bulletsBatch_ = new gfx::SpriteBatch(64);
+	bulletsBatch_->texture(res::texture(res::Bullet));
 
 	gfx::Font *font = res::font(res::DefaultFont);
 	gfx::Color fontColor(255, 255, 255);
@@ -73,8 +73,8 @@ Client::~Client()
 
 	delete chatText_;
 	delete background_;
-	delete soldiers_;
-	delete bullets_;
+	delete soldiersBatch_;
+	delete bulletsBatch_;
 }
 
 bool Client::connect(const char *host, int port)
@@ -161,6 +161,8 @@ void Client::update(Time dt)
 			player->update(dt, tick_);
 		}
 
+		updateBullets(dt);
+
 		camera_.update(dt);
 	}
 
@@ -214,6 +216,7 @@ void Client::onDisconnect(ENetPeer *peer)
 	target_ = vec2(0.0f);
 	input_ = cmp::SoldierInput();
 	camera_ = ent::Camera();
+	bullets_.clear();
 
 	for (size_t i = 0; i < MaxPlayers; i++)
 	{
@@ -233,6 +236,7 @@ void Client::onMessage(msg::Message *msg, ENetPeer *from)
 		case msg::PlayerJoin::Type:       onPlayerJoin      ((msg::PlayerJoin*)      msg); break;
 		case msg::Chat::Type:             onPlayerChat      ((msg::Chat*)            msg); break;
 		case msg::GameState::Type:        onGameState       ((msg::GameState*)       msg); break;
+		case msg::Bullet::Type:           onBulletCreated   ((msg::Bullet*)          msg); break;
 
 		default: break;
 	}
@@ -378,6 +382,17 @@ void Client::onGameState(msg::GameState *gameState)
 	}
 }
 
+void Client::onBulletCreated(msg::Bullet *bullet)
+{
+	for (size_t i = 0; i < bullet->nBullets; i++)
+	{
+		const msg::Bullet::BulletInfo &info = bullet->bullets[i];
+
+		if (info.playerId != id_)
+			bullets_.push_back(ent::Bullet(info.position, info.speed, info.angle));
+	}
+}
+
 void Client::draw(const Frame &frame)
 {
 	if (active() && players_[id_].state() == Player::Playing)
@@ -409,7 +424,7 @@ void Client::draw(const Frame &frame)
 
 		// draw soldiers
 
-		soldiers_->clear();
+		soldiersBatch_->clear();
 
 		for (size_t i = 0; i < MaxPlayers; i++)
 		{
@@ -418,33 +433,26 @@ void Client::draw(const Frame &frame)
 				ent::Soldier *soldier = players_[i].soldier();
 
 				soldier->graphics.frame(frame);
-				soldiers_->add(soldier->graphics.sprites());
-
-				soldier->bullet.graphics.frame(frame);
+				soldiersBatch_->add(soldier->graphics.sprites());
 			}
 		}
 
-		gfx::draw(soldiers_);
+		gfx::draw(soldiersBatch_);
 
 		// draw bullets
 
-		bullets_->clear();
+		bulletsBatch_->clear();
 
-		for (size_t i = 0; i < MaxPlayers; i++)
+		if (bulletsBatch_->capacity() < bullets_.size())
+			bulletsBatch_->resize(bullets_.size());
+
+		for (size_t i = 0; i < bullets_.size(); i++)
 		{
-			if (players_[i].state() == Player::Playing)
-			{
-				ent::Soldier *soldier = players_[i].soldier();
-
-				if (soldier->bullet.state == ent::Bullet::Alive)
-				{
-					soldier->bullet.graphics.frame(frame);
-					bullets_->add(soldier->bullet.graphics.sprite());
-				}
-			}
+			bullets_[i].graphics.frame(frame);
+			bulletsBatch_->add(bullets_[i].graphics.sprite());
 		}
 
-		gfx::draw(bullets_);
+		gfx::draw(bulletsBatch_);
 
 		// draw chat text
 

@@ -6,7 +6,19 @@ namespace net {
 MESSAGES_BEGIN()
 
 //******************************************************************************
-// Client
+// Client <-> Server
+//******************************************************************************
+
+MESSAGE(Chat)
+	uint8_t id;
+	char    text[1024];
+BEGIN
+	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	String(text, 1)
+END
+
+//******************************************************************************
+// Client -> Server
 //******************************************************************************
 
 MESSAGE(Login)
@@ -41,16 +53,8 @@ BEGIN
 	Bool(shoot)
 END
 
-MESSAGE(Chat)
-	uint8_t id;
-	char    text[1024];
-BEGIN
-	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
-	String(text, 1)
-END
-
 //******************************************************************************
-// Server
+// Server -> Client
 //******************************************************************************
 
 LIST(PlayerIds, item)
@@ -119,6 +123,28 @@ MESSAGE(GameState)
 BEGIN
 	Integer(tick)
 	List(SoldierState, soldiers, nSoldiers, 0)
+END
+
+LIST(BulletInfo, bullet)
+	Bits(bullet.playerId, MINBITS(Multiplayer::MaxPlayers - 1))
+	Fixed(bullet.position.x)
+	Fixed(bullet.position.y)
+	Fixed(bullet.speed)
+	Fixed(bullet.angle)
+LISTEND
+
+MESSAGE(Bullet)
+	struct BulletInfo {
+		uint8_t playerId;
+		fixvec2 position;
+		fixed speed;
+		fixed angle;
+	};
+
+	uint32_t nBullets;
+	BulletInfo bullets[32];
+BEGIN
+	List(BulletInfo, bullets, nBullets, 1)
 END
 
 MESSAGES_END()

@@ -18,6 +18,7 @@ namespace msg {
 	class PlayerJoin;
 	class GameState;
 	class Chat;
+	class Bullet;
 }
 
 class Client : public Multiplayer
@@ -50,8 +51,8 @@ private:
 
 	ent::Camera camera_;
 	gfx::VBO *background_;
-	gfx::SpriteBatch *soldiers_;
-	gfx::SpriteBatch *bullets_;
+	gfx::SpriteBatch *soldiersBatch_;
+	gfx::SpriteBatch *bulletsBatch_;
 	gfx::Text *chatText_;
 	gfx::VBO *chatBackground_;
 
@@ -78,6 +79,7 @@ private:
 	void onPlayerJoin      (msg::PlayerJoin       *playerJoin);
 	void onPlayerChat      (msg::Chat             *chat);
 	void onGameState       (msg::GameState        *gameState);
+	void onBulletCreated   (msg::Bullet           *bullet);
 
 	void onResize(int width, int height);
 };

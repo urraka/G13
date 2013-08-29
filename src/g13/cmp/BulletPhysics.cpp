@@ -3,7 +3,7 @@
 namespace g13 {
 namespace cmp {
 
-bool BulletPhysics::update(Time dt)
+bool BulletPhysics::update(Time dt, const Collision::Map *map)
 {
 	const fixed dts = fixed((int)dt / 1000) / fixed(1000);
 	const fixed kGravity = fixed(1470); // 9.8 * 150 - warning: duplicated in SoldierPhysics.cpp

@@ -208,12 +208,12 @@ void SoldierGraphics::frame(const Frame &frame)
 		        angle >  90.0f ?  180.0f - angle :
 		        angle;
 
-		angle_.set((uint16_t)(((angle + 90.0f) / 180.0f) * ((1 << 16) - 1)));
+		angle_.set((uint16_t)(((angle + 90.0f) / 180.0f) * UINT16_MAX));
 		rightwards_ = v.x >= 0.0f;
 	}
 	else
 	{
-		angle = ((uint16_t)angle_ / float((1 << 16) - 1)) * 180.0f - 90.0f;
+		angle = ((uint16_t)angle_ / (float)UINT16_MAX) * 180.0f - 90.0f;
 	}
 
 	int armIndex = glm::floor((angle + 90.0f) / armsAngleInterval);

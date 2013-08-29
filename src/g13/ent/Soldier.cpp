@@ -1,9 +1,12 @@
 #include "Soldier.h"
+#include <g13/ent/Bullet.h>
 
 namespace g13 {
 namespace ent {
 
 Soldier::Soldier()
+	:	createBullet(0),
+		shootingTime_(0)
 {
 	physics.input = &input;
 
@@ -18,24 +21,38 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 	physics.update(dt);
 	graphics.update(dt, state());
 
-	if (input.shoot && bullet.state != Bullet::Alive)
+	if (input.shoot)
 	{
-		const fixed value = fixed::from_value((int32_t)input.angle);
-		const fixed maxValue = fixed::from_value(((1U << 16) - 1));
-		const fixed &pi = fixed::pi;
+		const Time rate = sys::time<sys::Milliseconds>(200);
 
-		fixed angle = pi * value / maxValue - pi / fixed(2);
+		if (shootingTime_ == 0)
+			shootingTime_ = rate;
 
-		if (!input.rightwards)
-			angle = -angle + pi;
+		if (shootingTime_ >= rate)
+		{
+			shootingTime_ -= rate;
 
-		fixvec2 offset = fixvec2(0, fixed(-26.25));
-		offset += fixvec2(fpm::cos(angle), fpm::sin(angle)) * fixed(100);
+			const fixed value = fixed::from_value((int32_t)input.angle);
+			const fixed maxValue = fixed::from_value(UINT16_MAX);
+			const fixed &pi = fixed::pi;
 
-		bullet.spawn(physics.map, physics.position + offset, 1500, angle);
+			fixed angle = pi * value / maxValue - pi / fixed(2);
+
+			if (!input.rightwards)
+				angle = -angle + pi;
+
+			fixvec2 position = physics.position + fixvec2(0, fixed(-26.25));
+			position += fixvec2(fpm::cos(angle), fpm::sin(angle)) * fixed(80);
+
+			createBullet(listener, id, position, 1500, angle);
+		}
+
+		shootingTime_ += dt;
 	}
-
-	bullet.update(dt);
+	else
+	{
+		shootingTime_ = 0;
+	}
 }
 
 void Soldier::reset(fixvec2 pos)
@@ -44,9 +61,7 @@ void Soldier::reset(fixvec2 pos)
 	graphics.position.set(from_fixed(pos));
 
 	input.rightwards = true;
-	input.angle = 1U << 15;
-
-	bullet.state = Bullet::Dead;
+	input.angle = UINT16_MAX / 2;
 }
 
 void Soldier::map(const Collision::Map *map)
@@ -54,17 +69,19 @@ void Soldier::map(const Collision::Map *map)
 	physics.map = map;
 }
 
-cmp::SoldierState Soldier::state()
+cmp::SoldierState Soldier::state() const
 {
-	state_.position = physics.position;
-	state_.velocity = physics.velocity;
-	state_.duck  = physics.ducking();
-	state_.floor = physics.floor();
+	cmp::SoldierState state;
 
-	state_.rightwards = input.rightwards;
-	state_.angle = input.angle;
+	state.position = physics.position;
+	state.velocity = physics.velocity;
+	state.duck  = physics.ducking();
+	state.floor = physics.floor();
 
-	return state_;
+	state.rightwards = input.rightwards;
+	state.angle = input.angle;
+
+	return state;
 }
 
 }} // g13::ent

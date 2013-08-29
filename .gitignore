@@ -8,6 +8,7 @@ replay.log
 
 # files
 
+doxy
 G13-win32.lnk
 G13-win32-d.lnk
 .tags
@@ -15,6 +16,7 @@ G13-win32-d.lnk
 
 # directories
 
+docs/
 old/
 bin/
 dep/packages/

@@ -15,7 +15,12 @@ Multiplayer::Multiplayer()
 	dataPool_ = new hlp::pool<msg::Storage>();
 
 	for (size_t i = 0; i < MaxPlayers; i++)
+	{
 		players_[i].id_ = i;
+		players_[i].soldier()->id = i;
+		players_[i].soldier()->listener = this;
+		players_[i].soldier()->createBullet = createBullet;
+	}
 }
 
 Multiplayer::~Multiplayer()
@@ -89,7 +94,7 @@ void Multiplayer::send(msg::Message *msg, ENetPeer *target)
 	uint8_t  channel;
 	uint32_t packetFlags = ENET_PACKET_FLAG_NO_ALLOCATE;
 
-	if (type == msg::GameState::Type)
+	if (type == msg::GameState::Type || type == msg::Bullet::Type)
 	{
 		channel = UnsequencedChannel;
 		packetFlags |= ENET_PACKET_FLAG_UNSEQUENCED;
@@ -128,6 +133,28 @@ void Multiplayer::free_packet(ENetPacket *packet)
 {
 	Multiplayer *self = (Multiplayer*)packet->userData;
 	self->dataPool_->free((msg::Storage*)packet->data);
+}
+
+void Multiplayer::createBullet(void *self, uint8_t id, const fixvec2 &p, const fixed &s, const fixed &a)
+{
+	Multiplayer *game = (Multiplayer*)self;
+
+	game->bullets_.push_back(ent::Bullet(p, s, a));
+	game->onBulletCreated(id, p, s, a);
+}
+
+void Multiplayer::updateBullets(Time dt)
+{
+	for (size_t i = 0; i < bullets_.size(); i++)
+	{
+		bullets_[i].update(dt, map_->collisionMap());
+
+		if (bullets_[i].state != ent::Bullet::Alive)
+		{
+			std::swap(bullets_[i--], bullets_[bullets_.size() - 1]);
+			bullets_.pop_back();
+		}
+	}
 }
 
 }} // net

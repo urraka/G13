@@ -1,6 +1,5 @@
 Networking
-  x Interpolate angle properly when direction changes (use shortest direction).
-  x Set compression stuff.
+  - Don't send bullets to the player who created them.
   - Set timeouts on both client and server.
   - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.
   - Consider adding range checks on packet serialization.
@@ -11,12 +10,12 @@ Networking
   - Client side prediction is not correcting if out of sync.
 
 Game
+  - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
   - kGravity constant repeated in different files.
   - Map should carry some parameters (like gravity).
   - Add some real menu. Consider removing debug menu.
   - Think how the event system should work. Consider some minimalistic ui system.
   - Maybe some refactor in collision class. Or pass is_floor predicate from Map at least.
-  x New soldier animations with ability to aim at arbitrary angles.
   - Replace network.txt with config.cfg and move it ro root directory.
   - Add some INI parsing lib.
   - Separate collision map from map rendering stuff.
@@ -39,11 +38,14 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
-  - Possible bug in fpm::rect. Check header.
+  - Possible bug in fpm::rect. Check header. Perhaps it's just fine.
   - Add some overflow checks in fpm functions (example: in length(), if (x.x or x.y > 175 warning! 175*175 = 30625))
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x New soldier animations with ability to aim at arbitrary angles.
+  x Interpolate angle properly when direction changes (use shortest direction).
+  x Set compression stuff.
   x Make matrix invalidation O(1), iterate shaders on a draw call.
   x Add some text metrics stuff.
   x Check if font has kerning again.
