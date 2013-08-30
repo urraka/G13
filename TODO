@@ -1,6 +1,11 @@
 Networking
-  - Don't send bullets to the player who created them.
+  - Bullet messages should have some tick. Client should use that to create them at a proper time.
+  - Remove Client::active() and make some easier to understand checks instead.
+  - Don't send gamestate of local player.
+  - Handle somehow cases where a player leaves and another player join getting same ID.
+    Old messages from the previous player might still happen. Bullets might still exist, etc.
   - Set timeouts on both client and server.
+  - Move BitStream to hlp, could be useful for binary files aswell.
   - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.
   - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
@@ -10,6 +15,10 @@ Networking
   - Client side prediction is not correcting if out of sync.
 
 Game
+  - Make a class for the chatbox.
+  - Move all the Client rendering to a separate class.
+  - Remove BulletInfo from Server and add some cmp::BulletParams to carry bullet creation parameters.
+  - Fix hardcoded map bounds on Bullet.cpp.
   - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
   - kGravity constant repeated in different files.
   - Map should carry some parameters (like gravity).
@@ -31,6 +40,7 @@ Graphics
   - Add ability to set own mipmaps.
 
 General
+  - Add <g13/fwd.h> and add all forward declarations there. Include it in g13.h.
   - Consider making each module a library to include into the game.
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
@@ -43,6 +53,7 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Don't send bullets to the player who created them.
   x New soldier animations with ability to aim at arbitrary angles.
   x Interpolate angle properly when direction changes (use shortest direction).
   x Set compression stuff.

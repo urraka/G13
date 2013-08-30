@@ -386,10 +386,8 @@ void Client::onBulletCreated(msg::Bullet *bullet)
 {
 	for (size_t i = 0; i < bullet->nBullets; i++)
 	{
-		const msg::Bullet::BulletInfo &info = bullet->bullets[i];
-
-		if (info.playerId != id_)
-			bullets_.push_back(ent::Bullet(info.position, info.speed, info.angle));
+		const cmp::BulletParams &params = bullet->bullets[i].params;
+		bullets_.push_back(ent::Bullet(params));
 	}
 }
 
@@ -399,16 +397,7 @@ void Client::draw(const Frame &frame)
 	{
 		camera_.frame(frame);
 
-		{
-			double mx;
-			double my;
-
-			sys::mouse(&mx, &my);
-
-			const mat4 &m = camera_.matrixinv();
-
-			target_ = vec2(m * glm::vec4(mx, my, 0.0f, 1.0f));
-		}
+		target_ = vec2(camera_.matrixinv() * glm::vec4(sys::mousex(), sys::mousey(), 0.0f, 1.0f));
 
 		gfx::matrix(mat4(1.0f));
 		gfx::draw(background_);

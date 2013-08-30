@@ -2,6 +2,7 @@
 
 #include "Multiplayer.h"
 #include <g13/g13.h>
+#include <g13/cmp/BulletParams.h>
 
 namespace g13 {
 namespace net {
@@ -29,23 +30,7 @@ public:
 private:
 	State state_;
 
-	struct BulletInfo
-	{
-		BulletInfo(uint8_t ID, const fixvec2 &p, const fixed &s, const fixed &a)
-			:	id(ID),
-				position(p),
-				speed(s),
-				angle(a)
-		{
-		}
-
-		uint8_t id;
-		fixvec2 position;
-		fixed speed;
-		fixed angle;
-	};
-
-	std::vector<BulletInfo> createdBullets_;
+	std::vector<cmp::BulletParams> createdBullets_;
 
 	void onConnect   (ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);
@@ -56,7 +41,7 @@ private:
 	void onPlayerInput(Player *player, msg::Input *input);
 	void onPlayerChat (Player *player, msg::Chat  *chat);
 
-	void onBulletCreated(uint8_t id, const fixvec2 &position, const fixed &speed, const fixed &angle);
+	void onBulletCreated(const cmp::BulletParams &params);
 };
 
 }} // net

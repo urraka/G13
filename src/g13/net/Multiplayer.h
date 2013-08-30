@@ -53,10 +53,10 @@ protected:
 	virtual void onConnect      (ENetPeer *peer) = 0;
 	virtual void onDisconnect   (ENetPeer *peer) = 0;
 	virtual void onMessage      (msg::Message *msg, ENetPeer *from) = 0;
-	virtual void onBulletCreated(uint8_t id, const fixvec2 &pos, const fixed &speed, const fixed &ang) {}
+	virtual void onBulletCreated(const cmp::BulletParams &params) {}
 
 	static void free_packet(ENetPacket *packet);
-	static void createBullet(void *self, uint8_t id, const fixvec2 &p, const fixed &s, const fixed &a);
+	static void createBullet(void *self, const cmp::BulletParams &params);
 
 	void updateBullets(Time dt);
 };

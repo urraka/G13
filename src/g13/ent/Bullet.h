@@ -6,6 +6,11 @@
 #include <g13/cmp/BulletGraphics.h>
 
 namespace g13 {
+
+namespace cmp {
+	struct BulletParams;
+}
+
 namespace ent {
 
 class Bullet
@@ -14,7 +19,7 @@ public:
 	enum State { Alive, Impact, Dead };
 
 	Bullet();
-	Bullet(const fixvec2 &position, const fixed &speed, const fixed &angle);
+	Bullet(const cmp::BulletParams &params);
 
 	void update(Time dt, const Collision::Map *map);
 
@@ -22,6 +27,7 @@ public:
 	cmp::BulletGraphics graphics;
 
 	State state;
+	uint8_t id;
 };
 
 }} // g13::ent

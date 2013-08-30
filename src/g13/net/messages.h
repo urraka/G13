@@ -126,24 +126,25 @@ BEGIN
 END
 
 LIST(BulletInfo, bullet)
-	Bits(bullet.playerId, MINBITS(Multiplayer::MaxPlayers - 1))
-	Fixed(bullet.position.x)
-	Fixed(bullet.position.y)
-	Fixed(bullet.speed)
-	Fixed(bullet.angle)
+	Bits(bullet.tickOffset, MINBITS(Player::MaxTickOffset))
+	Bits(bullet.params.playerid, MINBITS(Multiplayer::MaxPlayers - 1))
+	Fixed(bullet.params.position.x)
+	Fixed(bullet.params.position.y)
+	Fixed(bullet.params.speed)
+	Fixed(bullet.params.angle)
 LISTEND
 
 MESSAGE(Bullet)
 	struct BulletInfo {
-		uint8_t playerId;
-		fixvec2 position;
-		fixed speed;
-		fixed angle;
+		uint8_t tickOffset;
+		cmp::BulletParams params;
 	};
 
+	uint32_t tick;
 	uint32_t nBullets;
 	BulletInfo bullets[32];
 BEGIN
+	Integer(tick)
 	List(BulletInfo, bullets, nBullets, 1)
 END
 

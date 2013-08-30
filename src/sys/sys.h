@@ -40,9 +40,11 @@ void window_position(float x, float y);
 Event *poll_events();
 
 // input
-bool pressed(int code);
-void mouse(double *x, double *y);
-void cursor_mode(CursorMode mode);
+bool   pressed(int code);
+void   mouse(double *x, double *y);
+double mousex();
+double mousey();
+void   cursor_mode(CursorMode mode);
 
 // time
 Time time();

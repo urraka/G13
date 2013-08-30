@@ -468,6 +468,20 @@ void mouse(double *x, double *y)
 	#endif
 }
 
+double mousex()
+{
+	double x, y;
+	mouse(&x, &y);
+	return x;
+}
+
+double mousey()
+{
+	double x, y;
+	mouse(&x, &y);
+	return y;
+}
+
 void cursor_mode(CursorMode mode)
 {
 	#ifndef IOS

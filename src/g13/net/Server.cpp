@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "msg.h"
 
+#include <hlp/countof.h>
 #include <hlp/assign.h>
 #include <assert.h>
 #include <iostream>
@@ -81,11 +82,9 @@ void Server::update(Time dt)
 		}
 	}
 
-	updateBullets(dt);
-
 	if (state_ == Stopping && activePlayers == 0)
 	{
-		// TODO: call some finalize() instead
+		// TODO: call some terminate() instead
 
 		LOG("Disconnected.");
 		state_ = Stopped;
@@ -97,28 +96,37 @@ void Server::update(Time dt)
 		return;
 	}
 
-	size_t n = createdBullets_.size();
+	updateBullets(dt);
 
-	while (n > 0)
+	for (size_t i = 0; i < MaxPlayers; i++)
 	{
-		size_t base = createdBullets_.size() - n;
+		if (players_[i].state() == Player::Disconnected)
+			continue;
 
 		msg::Bullet msg;
-		msg.nBullets = std::min(32u, createdBullets_.size());
+		msg.tick = tick_;
 
-		for (size_t i = 0; i < msg.nBullets; i++)
+		size_t k = 0;
+
+		const size_t N = createdBullets_.size();
+
+		for (size_t j = 0; j < N; j++)
 		{
-			const BulletInfo &info = createdBullets_[base + i];
+			if (createdBullets_[j].playerid == players_[i].id())
+				continue;
 
-			msg.bullets[i].playerId = info.id;
-			msg.bullets[i].position = info.position;
-			msg.bullets[i].speed = info.speed;
-			msg.bullets[i].angle = info.angle;
+			const int offset = tick_ - players_[i].tick();
+
+			msg.bullets[k].tickOffset = std::min<int>(offset, Player::MaxTickOffset);
+			msg.bullets[k].params = createdBullets_[j];
+
+			if (++k == countof(msg.bullets) || j == N - 1)
+			{
+				msg.nBullets = k;
+				send(&msg, players_[i].peer());
+				k = 0;
+			}
 		}
-
-		send(&msg);
-
-		n -= msg.nBullets;
 	}
 
 	createdBullets_.clear();
@@ -307,9 +315,9 @@ void Server::onPlayerChat(Player *player, msg::Chat *chat)
 	}
 }
 
-void Server::onBulletCreated(uint8_t id, const fixvec2 &position, const fixed &speed, const fixed &angle)
+void Server::onBulletCreated(const cmp::BulletParams &params)
 {
-	createdBullets_.push_back(BulletInfo(id, position, speed, angle));
+	createdBullets_.push_back(cmp::BulletParams(params));
 }
 
 }} // g13::net

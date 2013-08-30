@@ -135,12 +135,12 @@ void Multiplayer::free_packet(ENetPacket *packet)
 	self->dataPool_->free((msg::Storage*)packet->data);
 }
 
-void Multiplayer::createBullet(void *self, uint8_t id, const fixvec2 &p, const fixed &s, const fixed &a)
+void Multiplayer::createBullet(void *self, const cmp::BulletParams &params)
 {
 	Multiplayer *game = (Multiplayer*)self;
 
-	game->bullets_.push_back(ent::Bullet(p, s, a));
-	game->onBulletCreated(id, p, s, a);
+	game->bullets_.push_back(ent::Bullet(params));
+	game->onBulletCreated(params);
 }
 
 void Multiplayer::updateBullets(Time dt)

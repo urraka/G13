@@ -1,19 +1,21 @@
 #include "Bullet.h"
+#include <g13/cmp/BulletParams.h>
 
 namespace g13 {
 namespace ent {
 
 Bullet::Bullet() {}
 
-Bullet::Bullet(const fixvec2 &position, const fixed &speed, const fixed &angle)
+Bullet::Bullet(const cmp::BulletParams &params)
 {
 	state = Alive;
+	id = params.playerid;
 
-	physics.position = position;
-	physics.velocity = fixvec2(fpm::cos(angle) * speed, fpm::sin(angle) * speed);
+	physics.position = params.position;
+	physics.velocity = fixvec2(fpm::cos(params.angle), fpm::sin(params.angle)) * params.speed;
 
-	graphics.position.set(from_fixed(position));
-	graphics.angle.set(angle.to_float());
+	graphics.position.set(from_fixed(params.position));
+	graphics.angle.set(params.angle.to_float());
 }
 
 void Bullet::update(Time dt, const Collision::Map *map)

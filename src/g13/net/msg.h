@@ -3,6 +3,9 @@
 #include "Player.h"
 #include "Multiplayer.h"
 
+#include <g13/cmp/SoldierState.h>
+#include <g13/cmp/BulletParams.h>
+
 #include <g13/math.h>
 
 #include <assert.h>

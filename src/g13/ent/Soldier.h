@@ -9,6 +9,11 @@
 #include <g13/cmp/SoldierState.h>
 
 namespace g13 {
+
+namespace cmp {
+	struct BulletParams;
+}
+
 namespace ent {
 
 class Bullet;
@@ -27,7 +32,7 @@ public:
 	cmp::SoldierPhysics physics;
 	cmp::SoldierGraphics graphics;
 
-	typedef void (*CreateBulletCallback)(void*, uint8_t, const fixvec2&, const fixed&, const fixed&);
+	typedef void (*CreateBulletCallback)(void*, const cmp::BulletParams&);
 
 	uint8_t id;
 	void *listener;
