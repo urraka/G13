@@ -123,7 +123,7 @@ void Client::update(Time dt)
 	if (state_ == Disconnected)
 		return;
 
-	Multiplayer::update(dt);
+	pollEvents();
 
 	if (active())
 	{
@@ -134,7 +134,7 @@ void Client::update(Time dt)
 			players_[id_].soldier()->graphics.aim(input_.angle, input_.rightwards);
 
 			players_[id_].onInput(tick_, input_);
-			players_[id_].update(dt, tick_);
+			players_[id_].updateLocal(dt);
 
 			msg::Input input;
 
@@ -158,7 +158,7 @@ void Client::update(Time dt)
 			if (i == id_ || player->state() != Player::Playing)
 				continue;
 
-			player->update(dt, tick_);
+			player->updateRemote(dt, tick_);
 		}
 
 		updateBullets(dt);
@@ -220,7 +220,7 @@ void Client::onDisconnect(ENetPeer *peer)
 
 	for (size_t i = 0; i < MaxPlayers; i++)
 	{
-		players_[i].onDisconnect();
+		players_[i].initialize();
 		playersText_[i].time = 0;
 		players_[i].soldier()->graphics.target = 0;
 	}
@@ -250,10 +250,7 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	loadMap();
 
 	for (size_t i = 0; i < MaxPlayers; i++)
-	{
 		players_[i].initialize();
-		players_[i].mode(Player::Remote);
-	}
 
 	connectingCount_ = 0;
 
@@ -264,7 +261,6 @@ void Client::onServerInfo(msg::ServerInfo *info)
 		connectingCount_++;
 	}
 
-	players_[id_].mode(Player::Local);
 	players_[id_].soldier()->graphics.target = &target_;
 
 	debug_log("Received server info. Players: " << info->nPlayers << "/" << MaxPlayers << ".");
@@ -294,8 +290,7 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 
 	Player *player = &players_[playerConnect->id];
 
-	if (player->connected())
-		player->onDisconnect();
+	assert(!player->connected());
 
 	if (player->state() == Player::Connecting)
 	{
@@ -321,7 +316,7 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 
 void Client::onPlayerDisconnect(msg::PlayerDisconnect *playerDisconnect)
 {
-	players_[playerDisconnect->id].onDisconnect();
+	players_[playerDisconnect->id].onDisconnect(playerDisconnect->tick);
 	playersText_[playerDisconnect->id].time = 0;
 
 	debug_log("Player #" << (int)playerDisconnect->id << " disconnected.");
@@ -387,7 +382,9 @@ void Client::onBulletCreated(msg::Bullet *bullet)
 	for (size_t i = 0; i < bullet->nBullets; i++)
 	{
 		const cmp::BulletParams &params = bullet->bullets[i].params;
-		bullets_.push_back(ent::Bullet(params));
+		uint32_t tick = bullet->tick - bullet->bullets[i].tickOffset;
+
+		players_[params.playerid].onBulletCreated(tick, params);
 	}
 }
 

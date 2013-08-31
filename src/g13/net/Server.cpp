@@ -37,10 +37,7 @@ bool Server::start(int port)
 	loadMap();
 
 	for (size_t i = 0; i < MaxPlayers; i++)
-	{
 		players_[i].initialize();
-		players_[i].mode(Player::Server);
-	}
 
 	LOG("Listening on port " << port << "...");
 
@@ -67,7 +64,7 @@ void Server::update(Time dt)
 	if (state_ == Stopped)
 		return;
 
-	Multiplayer::update(dt);
+	pollEvents();
 
 	size_t activePlayers = 0;
 
@@ -77,7 +74,7 @@ void Server::update(Time dt)
 
 		if (player->state() != Player::Disconnected)
 		{
-			player->update(dt, tick_);
+			player->updateServer(dt);
 			activePlayers++;
 		}
 	}
@@ -193,7 +190,7 @@ void Server::onConnect(ENetPeer *peer)
 void Server::onDisconnect(ENetPeer *peer)
 {
 	Player *player = (Player*)peer->data;
-	player->onDisconnect();
+	player->onDisconnect(tick_);
 
 	msg::PlayerDisconnect msg;
 	msg.id = player->id();

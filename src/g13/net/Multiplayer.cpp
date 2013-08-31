@@ -33,7 +33,7 @@ Multiplayer::~Multiplayer()
 	delete dataPool_;
 }
 
-void Multiplayer::update(Time dt)
+void Multiplayer::pollEvents()
 {
 	ENetEvent event;
 

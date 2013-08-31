@@ -82,8 +82,10 @@ END
 
 MESSAGE(PlayerDisconnect)
 	uint8_t id;
+	uint32_t tick;
 BEGIN
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	Integer(tick)
 END
 
 MESSAGE(PlayerJoin)

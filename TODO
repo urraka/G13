@@ -1,9 +1,11 @@
 Networking
-  - Bullet messages should have some tick. Client should use that to create them at a proper time.
+  - Add tick in disconnect event.
+  x Bullet messages should have some tick. Client should use that to create them at a proper time.
   - Remove Client::active() and make some easier to understand checks instead.
   - Don't send gamestate of local player.
   - Handle somehow cases where a player leaves and another player join getting same ID.
     Old messages from the previous player might still happen. Bullets might still exist, etc.
+    Check comment on Player::onBulletCreated() and Player::updateRemote() for this.
   - Set timeouts on both client and server.
   - Move BitStream to hlp, could be useful for binary files aswell.
   - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.

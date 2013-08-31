@@ -26,7 +26,7 @@ Text::~Text()
 	delete ibo_;
 }
 
-void Text::value(const std::basic_string<uint32_t> &str)
+void Text::value(const string32_t &str)
 {
 	if (value_ != str)
 	{
@@ -90,7 +90,7 @@ void Text::color(const Color &color)
 	color_ = color;
 }
 
-const std::basic_string<uint32_t> &Text::value()
+const Text::string32_t &Text::value()
 {
 	return value_;
 }

@@ -32,7 +32,7 @@ private:
 	ENetPeer *peer_;
 
 	uint8_t id_;
-	char name_[Player::MaxNameLength + 1];
+	char name_[Player::MaxNameLength * 4 + 1];
 	cmp::SoldierInput input_;
 	vec2 target_;
 
@@ -46,8 +46,8 @@ private:
 	gfx::VBO *chatBackground_;
 
 	bool textInputMode_;
-	std::basic_string<uint32_t> chatString_;
-	std::basic_string<uint32_t> caret_;
+	string32_t chatString_;
+	string32_t caret_;
 
 	struct PlayerText
 	{

@@ -1,10 +1,14 @@
 #pragma once
 
-#include <sys/sys.h> // TODO: change this with some <sys/fwd.h>
+#include <sys/sys.h>
+#include <string>
+
 #include "types.h"
 #include "debug.h"
 
 namespace g13 {
+
+typedef std::basic_string<uint32_t> string32_t;
 
 typedef sys::Time  Time;
 typedef sys::Event Event;

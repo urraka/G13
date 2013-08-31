@@ -16,7 +16,6 @@ class Multiplayer
 public:
 	Multiplayer();
 	virtual ~Multiplayer();
-	virtual void update(sys::Time dt);
 
 	static const size_t MaxPlayers = 32;
 
@@ -37,6 +36,7 @@ protected:
 	Player players_[MaxPlayers];
 	std::vector<ent::Bullet> bullets_;
 
+	void pollEvents();
 	void loadMap();
 	void send(msg::Message *msg, ENetPeer *target = 0); // target = 0 -> broadcast
 

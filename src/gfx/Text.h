@@ -27,13 +27,15 @@ public:
 		float height;
 	};
 
-	void value(const std::basic_string<uint32_t> &str);
+	typedef std::basic_string<uint32_t> string32_t;
+
+	void value(const string32_t &str);
 	void value(const char *str);
 	void font(Font *font);
 	void size(uint32_t size);
 	void color(const Color &color);
 
-	const std::basic_string<uint32_t> &value();
+	const string32_t &value();
 	Font *font() const;
 	Color color() const;
 	uint32_t size() const;
@@ -41,7 +43,7 @@ public:
 	const Bounds &bounds();
 
 private:
-	std::basic_string<uint32_t> value_;
+	string32_t value_;
 	Font *font_;
 	uint32_t size_;
 	Color color_;
