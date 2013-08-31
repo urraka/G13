@@ -5,8 +5,9 @@
 namespace g13 {
 namespace cmp {
 
-struct SoldierState
+class SoldierState
 {
+public:
 	fixvec2  position;
 	fixvec2  velocity;
 	uint16_t angle;

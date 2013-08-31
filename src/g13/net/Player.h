@@ -9,10 +9,6 @@
 #include <enet/enet.h>
 
 namespace g13 {
-	class Map;
-}
-
-namespace g13 {
 namespace net {
 
 class Player

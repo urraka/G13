@@ -6,8 +6,9 @@
 namespace g13 {
 namespace cmp {
 
-struct BulletParams
+class BulletParams
 {
+public:
 	uint8_t playerid;
 	fixvec2 position;
 	fixed speed;

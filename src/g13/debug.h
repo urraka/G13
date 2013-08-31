@@ -19,12 +19,6 @@ namespace sys {
 
 namespace g13 {
 
-class Map;
-
-namespace ent {
-	class Soldier;
-}
-
 class Debugger
 {
 public:

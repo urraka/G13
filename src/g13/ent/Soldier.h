@@ -9,14 +9,7 @@
 #include <g13/cmp/SoldierState.h>
 
 namespace g13 {
-
-namespace cmp {
-	struct BulletParams;
-}
-
 namespace ent {
-
-class Bullet;
 
 class Soldier
 {

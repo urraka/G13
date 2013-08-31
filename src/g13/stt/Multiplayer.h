@@ -1,12 +1,7 @@
 #pragma once
 
+#include <g13/g13.h>
 #include "State.h"
-
-namespace g13 {
-namespace net {
-	class Client;
-	class Server;
-}}
 
 namespace g13 {
 namespace stt {

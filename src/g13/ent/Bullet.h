@@ -6,11 +6,6 @@
 #include <g13/cmp/BulletGraphics.h>
 
 namespace g13 {
-
-namespace cmp {
-	struct BulletParams;
-}
-
 namespace ent {
 
 class Bullet

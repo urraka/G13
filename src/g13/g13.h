@@ -1,7 +1,8 @@
 #pragma once
 
+#include <sys/sys.h> // TODO: change this with some <sys/fwd.h>
+#include "types.h"
 #include "debug.h"
-#include <sys/sys.h>
 
 namespace g13 {
 
@@ -12,8 +13,9 @@ typedef sys::Event Event;
 	extern Debugger *dbg;
 #endif
 
-struct Frame
+class Frame
 {
+public:
 	Time time;
 	Time delta;
 	float percent;

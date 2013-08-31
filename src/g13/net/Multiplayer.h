@@ -9,16 +9,6 @@
 #include <vector>
 
 namespace g13 {
-	class Map;
-
-	namespace net {
-	namespace msg {
-		class  Message;
-		struct Storage;
-	}}
-}
-
-namespace g13 {
 namespace net {
 
 class Multiplayer

@@ -7,13 +7,6 @@
 namespace g13 {
 namespace net {
 
-namespace msg {
-	class Login;
-	class Ready;
-	class Input;
-	class Chat;
-}
-
 class Server : public Multiplayer
 {
 public:

@@ -4,22 +4,11 @@
 
 #include <g13/g13.h>
 #include <g13/ent/Camera.h>
-
 #include <gfx/forward.h>
 #include <string>
 
 namespace g13 {
 namespace net {
-
-namespace msg {
-	class ServerInfo;
-	class PlayerConnect;
-	class PlayerDisconnect;
-	class PlayerJoin;
-	class GameState;
-	class Chat;
-	class Bullet;
-}
 
 class Client : public Multiplayer
 {

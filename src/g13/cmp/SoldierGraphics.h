@@ -9,8 +9,6 @@
 namespace g13 {
 namespace cmp {
 
-class SoldierState;
-
 class SoldierGraphics
 {
 	enum SpriteIndex

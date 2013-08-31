@@ -8,8 +8,6 @@
 namespace g13 {
 namespace cmp {
 
-class BulletPhysics;
-
 class BulletGraphics
 {
 public:

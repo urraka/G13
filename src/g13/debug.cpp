@@ -1,16 +1,15 @@
 #ifdef DEBUG
 
-#include "debug.h"
-#include "res.h"
-#include "Map.h"
-#include "Collision.h"
-#include "ent/Soldier.h"
-
 #include <g13/g13.h>
 #include <gfx/gfx.h>
 #include <vector>
 #include <sstream>
 #include <iomanip>
+
+#include "res.h"
+#include "Map.h"
+#include "Collision.h"
+#include "ent/Soldier.h"
 
 namespace g13 {
 

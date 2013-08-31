@@ -22,8 +22,9 @@ public:
 	virtual size_t serialize(uint8_t *data, size_t length) const = 0;
 };
 
-struct Storage
+class Storage
 {
+public:
 	uint8_t data[1400 - 28];
 };
 

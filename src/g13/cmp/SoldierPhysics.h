@@ -7,8 +7,6 @@
 namespace g13 {
 namespace cmp {
 
-class SoldierInput;
-
 class SoldierPhysics
 {
 public:
