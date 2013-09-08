@@ -11,6 +11,7 @@ namespace cmp {
 
 class SoldierGraphics
 {
+public:
 	enum SpriteIndex
 	{
 		Leg1,
@@ -25,7 +26,6 @@ class SoldierGraphics
 		SpriteCount
 	};
 
-public:
 	SoldierGraphics();
 
 	void update(Time dt, const SoldierState &state);

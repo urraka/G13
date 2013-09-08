@@ -2,6 +2,7 @@
 #include "msg.h"
 
 #include <g13/Map.h>
+#include <hlp/countof.h>
 
 namespace g13 {
 namespace net {
@@ -110,7 +111,7 @@ void Multiplayer::send(msg::Message *msg, ENetPeer *target)
 	}
 
 	msg::Storage *storage = dataPool_->alloc();
-	size_t length = msg->serialize(storage->data, sizeof storage->data / sizeof storage->data[0]);
+	size_t length = msg->serialize(storage->data, countof(storage->data));
 
 	ENetPacket *packet = enet_packet_create(storage->data, length, packetFlags);
 

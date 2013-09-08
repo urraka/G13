@@ -41,7 +41,7 @@ Client::Client()
 	background_->allocate<gfx::ColorVertex>(4, gfx::Static);
 	background_->mode(gfx::TriangleFan);
 
-	soldiersBatch_ = new gfx::SpriteBatch(MaxPlayers);
+	soldiersBatch_ = new gfx::SpriteBatch(MaxPlayers * cmp::SoldierGraphics::SpriteCount);
 	soldiersBatch_->texture(res::texture(res::Soldier));
 
 	bulletsBatch_ = new gfx::SpriteBatch(64);

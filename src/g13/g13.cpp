@@ -5,6 +5,7 @@
 
 #include <gfx/gfx.h>
 #include <enet/enet.h>
+#include <fstream>
 
 namespace g13 {
 
@@ -37,8 +38,47 @@ void initialize()
 	sys::fullscreen(false);
 	// sys::cursor_mode(sys::Disabled);
 	sys::window_title("G13");
-	sys::window_size(0.4f, 0.4f);
-	sys::window_position(0.5f, 0.5f);
+
+	#ifdef DEBUG
+	{
+		using std::fstream;
+		uint8_t n = 0;
+
+		fstream f("wndpos", fstream::in | fstream::out | fstream::binary);
+
+		if (!f.is_open())
+		{
+			f.clear();
+			f.open("wndpos", fstream::in | fstream::out | fstream::binary | fstream::trunc);
+		}
+
+		f.read((char*)&n, 1);
+		f.clear();
+
+		n = n % 4;
+
+		float positions[4][2] = {
+			{0.02f, 0.02f},
+			{0.52f, 0.02f},
+			{0.52f, 0.52f},
+			{0.02f, 0.52f}
+		};
+
+		sys::window_size(0.42f, 0.42f);
+		sys::window_position(positions[n][0], positions[n][1]);
+
+		n = (n + 1) % 4;
+
+		f.seekp(0);
+		f.write((char*)&n, 1);
+	}
+	#else
+	{
+		sys::window_size(0.7f, 0.7f);
+		sys::window_position(0.15f, 0.15f);
+	}
+	#endif
+
 	sys::vsync(1);
 
 	sys::initialize();

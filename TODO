@@ -1,33 +1,32 @@
-Networking
-  - Add tick in disconnect event.
-  x Bullet messages should have some tick. Client should use that to create them at a proper time.
+Game
+  - Add some kind of World where entities to check collisions live.
+  - Check & fix instances of for loops with i < vector.size() - 1.
+  - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
+  - Set channel on message definitions.
+  - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
   - Remove Client::active() and make some easier to understand checks instead.
-  - Don't send gamestate of local player.
-  - Handle somehow cases where a player leaves and another player join getting same ID.
+  - Don't send gamestate of local player every time.
+  / Handle somehow cases where a player leaves and another player join getting same ID.
     Old messages from the previous player might still happen. Bullets might still exist, etc.
-    Check comment on Player::onBulletCreated() and Player::updateRemote() for this.
   - Set timeouts on both client and server.
   - Move BitStream to hlp, could be useful for binary files aswell.
-  - Perhaps rename all read/write in bitstreams to get more explicit types behaviour.
   - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
-  - Server asserts when client tick > server tick. Make it kill the client or something.
+  - Server asserts when client tick > server tick. Make it kill the client or something more clever.
   - The number of ticks that remote players are rendered behind is hardcoded, fix that.
-  - Extrapolation
-  - Client side prediction is not correcting if out of sync.
-
-Game
+  / Extrapolation [done but ugly]
+  - Add some client side correcting if out of sync when needed.
+  - Add debug hints: frozen time, remote players render ticks.
   - Make a class for the chatbox.
   - Move all the Client rendering to a separate class.
-  - Remove BulletInfo from Server and add some cmp::BulletParams to carry bullet creation parameters.
   - Fix hardcoded map bounds on Bullet.cpp.
   - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
   - kGravity constant repeated in different files.
   - Map should carry some parameters (like gravity).
   - Add some real menu. Consider removing debug menu.
   - Think how the event system should work. Consider some minimalistic ui system.
-  - Maybe some refactor in collision class. Or pass is_floor predicate from Map at least.
-  - Replace network.txt with config.cfg and move it ro root directory.
+  - Maybe some refactor in collision class, is_floor() predicate is duplicated in Map and Collision.
+  - Replace network.txt with config.cfg and move it to root directory.
   - Add some INI parsing lib.
   - Separate collision map from map rendering stuff.
   - Find collision bug and fix it, I FUCKING SAW IT.
@@ -35,14 +34,13 @@ Game
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Graphics
+  - Add text outlines.
   - Add special case in text shader for black/white color. Fix blending.
   - Add easy to draw rectangles.
   - Text crashing with weird character 0x2584.
-  - Add global_opacity to shaders and gfx::opacity() to set it.
   - Add ability to set own mipmaps.
 
 General
-  - Add <g13/fwd.h> and add all forward declarations there. Include it in g13.h.
   - Consider making each module a library to include into the game.
   - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
@@ -51,10 +49,14 @@ System
 
 Math
   - Possible bug in fpm::rect. Check header. Perhaps it's just fine.
-  - Add some overflow checks in fpm functions (example: in length(), if (x.x or x.y > 175 warning! 175*175 = 30625))
+  - Add some overflow checks in fpm functions.
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Add tick in disconnect event.
+  x Remove BulletInfo from Server and add some cmp::BulletParams to carry bullet creation parameters.
+  x Bullet messages should have some tick. Client should use that to create them at a proper time.
+  x Add <g13/types.h> and add all forward declarations there. Include it in g13.h.
   x Don't send bullets to the player who created them.
   x New soldier animations with ability to aim at arbitrary angles.
   x Interpolate angle properly when direction changes (use shortest direction).
@@ -140,7 +142,8 @@ Archive
   x Add DataReader/DataWriter to access binary data in a network friendly way.
   x Player should be a more dedicated class. Share it between client and server?
   x Read about networking and decide what to do first.
-  x Consider removing init() from Scene and initialize on constructor, assuming it's always created on the heap with new.
+  x Consider removing init() from Scene and initialize on constructor, assuming it's always created
+    on the heap with new.
   x Rename Scene to State.
   x Use namespaces for states, entities and components (stt, ent, cmp).
   x Add some method to switch Game state.
@@ -152,14 +155,16 @@ Archive
   x Check for room before jumping to avoid insane bouncing.
   x Add ducking.
   x Sort headers again so Graphics doesn't depend on useless stuff.
-  x interpolable<T> with T previous and T current, and methods update(), update(T value) and value(float percent).
+  x interpolable<T> with T previous and T current, and methods update(), update(T value) and
+    value(float percent).
   x Move glewInit to system module to remove platform specific code in graphics module.
   x Add SoldierGraphics component.
   x Make camera take a vec2* instead of Entity*.
   x Consider Removing Entity class.
   x iOS: set statusbar orientation when orientation changed.
   x Fix not POD warnings generated by offsetof.
-  x Replace bufferFlagged with pointedBuffer and call attributes functions if pointedBuffer != currentBuffer.
+  x Replace bufferFlagged with pointedBuffer and call attributes functions if
+    pointedBuffer != currentBuffer.
 
 
 
@@ -260,7 +265,8 @@ PROTOCOL
   Client
     on connect    -> send msg::Login
     on msg::Info  -> wait for msg::Join messages for all player ids in gameinfo
-    on msg::Join  -> update gameinfo and player info, when all players info is received send (or be able to send) msg::SpawnRequest
+    on msg::Join  -> update gameinfo and player info, when all players info is received send
+                    (or be able to send) msg::SpawnRequest
     on msg::Leave -> update gameinfo
     on msg::Spawn -> start playing
     on playing    -> send msg::Input

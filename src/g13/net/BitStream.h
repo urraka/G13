@@ -28,14 +28,15 @@ class BitReader : public BitStream
 public:
 	BitReader(const uint8_t *data, size_t nBytes) : BitStream(nBytes), data_(data) {}
 
-	void read(int8_t   *x, size_t bits = sizeof(int8_t  ) * 8) { read_ <uint8_t > ((uint8_t *) x, bits); }
-	void read(int16_t  *x, size_t bits = sizeof(int16_t ) * 8) { read_ <uint16_t> ((uint16_t*) x, bits); }
-	void read(int32_t  *x, size_t bits = sizeof(int32_t ) * 8) { read_ <uint32_t> ((uint32_t*) x, bits); }
-	void read(int64_t  *x, size_t bits = sizeof(int64_t ) * 8) { read_ <uint64_t> ((uint64_t*) x, bits); }
-	void read(uint8_t  *x, size_t bits = sizeof(uint8_t ) * 8) { read_ <uint8_t > (            x, bits); }
-	void read(uint16_t *x, size_t bits = sizeof(uint16_t) * 8) { read_ <uint16_t> (            x, bits); }
-	void read(uint32_t *x, size_t bits = sizeof(uint32_t) * 8) { read_ <uint32_t> (            x, bits); }
-	void read(uint64_t *x, size_t bits = sizeof(uint64_t) * 8) { read_ <uint64_t> (            x, bits); }
+	void read(int8_t  *x, size_t bits = sizeof(int8_t ) * 8) { read_ <uint8_t > ((uint8_t *)x, bits); }
+	void read(int16_t *x, size_t bits = sizeof(int16_t) * 8) { read_ <uint16_t> ((uint16_t*)x, bits); }
+	void read(int32_t *x, size_t bits = sizeof(int32_t) * 8) { read_ <uint32_t> ((uint32_t*)x, bits); }
+	void read(int64_t *x, size_t bits = sizeof(int64_t) * 8) { read_ <uint64_t> ((uint64_t*)x, bits); }
+
+	void read(uint8_t  *x, size_t bits = sizeof(uint8_t ) * 8) { read_ <uint8_t > (x, bits); }
+	void read(uint16_t *x, size_t bits = sizeof(uint16_t) * 8) { read_ <uint16_t> (x, bits); }
+	void read(uint32_t *x, size_t bits = sizeof(uint32_t) * 8) { read_ <uint32_t> (x, bits); }
+	void read(uint64_t *x, size_t bits = sizeof(uint64_t) * 8) { read_ <uint64_t> (x, bits); }
 
 	void read(bool *x)
 	{
@@ -85,14 +86,15 @@ class BitWriter : public BitStream
 public:
 	BitWriter(uint8_t *data, size_t nBytes) : BitStream(nBytes), data_(data) {}
 
-	void write(int8_t   x, size_t bits = sizeof(int8_t  ) * 8) { write_ <uint8_t > (*(uint8_t *)&x, bits); }
-	void write(int16_t  x, size_t bits = sizeof(int16_t ) * 8) { write_ <uint16_t> (*(uint16_t*)&x, bits); }
-	void write(int32_t  x, size_t bits = sizeof(int32_t ) * 8) { write_ <uint32_t> (*(uint32_t*)&x, bits); }
-	void write(int64_t  x, size_t bits = sizeof(int64_t ) * 8) { write_ <uint64_t> (*(uint64_t*)&x, bits); }
-	void write(uint8_t  x, size_t bits = sizeof(uint8_t ) * 8) { write_ <uint8_t > (             x, bits); }
-	void write(uint16_t x, size_t bits = sizeof(uint16_t) * 8) { write_ <uint16_t> (             x, bits); }
-	void write(uint32_t x, size_t bits = sizeof(uint32_t) * 8) { write_ <uint32_t> (             x, bits); }
-	void write(uint64_t x, size_t bits = sizeof(uint64_t) * 8) { write_ <uint64_t> (             x, bits); }
+	void write(int8_t  x, size_t bits = sizeof(int8_t ) * 8) { write_ <uint8_t > (*(uint8_t *)&x, bits); }
+	void write(int16_t x, size_t bits = sizeof(int16_t) * 8) { write_ <uint16_t> (*(uint16_t*)&x, bits); }
+	void write(int32_t x, size_t bits = sizeof(int32_t) * 8) { write_ <uint32_t> (*(uint32_t*)&x, bits); }
+	void write(int64_t x, size_t bits = sizeof(int64_t) * 8) { write_ <uint64_t> (*(uint64_t*)&x, bits); }
+
+	void write(uint8_t  x, size_t bits = sizeof(uint8_t ) * 8) { write_ <uint8_t > (x, bits); }
+	void write(uint16_t x, size_t bits = sizeof(uint16_t) * 8) { write_ <uint16_t> (x, bits); }
+	void write(uint32_t x, size_t bits = sizeof(uint32_t) * 8) { write_ <uint32_t> (x, bits); }
+	void write(uint64_t x, size_t bits = sizeof(uint64_t) * 8) { write_ <uint64_t> (x, bits); }
 
 	void write(bool x) { write_<uint8_t>((uint8_t)x, 1); }
 
