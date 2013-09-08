@@ -15,7 +15,7 @@ Multiplayer::Multiplayer()
 {
 	dataPool_ = new hlp::pool<msg::Storage>();
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		players_[i].id_ = i;
 		players_[i].soldier()->id = i;

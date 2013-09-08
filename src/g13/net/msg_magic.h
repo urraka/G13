@@ -2,7 +2,6 @@
 
 #define NOTHING(x)
 #define UNUSED(expr)          do { (void)(expr); } while (0)
-#define POSSIBLY_UNUSED(expr) UNUSED(expr)
 
 //******************************************************************************
 #if defined(MSGMAGIC_DECLARE)
@@ -157,12 +156,12 @@
     namespace                                                                                  \
     {                                                                                          \
         template<class T>                                                                      \
-        static void _w_ ## ListType (BitWriter &_w, const T *_list, uint32_t _count,           \
+        static void _w_ ## ListType (BitWriter &_w, const T *_list, int _count,                \
                                     const size_t _sizeBits)                                    \
         {                                                                                      \
             _w.write(_count, _sizeBits);                                                       \
                                                                                                \
-            for (size_t _i = 0; _i < _count; _i++)                                             \
+            for (int _i = 0; _i < _count; _i++)                                                \
             {                                                                                  \
                 const T & item = _list[_i];
 
@@ -231,14 +230,9 @@
     namespace                                                                                  \
     {                                                                                          \
         template<class T>                                                                      \
-        static bool _r_ ## ListType (BitReader &_r, T *_list, uint32_t &_count,                \
-                                    size_t _min, const size_t _sizeBits)                       \
+        static bool _r_ ## ListType (BitReader &_r, T *_list, int &_count,                     \
+                                    int _min, const size_t _sizeBits)                          \
         {                                                                                      \
-            size_t _strlen = 0;                                                                \
-            int32_t _i32;                                                                      \
-            POSSIBLY_UNUSED(_strlen);                                                          \
-            POSSIBLY_UNUSED(_i32);                                                             \
-                                                                                               \
             if (!_r.has(_sizeBits))                                                            \
                 return false;                                                                  \
                                                                                                \
@@ -247,7 +241,7 @@
             if (_count < _min)                                                                 \
                 return false;                                                                  \
                                                                                                \
-            for (size_t _i = 0; _i < _count; _i++)                                             \
+            for (int _i = 0; _i < _count; _i++)                                                \
             {                                                                                  \
                 T & item = _list[_i];
 
@@ -262,10 +256,7 @@
     bool T::read(const uint8_t *_data, size_t _length)                                         \
     {                                                                                          \
         BitReader _r(_data, _length);                                                          \
-        size_t _strlen = 0;                                                                    \
-        int32_t _i32;                                                                          \
-        POSSIBLY_UNUSED(_strlen);                                                              \
-        POSSIBLY_UNUSED(_i32);                                                                 \
+                                                                                               \
         _r.skip(MINBITS(_::type_count - 1));                                                   \
                                                                                                \
         {                                                                                      \
@@ -297,14 +288,25 @@
         _r.read(&x, bits);
 
 #define String(str, min)                                                                       \
-        _strlen = _r.read(str, sizeof(str));                                                   \
-        if (_strlen < min || _strlen == sizeof(str)) return false;                             \
-        // if (!hlp::utf8_valid(str)) return false;
+        {                                                                                      \
+            size_t _strlen = _r.read(str, sizeof(str));                                        \
+                                                                                               \
+            if (_strlen < min || _strlen == sizeof(str))                                       \
+                return false;                                                                  \
+                                                                                               \
+            if (!hlp::utf8_valid(str))                                                         \
+                return false;                                                                  \
+        }
 
 #define Fixed(x)                                                                               \
-        if (!_r.has(sizeof(int32_t) * 8)) return false;                                        \
-        _r.read(&_i32);                                                                        \
-        x = fixed::from_value(_i32);
+        {                                                                                      \
+            if (!_r.has(sizeof(int32_t) * 8))                                                  \
+                return false;                                                                  \
+                                                                                               \
+            uint32_t _i32;                                                                     \
+            _r.read(&_i32);                                                                    \
+            x = fixed::from_value(_i32);                                                       \
+        }
 
 #define List(ListType, list, count, min)                                                       \
         if (! _r_ ## ListType (_r, list, count, min, MINBITS(sizeof(list) / sizeof(list[0])))) \
@@ -324,7 +326,6 @@
 #undef MSGMAGIC_UNDEF
 #undef NOTHING
 #undef UNUSED
-#undef POSSIBLY_UNUSED
 #undef MESSAGES_BEGIN
 #undef MESSAGES_END
 #undef MESSAGE

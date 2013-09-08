@@ -36,41 +36,41 @@ public:
 
 	void initialize();
 	void updateLocal(Time dt);
-	void updateRemote(Time dt, uint32_t tick);
+	void updateRemote(Time dt, int tick);
 	void updateServer(Time dt);
 
 	void onConnecting(ENetPeer *peer = 0);
 	void onConnect(const char *name);
-	void onDisconnect(uint32_t tick);
-	void onJoin(uint32_t tick, const Map *map, const fixvec2 &position);
-	void onSoldierState(uint32_t tick, const cmp::SoldierState &soldierState);
-	void onInput(uint32_t tick, const cmp::SoldierInput &input);
-	void onBulletCreated(uint32_t tick, const cmp::BulletParams &params);
+	void onDisconnect(int tick);
+	void onJoin(int tick, const Map *map, const fixvec2 &position);
+	void onSoldierState(int tick, const cmp::SoldierState &soldierState);
+	void onInput(int tick, const cmp::SoldierInput &input);
+	void onBulletCreated(int tick, const cmp::BulletParams &params);
 
 	State       state    () const;
 	bool        connected() const;
 	uint8_t     id       () const;
 	ENetPeer   *peer     () const;
 	const char *name     () const;
-	uint32_t    tick     () const;
+	int         tick     () const;
 
 	ent::Soldier *soldier();
 
 private:
 	struct BulletInfo
 	{
-		uint32_t tick;
+		int tick;
 		cmp::BulletParams params;
 
 		BulletInfo() {}
-		BulletInfo(uint32_t t, const cmp::BulletParams &p) : tick(t), params(p) {}
+		BulletInfo(int t, const cmp::BulletParams &p) : tick(t), params(p) {}
 	};
 
 	struct SoldierState
 	{
 		SoldierState() {}
-		SoldierState(uint32_t t, const cmp::SoldierState &s) : tick(t), state(s) {}
-		uint32_t tick;
+		SoldierState(int t, const cmp::SoldierState &s) : tick(t), state(s) {}
+		int tick;
 		cmp::SoldierState state;
 	};
 
@@ -78,11 +78,11 @@ private:
 	State state_;
 	char name_[MaxNameLength * 4 + 1];
 	ent::Soldier soldier_;
-	uint32_t joinTick_;
-	uint32_t disconnectTick_;
-	uint32_t lastInputTick_;
+	int joinTick_;
+	int disconnectTick_;
+	int lastInputTick_;
 	std::vector<cmp::SoldierInput> inputs_;
-	uint32_t tick_;
+	int tick_;
 	hlp::ring<SoldierState, 10> stateBuffer_;
 	ENetPeer *peer_;
 	Time connectTimeout_;

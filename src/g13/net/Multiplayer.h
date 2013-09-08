@@ -17,7 +17,7 @@ public:
 	Multiplayer();
 	virtual ~Multiplayer();
 
-	static const size_t MaxPlayers = 32;
+	static const int MaxPlayers = 32;
 
 protected:
 	enum Channels
@@ -28,7 +28,7 @@ protected:
 		ChannelsCount
 	};
 
-	uint32_t tick_;
+	int tick_;
 	ENetHost *connection_;
 	hlp::pool<msg::Storage> *dataPool_;
 

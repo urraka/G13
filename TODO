@@ -1,4 +1,5 @@
 Game
+  x Change all tick values to int to avoid unsigned shitty issues.
   - Add some kind of World where entities to check collisions live.
   - Check & fix instances of for loops with i < vector.size() - 1.
   - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).

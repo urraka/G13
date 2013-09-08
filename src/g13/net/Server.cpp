@@ -36,7 +36,7 @@ bool Server::start(int port)
 
 	loadMap();
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 		players_[i].initialize();
 
 	LOG("Listening on port " << port << "...");
@@ -50,7 +50,7 @@ void Server::stop()
 
 	LOG("Disconnecting...");
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		Player *player = &players_[i];
 
@@ -66,9 +66,9 @@ void Server::update(Time dt)
 
 	pollEvents();
 
-	size_t activePlayers = 0;
+	int activePlayers = 0;
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		Player *player = &players_[i];
 
@@ -95,7 +95,7 @@ void Server::update(Time dt)
 
 	updateBullets(dt);
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		if (players_[i].state() == Player::Disconnected)
 			continue;
@@ -103,14 +103,16 @@ void Server::update(Time dt)
 		msg::Bullet msg;
 		msg.tick = tick_;
 
-		size_t k = 0;
+		int k = 0;
 
-		const size_t N = createdBullets_.size();
+		const int N = createdBullets_.size();
 
-		for (size_t j = 0; j < N; j++)
+		for (int j = 0; j < N; j++)
 		{
 			if (createdBullets_[j].playerid == players_[i].id())
 				continue;
+
+			assert(tick_ >= players_[i].tick());
 
 			const int offset = tick_ - players_[i].tick();
 
@@ -134,14 +136,14 @@ void Server::update(Time dt)
 		gameState.tick = tick_;
 		gameState.nSoldiers = 0;
 
-		for (size_t i = 0; i < MaxPlayers; i++)
+		for (int i = 0; i < MaxPlayers; i++)
 		{
 			if (players_[i].state() == Player::Playing)
 			{
-				size_t iSoldier = gameState.nSoldiers;
+				int iSoldier = gameState.nSoldiers;
 				msg::GameState::SoldierState *s = &gameState.soldiers[iSoldier];
 
-				s->tickOffset = std::min((uint32_t)Player::MaxTickOffset, tick_ - players_[i].tick());
+				s->tickOffset = std::min<int>(Player::MaxTickOffset, tick_ - players_[i].tick());
 				s->playerId = i;
 				s->state = players_[i].soldier()->state();
 
@@ -170,7 +172,7 @@ void Server::onConnect(ENetPeer *peer)
 
 	Player *player = 0;
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		if (players_[i].state() == Player::Disconnected)
 		{
@@ -227,7 +229,7 @@ void Server::onPlayerLogin(Player *player, msg::Login *login)
 	info.clientId = id;
 	info.nPlayers = 0;
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 		if (i != id && players_[i].connected())
 			info.players[info.nPlayers++] = i;
 
@@ -240,7 +242,7 @@ void Server::onPlayerLogin(Player *player, msg::Login *login)
 	send(&playerConnect);
 
 	// send the connecting player a PlayerConnect event for each other connected player
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		if (i != id && players_[i].connected())
 		{
@@ -270,7 +272,7 @@ void Server::onPlayerInput(Player *player, msg::Input *input)
 	if (input->tick > tick_)
 	{
 		#ifdef DEBUG
-			uint32_t t = input->tick;
+			int t = input->tick;
 			int id = (int)player->id();
 
 			debug_log("input->tick > tick (" << t << " > " << tick_ << ") for player #" << id);
@@ -299,13 +301,13 @@ void Server::onPlayerChat(Player *player, msg::Chat *chat)
 
 	chat->id = player->id();
 
-	for (size_t i = 0; i < chat->id; i++)
+	for (int i = 0; i < chat->id; i++)
 	{
 		if (players_[i].connected())
 			send(chat, players_[i].peer());
 	}
 
-	for (size_t i = chat->id + 1; i < MaxPlayers; i++)
+	for (int i = chat->id + 1; i < MaxPlayers; i++)
 	{
 		if (players_[i].connected())
 			send(chat, players_[i].peer());

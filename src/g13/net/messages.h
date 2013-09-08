@@ -32,7 +32,7 @@ BEGIN
 END
 
 MESSAGE(Input)
-	uint32_t tick;
+	int32_t tick;
 	uint16_t angle;
 	bool rightwards;
 	bool left;
@@ -62,10 +62,10 @@ LIST(PlayerIds, item)
 LISTEND
 
 MESSAGE(ServerInfo)
-	uint32_t tick;
-	uint8_t  clientId;
-	uint32_t nPlayers;
-	uint8_t  players[Multiplayer::MaxPlayers];
+	int32_t tick;
+	uint8_t clientId;
+	int     nPlayers;
+	uint8_t players[Multiplayer::MaxPlayers];
 BEGIN
 	Integer(tick)
 	Bits(clientId, MINBITS(Multiplayer::MaxPlayers - 1))
@@ -82,16 +82,16 @@ END
 
 MESSAGE(PlayerDisconnect)
 	uint8_t id;
-	uint32_t tick;
+	int32_t tick;
 BEGIN
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	Integer(tick)
 END
 
 MESSAGE(PlayerJoin)
-	uint32_t tick;
-	uint8_t  id;
-	fixvec2  position;
+	int32_t tick;
+	uint8_t id;
+	fixvec2 position;
 BEGIN
 	Integer(tick)
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
@@ -114,13 +114,13 @@ LISTEND
 
 MESSAGE(GameState)
 	struct SoldierState {
-		uint8_t tickOffset;
+		int tickOffset;
 		uint8_t playerId;
 		cmp::SoldierState state;
 	};
 
-	uint32_t tick;
-	uint32_t nSoldiers;
+	int32_t tick;
+	int nSoldiers;
 	SoldierState soldiers[Multiplayer::MaxPlayers];
 BEGIN
 	Integer(tick)
@@ -138,12 +138,12 @@ LISTEND
 
 MESSAGE(Bullet)
 	struct BulletInfo {
-		uint8_t tickOffset;
+		int tickOffset;
 		cmp::BulletParams params;
 	};
 
-	uint32_t tick;
-	uint32_t nBullets;
+	int32_t tick;
+	int nBullets;
 	BulletInfo bullets[32];
 BEGIN
 	Integer(tick)

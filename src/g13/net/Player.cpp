@@ -32,7 +32,7 @@ void Player::updateLocal(Time dt)
 	}
 }
 
-void Player::updateRemote(Time dt, uint32_t tick)
+void Player::updateRemote(Time dt, int tick)
 {
 	cmp::SoldierState state;
 
@@ -42,8 +42,8 @@ void Player::updateRemote(Time dt, uint32_t tick)
 		ticksBehind = dbg->ticksBehind;
 	#endif
 
-	uint32_t desiredTick = std::max(tick - ticksBehind, joinTick_);
-	uint32_t renderedTick = desiredTick;
+	int desiredTick = std::max(tick - ticksBehind, joinTick_);
+	int renderedTick = desiredTick;
 
 	int N = stateBuffer_.size();
 	int a = N - 1;
@@ -194,7 +194,7 @@ void Player::onConnect(const char *name)
 	hlp::assign(name_, name);
 }
 
-void Player::onDisconnect(uint32_t tick)
+void Player::onDisconnect(int tick)
 {
 	state_ = Disconnected;
 	peer_ = 0;
@@ -213,7 +213,7 @@ void Player::onDisconnect(uint32_t tick)
 	}
 }
 
-void Player::onJoin(uint32_t tick, const Map *map, const fixvec2 &position)
+void Player::onJoin(int tick, const Map *map, const fixvec2 &position)
 {
 	state_ = Playing;
 	lastInputTick_ = tick - 1;
@@ -226,13 +226,13 @@ void Player::onJoin(uint32_t tick, const Map *map, const fixvec2 &position)
 	stateBuffer_.push(SoldierState(tick, soldier_.state()));
 }
 
-void Player::onSoldierState(uint32_t tick, const cmp::SoldierState &soldierState)
+void Player::onSoldierState(int tick, const cmp::SoldierState &soldierState)
 {
 	if (stateBuffer_.size() == 0 || tick > stateBuffer_[stateBuffer_.size() - 1].tick)
 		stateBuffer_.push(SoldierState(tick, soldierState));
 }
 
-void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)
+void Player::onInput(int tick, const cmp::SoldierInput &input)
 {
 	if (tick > lastInputTick_)
 	{
@@ -241,7 +241,7 @@ void Player::onInput(uint32_t tick, const cmp::SoldierInput &input)
 	}
 }
 
-void Player::onBulletCreated(uint32_t tick, const cmp::BulletParams &params)
+void Player::onBulletCreated(int tick, const cmp::BulletParams &params)
 {
 	if (tick <= disconnectTick_)
 		soldier_.createBullet(soldier_.listener, params); // playerid shouldn't matter on client
@@ -279,7 +279,7 @@ ent::Soldier *Player::soldier()
 	return &soldier_;
 }
 
-uint32_t Player::tick() const
+int Player::tick() const
 {
 	return tick_;
 }

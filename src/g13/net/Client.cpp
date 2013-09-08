@@ -57,7 +57,7 @@ Client::Client()
 	chatText_->color(fontColor);
 	chatText_->value(caret_);
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		playersText_[i].text = new gfx::Text();
 		playersText_[i].text->font(font);
@@ -68,7 +68,7 @@ Client::Client()
 
 Client::~Client()
 {
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 		delete playersText_[i].text;
 
 	delete chatText_;
@@ -151,7 +151,7 @@ void Client::update(Time dt)
 			send(&input, peer_);
 		}
 
-		for (size_t i = 0; i < MaxPlayers; i++)
+		for (int i = 0; i < MaxPlayers; i++)
 		{
 			Player *player = &players_[i];
 
@@ -166,7 +166,7 @@ void Client::update(Time dt)
 		camera_.update(dt);
 	}
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		if (playersText_[i].time > 0)
 			playersText_[i].time = std::max(0, (int)(playersText_[i].time - dt));
@@ -218,7 +218,7 @@ void Client::onDisconnect(ENetPeer *peer)
 	camera_ = ent::Camera();
 	bullets_.clear();
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 	{
 		players_[i].initialize();
 		playersText_[i].time = 0;
@@ -249,12 +249,12 @@ void Client::onServerInfo(msg::ServerInfo *info)
 
 	loadMap();
 
-	for (size_t i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MaxPlayers; i++)
 		players_[i].initialize();
 
 	connectingCount_ = 0;
 
-	for (size_t i = 0; i < info->nPlayers; i++)
+	for (int i = 0; i < info->nPlayers; i++)
 	{
 		Player *player = &players_[info->players[i]];
 		player->onConnecting();
@@ -362,7 +362,7 @@ void Client::onGameState(msg::GameState *gameState)
 {
 	if (map_ == 0) return;
 
-	for (size_t i = 0; i < gameState->nSoldiers; i++)
+	for (int i = 0; i < gameState->nSoldiers; i++)
 	{
 		Player *player = &players_[gameState->soldiers[i].playerId];
 
@@ -371,7 +371,7 @@ void Client::onGameState(msg::GameState *gameState)
 
 		if (player->state() == Player::Playing)
 		{
-			uint32_t tick = gameState->tick - gameState->soldiers[i].tickOffset;
+			int tick = gameState->tick - gameState->soldiers[i].tickOffset;
 			player->onSoldierState(tick, gameState->soldiers[i].state);
 		}
 	}
@@ -379,10 +379,10 @@ void Client::onGameState(msg::GameState *gameState)
 
 void Client::onBulletCreated(msg::Bullet *bullet)
 {
-	for (size_t i = 0; i < bullet->nBullets; i++)
+	for (int i = 0; i < bullet->nBullets; i++)
 	{
 		const cmp::BulletParams &params = bullet->bullets[i].params;
-		uint32_t tick = bullet->tick - bullet->bullets[i].tickOffset;
+		int tick = bullet->tick - bullet->bullets[i].tickOffset;
 
 		players_[params.playerid].onBulletCreated(tick, params);
 	}
@@ -412,7 +412,7 @@ void Client::draw(const Frame &frame)
 
 		soldiersBatch_->clear();
 
-		for (size_t i = 0; i < MaxPlayers; i++)
+		for (int i = 0; i < MaxPlayers; i++)
 		{
 			if (players_[i].state() == Player::Playing)
 			{
@@ -432,7 +432,7 @@ void Client::draw(const Frame &frame)
 		if (bulletsBatch_->capacity() < bullets_.size())
 			bulletsBatch_->resize(bullets_.size());
 
-		for (size_t i = 0; i < bullets_.size(); i++)
+		for (int i = 0; i < (int)bullets_.size(); i++)
 		{
 			bullets_[i].graphics.frame(frame);
 			bulletsBatch_->add(bullets_[i].graphics.sprite());
@@ -442,7 +442,7 @@ void Client::draw(const Frame &frame)
 
 		// draw chat text
 
-		for (size_t i = 0; i < MaxPlayers; i++)
+		for (int i = 0; i < MaxPlayers; i++)
 		{
 			if (playersText_[i].time > 0)
 			{
