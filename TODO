@@ -13,8 +13,8 @@ Game
   - Move BitStream to hlp, could be useful for binary files aswell.
   - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
-  - Server asserts when client tick > server tick. Make it kill the client or something more clever.
-  - The number of ticks that remote players are rendered behind is hardcoded, fix that.
+  / Server asserts when client tick > server tick. Make it kill the client or something more clever.
+  / The number of ticks that remote players are rendered behind is hardcoded, fix that.
   / Extrapolation [done but ugly]
   - Add some client side correcting if out of sync when needed.
   - Add debug hints: frozen time, remote players render ticks.

@@ -74,7 +74,7 @@ void Server::update(Time dt)
 
 		if (player->state() != Player::Disconnected)
 		{
-			player->updateServer(dt);
+			player->updateServer(dt, tick_);
 			activePlayers++;
 		}
 	}
@@ -278,7 +278,7 @@ void Server::onPlayerInput(Player *player, msg::Input *input)
 			debug_log("input->tick > tick (" << t << " > " << tick_ << ") for player #" << id);
 		#endif
 
-		return;
+		// return;
 	}
 
 	cmp::SoldierInput soldierInput;

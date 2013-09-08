@@ -20,6 +20,7 @@ Client::Client()
 	:	state_(Disconnected),
 		peer_(0),
 		id_(Player::InvalidId),
+		interpolation_(4),
 		background_(0),
 		soldiersBatch_(0),
 		bulletsBatch_(0),
@@ -158,7 +159,7 @@ void Client::update(Time dt)
 			if (i == id_ || player->state() != Player::Playing)
 				continue;
 
-			player->updateRemote(dt, tick_);
+			player->updateRemote(dt, tick_ - interpolation_);
 		}
 
 		updateBullets(dt);
@@ -212,6 +213,7 @@ void Client::onDisconnect(ENetPeer *peer)
 	connection_ = 0;
 	id_ = Player::InvalidId;
 	state_ = Disconnected;
+	interpolation_ = 4;
 	textInputMode_ = false;
 	target_ = vec2(0.0f);
 	input_ = cmp::SoldierInput();
@@ -361,6 +363,12 @@ void Client::onPlayerChat(msg::Chat *chat)
 void Client::onGameState(msg::GameState *gameState)
 {
 	if (map_ == 0) return;
+
+	// if (tick_ - interpolation_ > gameState->tick)
+	// {
+	// 	interpolation_++;
+	// 	debug_log("interpolation = " << interpolation_);
+	// }
 
 	for (int i = 0; i < gameState->nSoldiers; i++)
 	{

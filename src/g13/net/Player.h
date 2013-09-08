@@ -37,7 +37,7 @@ public:
 	void initialize();
 	void updateLocal(Time dt);
 	void updateRemote(Time dt, int tick);
-	void updateServer(Time dt);
+	void updateServer(Time dt, int tick);
 
 	void onConnecting(ENetPeer *peer = 0);
 	void onConnect(const char *name);
@@ -57,22 +57,17 @@ public:
 	ent::Soldier *soldier();
 
 private:
-	struct BulletInfo
+	template<typename T> struct TimedData
 	{
+		TimedData() {}
+		TimedData(int tck, const T &dat) : tick(tck), data(dat) {}
 		int tick;
-		cmp::BulletParams params;
-
-		BulletInfo() {}
-		BulletInfo(int t, const cmp::BulletParams &p) : tick(t), params(p) {}
+		T data;
 	};
 
-	struct SoldierState
-	{
-		SoldierState() {}
-		SoldierState(int t, const cmp::SoldierState &s) : tick(t), state(s) {}
-		int tick;
-		cmp::SoldierState state;
-	};
+	typedef TimedData<cmp::BulletParams> BulletParams;
+	typedef TimedData<cmp::SoldierState> SoldierState;
+	typedef TimedData<cmp::SoldierInput> SoldierInput;
 
 	uint8_t id_;
 	State state_;
@@ -81,12 +76,12 @@ private:
 	int joinTick_;
 	int disconnectTick_;
 	int lastInputTick_;
-	std::vector<cmp::SoldierInput> inputs_;
+	std::vector<SoldierInput> inputs_;
 	int tick_;
 	hlp::ring<SoldierState, 10> stateBuffer_;
 	ENetPeer *peer_;
 	Time connectTimeout_;
-	std::deque<BulletInfo> bullets_;
+	std::deque<BulletParams> bullets_;
 
 	friend class Multiplayer;
 };

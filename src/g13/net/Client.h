@@ -37,6 +37,7 @@ private:
 	vec2 target_;
 
 	int connectingCount_;
+	int interpolation_;
 
 	ent::Camera camera_;
 	gfx::VBO *background_;
@@ -58,17 +59,17 @@ private:
 
 	PlayerText playersText_[MaxPlayers];
 
-	void onConnect   (ENetPeer *peer);
+	void onConnect(ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);
-	void onMessage   (msg::Message *msg, ENetPeer *from);
+	void onMessage(msg::Message *msg, ENetPeer *from);
 
-	void onServerInfo      (msg::ServerInfo       *info);
-	void onPlayerConnect   (msg::PlayerConnect    *playerConnect);
+	void onServerInfo(msg::ServerInfo *info);
+	void onPlayerConnect(msg::PlayerConnect *playerConnect);
 	void onPlayerDisconnect(msg::PlayerDisconnect *playerDisconnect);
-	void onPlayerJoin      (msg::PlayerJoin       *playerJoin);
-	void onPlayerChat      (msg::Chat             *chat);
-	void onGameState       (msg::GameState        *gameState);
-	void onBulletCreated   (msg::Bullet           *bullet);
+	void onPlayerJoin(msg::PlayerJoin *playerJoin);
+	void onPlayerChat(msg::Chat *chat);
+	void onGameState(msg::GameState *gameState);
+	void onBulletCreated(msg::Bullet *bullet);
 
 	void onResize(int width, int height);
 };

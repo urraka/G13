@@ -27,7 +27,7 @@ void Player::updateLocal(Time dt)
 
 	if (inputs_.size() == 1)
 	{
-		soldier_.update(dt, &inputs_[0]);
+		soldier_.update(dt, &inputs_[0].data);
 		inputs_.clear();
 	}
 }
@@ -36,13 +36,14 @@ void Player::updateRemote(Time dt, int tick)
 {
 	cmp::SoldierState state;
 
-	int ticksBehind = 4;
+	// int ticksBehind = 4;
 
-	#ifdef DEBUG
-		ticksBehind = dbg->ticksBehind;
-	#endif
+	// #ifdef DEBUG
+	// 	ticksBehind = dbg->ticksBehind;
+	// #endif
 
-	int desiredTick = std::max(tick - ticksBehind, joinTick_);
+	// int desiredTick = std::max(tick - ticksBehind, joinTick_);
+	int desiredTick = std::max(tick, joinTick_);
 	int renderedTick = desiredTick;
 
 	int N = stateBuffer_.size();
@@ -73,8 +74,8 @@ void Player::updateRemote(Time dt, int tick)
 	{
 		// interpolate/extrapolate
 
-		const cmp::SoldierState *sa = &stateBuffer_[a].state;
-		const cmp::SoldierState *sb = &stateBuffer_[b].state;
+		const cmp::SoldierState *sa = &stateBuffer_[a].data;
+		const cmp::SoldierState *sb = &stateBuffer_[b].data;
 
 		state = *sb;
 
@@ -144,14 +145,14 @@ void Player::updateRemote(Time dt, int tick)
 	else
 	{
 		renderedTick = stateBuffer_[a].tick;
-		state = stateBuffer_[a].state;
+		state = stateBuffer_[a].data;
 	}
 
-	std::deque<BulletInfo>::iterator it = bullets_.begin();
+	std::deque<BulletParams>::iterator it = bullets_.begin();
 
 	while (it != bullets_.end() && it->tick <= renderedTick)
 	{
-		soldier_.createBullet(soldier_.listener, it->params);
+		soldier_.createBullet(soldier_.listener, it->data);
 
 		bullets_.pop_front();
 		it = bullets_.begin();
@@ -160,7 +161,7 @@ void Player::updateRemote(Time dt, int tick)
 	soldier_.graphics.update(dt, state);
 }
 
-void Player::updateServer(Time dt)
+void Player::updateServer(Time dt, int tick)
 {
 	if (state_ == Connecting)
 	{
@@ -174,8 +175,8 @@ void Player::updateServer(Time dt)
 	}
 	else
 	{
-		for (size_t i = 0; i < inputs_.size(); i++, tick_++)
-			soldier_.update(dt, &inputs_[i]);
+		for (size_t i = 0; i < inputs_.size() && inputs_[i].tick <= tick; i++, tick_++)
+			soldier_.update(dt, &inputs_[i].data);
 
 		inputs_.clear();
 	}
@@ -202,11 +203,11 @@ void Player::onDisconnect(int tick)
 
 	// let go all the bullets
 
-	std::deque<BulletInfo>::iterator it = bullets_.begin();
+	std::deque<BulletParams>::iterator it = bullets_.begin();
 
 	while (it != bullets_.end())
 	{
-		soldier_.createBullet(soldier_.listener, it->params);
+		soldier_.createBullet(soldier_.listener, it->data);
 
 		bullets_.pop_front();
 		it = bullets_.begin();
@@ -236,7 +237,7 @@ void Player::onInput(int tick, const cmp::SoldierInput &input)
 {
 	if (tick > lastInputTick_)
 	{
-		inputs_.push_back(input);
+		inputs_.push_back(SoldierInput(tick, input));
 		lastInputTick_ = tick;
 	}
 }
@@ -246,7 +247,7 @@ void Player::onBulletCreated(int tick, const cmp::BulletParams &params)
 	if (tick <= disconnectTick_)
 		soldier_.createBullet(soldier_.listener, params); // playerid shouldn't matter on client
 	else
-		bullets_.push_back(BulletInfo(tick, params));
+		bullets_.push_back(BulletParams(tick, params));
 }
 
 Player::State Player::state() const
