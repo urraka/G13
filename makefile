@@ -52,7 +52,7 @@ endif
 # configuration (vars: cxx, opt, lib, def, out-dir, out-dir-suffix, out)
 
 cxx := g++
-opt := -Wall -fno-exceptions -fno-rtti -D__STDC_LIMIT_MACROS
+opt := -Wall -fno-exceptions -fno-rtti -D__STDC_LIMIT_MACROS -DGLM_FORCE_RADIANS
 inc := -Isrc
 glsl-binary := bin/glsl
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <gfx/mat2d.h>
 #include <math/interpolable.h>
 #include <math/minbits.h>
 #include <math/fpm/fpm.h>
@@ -9,7 +10,7 @@ namespace g13 {
 
 namespace fpm = math::fpm;
 
-typedef glm::mat4  mat4;
+typedef gfx::mat2d mat2d;
 typedef glm::vec2  vec2;
 typedef fpm::fixed fixed;
 typedef fpm::vec2  fixvec2;

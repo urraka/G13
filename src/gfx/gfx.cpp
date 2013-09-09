@@ -2,10 +2,9 @@
 #include "Context.h"
 #include "glsl/glsl.h"
 
+#include <glm/glm.hpp>
 #include <assert.h>
 #include <stdint.h>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace gfx {
 
@@ -64,7 +63,7 @@ void viewport(int width, int height, int rotation)
 {
 	assert(rotation == 0 || rotation == 90 || rotation == -90 || rotation == 180);
 
-	context->projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+	context->projection = mat2d::ortho(0.0f, (float)width, (float)height, 0.0f);
 
 	if (rotation == 90 || rotation == -90)
 		glViewport(0, 0, height, width);
@@ -72,7 +71,7 @@ void viewport(int width, int height, int rotation)
 		glViewport(0, 0, width, height);
 
 	if (rotation != 0)
-		context->projection = glm::rotate((float)rotation, 0.0f, 0.0f, 1.0f) * context->projection;
+		context->projection = mat2d::rotate(glm::radians((float)rotation)) * context->projection;
 
 	context->mvpModified = true;
 }
@@ -262,33 +261,33 @@ void draw(Text *text)
 // Matrix
 // -----------------------------------------------------------------------------
 
-void matrix(const glm::mat4 &m)
+void matrix(const mat2d &m)
 {
 	context->matrix = m;
 	context->mvpModified = true;
 }
 
-const glm::mat4 &matrix()
+const mat2d &matrix()
 {
 	return context->matrix;
 }
 
 void translate(float x, float y)
 {
-	matrix(glm::translate(context->matrix, glm::vec3(x, y, 0.0f)));
+	matrix(context->matrix * mat2d::translate(x, y));
 }
 
 void rotate(float angle)
 {
-	matrix(glm::rotate(context->matrix, angle, glm::vec3(0.0f, 0.0f, 1.0f)));
+	matrix(context->matrix * mat2d::rotate(angle));
 }
 
-void scale(float width, float height)
+void scale(float x, float y)
 {
-	matrix(glm::scale(context->matrix, glm::vec3(width, height, 1.0f)));
+	matrix(context->matrix * mat2d::scale(x, y));
 }
 
-void transform(const glm::mat4 &m)
+void transform(const mat2d &m)
 {
 	matrix(context->matrix * m);
 }

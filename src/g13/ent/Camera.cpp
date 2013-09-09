@@ -50,13 +50,13 @@ void Camera::frame(const Frame &frame)
 	float scale = initialScale * glm::exp(maxZoom_ * (float)zoom_);
 	const vec2 &pos = position_;
 
-	matrix_ = glm::translate(width_ / 2.0f, height_ / 2.0f, 0.0f);
-	matrix_ *= glm::scale(scale, scale, 1.0f);
-	matrix_ *= glm::translate(-pos.x, -pos.y, 0.0f);
+	matrix_ = mat2d::translate(width_ / 2.0f, height_ / 2.0f);
+	matrix_ *= mat2d::scale(scale, scale);
+	matrix_ *= mat2d::translate(-pos.x, -pos.y);
 
-	matrixinv_ = glm::translate(pos.x, pos.y, 0.0f);
-	matrixinv_ *= glm::scale(1.0f / scale, 1.0f / scale, 1.0f);
-	matrixinv_ *= glm::translate(-width_ / 2.0f, -height_ / 2.0f, 0.0f);
+	matrixinv_ = mat2d::translate(pos.x, pos.y);
+	matrixinv_ *= mat2d::scale(1.0f / scale, 1.0f / scale);
+	matrixinv_ *= mat2d::translate(-width_ / 2.0f, -height_ / 2.0f);
 }
 
 void Camera::target(const vec2 *target)

@@ -3,6 +3,7 @@
 
 #include "Shader.h"
 #include "Context.h"
+#include "mat2d.h"
 #include "gfx.h"
 #include <assert.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -106,10 +107,10 @@ void Shader::uniform(GLint location, const glm::vec4 &x)
 	glUniform4f(location, x.x, x.y, x.z, x.w);
 }
 
-void Shader::uniform(GLint location, const glm::mat4 &x)
+void Shader::uniform(GLint location, const mat2d &x)
 {
 	gfx::bind(this);
-	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(x));
+	glUniformMatrix3x2fv(location, 1, GL_FALSE, &x[0]);
 }
 
 void Shader::uniform(const char *name, int x)
@@ -136,10 +137,10 @@ void Shader::uniform(const char *name, const glm::vec4 &x)
 	glUniform4f(location(name), x.x, x.y, x.z, x.w);
 }
 
-void Shader::uniform(const char *name, const glm::mat4 &x)
+void Shader::uniform(const char *name, const mat2d &x)
 {
 	gfx::bind(this);
-	glUniformMatrix4fv(location(name), 1, GL_FALSE, glm::value_ptr(x));
+	glUniformMatrix3x2fv(location(name), 1, GL_FALSE, &x[0]);
 }
 
 VERTEX_INSTANCES();
@@ -156,7 +157,7 @@ GLuint create_shader(GLenum type, const char *source)
 			"precision mediump float;\n";
 	#else
 		const char *preamble =
-			"#version 110\n"
+			"#version 120\n"
 			"#define lowp\n"
 			"#define mediump\n"
 			"#define highp\n";

@@ -137,7 +137,7 @@ void Map::load()
 				const vec2 &b = strip[index + 1];
 
 				const vec2 n = normal(a, b);
-				const float angle = glm::degrees(glm::atan(n.y, n.x)) + 90.0f;
+				const float angle = glm::atan(n.y, n.x) + M_PI / 2.0f;
 
 				sprites[i].position = glm::mix(a, b, glm::linearRand(0.0f, 1.0f));
 				sprites[i].width = texture->width();
@@ -243,7 +243,7 @@ void Map::load()
 				rocks[i].tx1 = sprite.tx1;
 				rocks[i].center = vec2(sprite.width, sprite.height) / 2.0f;
 				// rocks[i].color = gfx::Color(0xCC);
-				rocks[i].rotation = glm::linearRand(-180.0f, 180.0f);
+				rocks[i].rotation = glm::linearRand(-M_PI, M_PI);
 				rocks[i].scale = vec2(0.15f);
 			}
 

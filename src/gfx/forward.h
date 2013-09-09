@@ -11,6 +11,7 @@ class Sprite;
 class SpriteBatch;
 class Font;
 class Text;
+class mat2d;
 
 struct Color;
 struct ColorVertex;

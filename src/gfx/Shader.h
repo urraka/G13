@@ -7,6 +7,7 @@
 namespace gfx {
 
 class VBO;
+class mat2d;
 
 class Shader
 {
@@ -23,12 +24,12 @@ public:
 	void uniform(GLint location, float value);
 	void uniform(GLint location, const glm::vec2 &value);
 	void uniform(GLint location, const glm::vec4 &value);
-	void uniform(GLint location, const glm::mat4 &value);
+	void uniform(GLint location, const mat2d &value);
 	void uniform(const char *name, int value);
 	void uniform(const char *name, float value);
 	void uniform(const char *name, const glm::vec2 &value);
 	void uniform(const char *name, const glm::vec4 &value);
-	void uniform(const char *name, const glm::mat4 &value);
+	void uniform(const char *name, const mat2d &value);
 
 private:
 	GLuint program_;

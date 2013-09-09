@@ -14,9 +14,9 @@
 #include "SpriteBatch.h"
 #include "Font.h"
 #include "Text.h"
+#include "mat2d.h"
 
 #include <stddef.h>
-#include <glm/glm.hpp>
 
 namespace gfx {
 
@@ -43,13 +43,13 @@ void draw(SpriteBatch *spriteBatch, size_t offset, size_t count);
 void draw(const Sprite &sprite);
 void draw(Text *text);
 
-void matrix(const glm::mat4 &matrix);
-const glm::mat4 &matrix();
+void matrix(const mat2d &matrix);
+const mat2d &matrix();
 
 void translate(float x, float y);
 void rotate(float angle);
-void scale(float width, float height);
-void transform(const glm::mat4 &matrix);
+void scale(float x, float y);
+void transform(const mat2d &matrix);
 
 template<typename T> const Attributes *attributes();
 template<typename T> Shader *default_shader();

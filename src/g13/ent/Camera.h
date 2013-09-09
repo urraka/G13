@@ -25,8 +25,8 @@ public:
 	void viewport(int width, int height);
 	void zoom(ZoomType zoomType);
 
-	const mat4 &matrix()    const { return matrix_; }
-	const mat4 &matrixinv() const { return matrixinv_; }
+	const mat2d &matrix()    const { return matrix_; }
+	const mat2d &matrixinv() const { return matrixinv_; }
 
 private:
 	math::interpolable<float> zoom_;
@@ -41,8 +41,8 @@ private:
 	math::interpolable<vec2> position_;
 	vec2 velocity_;
 
-	mat4 matrix_;
-	mat4 matrixinv_;
+	mat2d matrix_;
+	mat2d matrixinv_;
 };
 
 }} // g13::ent

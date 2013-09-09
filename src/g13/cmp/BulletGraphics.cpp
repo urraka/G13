@@ -29,7 +29,7 @@ gfx::Sprite BulletGraphics::sprite() const
 	const vec2 texsize(128.0f, 32.0f);
 
 	sprite.position = position;
-	sprite.rotation = glm::degrees((float)angle);
+	sprite.rotation = angle;
 	sprite.center = vec2(84.0f, 4.0f);
 	sprite.width = 90.0f;
 	sprite.height = 9.0f;

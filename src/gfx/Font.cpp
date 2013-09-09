@@ -7,6 +7,7 @@
 #include FT_LCD_FILTER_H
 
 #include <iostream>
+#include <assert.h>
 
 namespace gfx {
 

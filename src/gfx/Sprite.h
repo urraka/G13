@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Color.h"
+#include "mat2d.h"
 #include <glm/glm.hpp>
 
 namespace gfx {
@@ -24,7 +25,7 @@ public:
 	glm::vec2 position;
 	glm::vec2 center;
 	glm::vec2 scale;
-	glm::mat4 transform;
+	mat2d transform;
 
 	void vertices(SpriteVertex (&vertex)[4]) const;
 };

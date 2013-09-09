@@ -1,7 +1,6 @@
 #include "SoldierGraphics.h"
 #include "SoldierState.h"
 
-#include <glm/gtx/transform.hpp>
 #include <json/json.h>
 #include <hlp/read.h>
 #include <hlp/countof.h>
@@ -163,7 +162,7 @@ void SoldierGraphics::frame(const Frame &frame)
 
 			leginfo[i]  = &spritesheet.legs[iFrame];
 			legscale[i] = glm::length(end1) / glm::length(end2);
-			legangle[i] = glm::atan(end1.y, end1.x) * (180.0f / M_PI);
+			legangle[i] = glm::atan(end1.y, end1.x);
 
 			if (t1 <= 2.0f)
 				offsety = 110.0f - end1.y;
@@ -197,7 +196,7 @@ void SoldierGraphics::frame(const Frame &frame)
 		runningTime_ = 0.0f;
 	}
 
-	float angle = 0.0f; // weapon angle [-90, 90]
+	float angle = 0.0f; // weapon angle in degrees [-90, 90]
 
 	if (target != 0)
 	{
@@ -217,7 +216,7 @@ void SoldierGraphics::frame(const Frame &frame)
 	}
 
 	int armIndex = glm::floor((angle + 90.0f) / armsAngleInterval);
-	float fixedAngle = armIndex * armsAngleInterval - 90.0f;
+	float fixedAngle = armIndex * armsAngleInterval - 90.0f; // degrees
 
 	// colors
 
@@ -300,7 +299,7 @@ void SoldierGraphics::frame(const Frame &frame)
 	weapon->center   = spritesheet.weapon.center;
 	weapon->tx0      = spritesheet.weapon.tx0;
 	weapon->tx1      = spritesheet.weapon.tx1;
-	weapon->rotation = angle;
+	weapon->rotation = glm::radians(angle);
 
 	float weapdist[2] = {0.0f, 0.0f};
 
@@ -340,15 +339,15 @@ void SoldierGraphics::frame(const Frame &frame)
 			armsInfo[1] = &(spritesheet.armsback[armIndex])
 		};
 
-		const mat4 m1 = glm::rotate(angle, 0.0f, 0.0f, 1.0f);
-		const mat4 m2 = glm::rotate(fixedAngle, 0.0f, 0.0f, 1.0f);
+		const mat2d m1 = mat2d::rotate(glm::radians(angle));
+		const mat2d m2 = mat2d::rotate(glm::radians(fixedAngle));
 
 		const vec2 &offs = spritesheet.weapon.center;
 
 		for (int i = 0; i < 2; i++)
 		{
-			vec2 end1 = vec2(m1 * glm::vec4(end[i] - offs + vec2(weapdist[0], 0.0f), 0.0f, 1.0f));
-			vec2 end2 = vec2(m2 * glm::vec4(end[i] - offs + vec2(weapdist[1], 0.0f), 0.0f, 1.0f));
+			vec2 end1 = m1 * (end[i] - offs + vec2(weapdist[0], 0.0f));
+			vec2 end2 = m2 * (end[i] - offs + vec2(weapdist[1], 0.0f));
 
 			end1 -= start[i];
 			end2 -= start[i];
@@ -362,7 +361,7 @@ void SoldierGraphics::frame(const Frame &frame)
 			arms[i]->center   = armsInfo[i]->center;
 			arms[i]->tx0      = armsInfo[i]->tx0;
 			arms[i]->tx1      = armsInfo[i]->tx1;
-			arms[i]->rotation = glm::atan(end1.y, end1.x) * (180.0f / M_PI);
+			arms[i]->rotation = glm::atan(end1.y, end1.x);
 			arms[i]->scale.x  = length1 / length2;
 		}
 	}
@@ -370,12 +369,12 @@ void SoldierGraphics::frame(const Frame &frame)
 	// general transform
 
 	{
-		mat4 transform = glm::translate(worldpos.x, worldpos.y, 0.0f);
-		transform *= glm::scale(scale.x, scale.y, 1.0f);
-		transform *= glm::translate(bodyOffset.x, bodyOffset.y, 1.0f);
+		mat2d transform = mat2d::translate(worldpos.x, worldpos.y);
+		transform *= mat2d::scale(scale.x, scale.y);
+		transform *= mat2d::translate(bodyOffset.x, bodyOffset.y);
 
 		if (!rightwards_)
-			transform *= glm::scale(-1.0f, 1.0f, 1.0f);
+			transform *= mat2d::scale(-1.0f, 1.0f);
 
 		for (size_t i = 0; i < countof(sprites_); i++)
 			sprites_[i].transform = transform;

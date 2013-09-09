@@ -1,8 +1,6 @@
 #include "Sprite.h"
 #include "vertex.h"
 #include "gfx.h"
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
 #include <stdint.h>
 
 namespace gfx {
@@ -25,19 +23,14 @@ void Sprite::vertices(SpriteVertex (&vertex)[4]) const
 	vertex[2] = sprite_vertex(-center.x + width, -center.y + height, tx1.x, tx1.y, color);
 	vertex[3] = sprite_vertex(-center.x        , -center.y + height, tx0.x, tx1.y, color);
 
-	glm::mat4 m = transform;
+	mat2d m = transform;
 
-	m *= glm::translate(position.x, position.y, 0.0f);
-	m *= glm::rotate(rotation, 0.0f, 0.0f, 1.0f);
-	m *= glm::scale(scale.x, scale.y, 1.0f);
+	m *= mat2d::translate(position.x, position.y);
+	m *= mat2d::rotate(rotation);
+	m *= mat2d::scale(scale.x, scale.y);
 
 	for (size_t i = 0; i < 4; i++)
-	{
-		glm::vec4 pos = m * glm::vec4(vertex[i].x, vertex[i].y, 0.0f, 1.0f);
-
-		vertex[i].x = pos.x;
-		vertex[i].y = pos.y;
-	}
+		vertex[i] = m * vertex[i];
 }
 
 } // gfx

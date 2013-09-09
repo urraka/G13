@@ -234,7 +234,7 @@ void Debugger::drawFontAtlas()
 		sprite.height = sprite.texture->height();
 		// sprite.color.a = 127;
 
-		gfx::matrix(mat4(1.0f));
+		gfx::matrix(mat2d());
 		gfx::draw(sprite);
 	}
 }
@@ -265,7 +265,7 @@ void Debugger::drawConsole()
 		consoleText_->value(text.c_str());
 	}
 
-	gfx::matrix(mat4(1.0f));
+	gfx::matrix(mat2d());
 	gfx::translate(10.0f, 20.0f);
 	gfx::draw(consoleText_);
 }

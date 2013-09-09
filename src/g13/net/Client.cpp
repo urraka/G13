@@ -402,9 +402,9 @@ void Client::draw(const Frame &frame)
 	{
 		camera_.frame(frame);
 
-		target_ = vec2(camera_.matrixinv() * glm::vec4(sys::mousex(), sys::mousey(), 0.0f, 1.0f));
+		target_ = camera_.matrixinv() * vec2(sys::mousex(), sys::mousey());
 
-		gfx::matrix(mat4(1.0f));
+		gfx::matrix(mat2d());
 		gfx::draw(background_);
 		gfx::matrix(camera_.matrix());
 
@@ -468,10 +468,10 @@ void Client::draw(const Frame &frame)
 				else
 					pos.y -= physics.bboxNormal.height().to_float();
 
-				mat4 m = gfx::matrix();
-				pos = vec2(m * glm::vec4(pos, 0.0f, 1.0f));
+				mat2d m = gfx::matrix();
+				pos = m * pos;
 
-				gfx::matrix(mat4(1.0f));
+				gfx::matrix(mat2d());
 
 				gfx::translate(pos.x - 0.5f * bounds.width, glm::floor(pos.y));
 				text->color(gfx::Color(0, 0, 0));
@@ -487,7 +487,7 @@ void Client::draw(const Frame &frame)
 		int width, height;
 		sys::framebuffer_size(&width, &height);
 
-		gfx::matrix(mat4(1.0f));
+		gfx::matrix(mat2d());
 		gfx::draw(chatBackground_);
 		gfx::translate(10.0f, height - 10.0f);
 		gfx::draw(chatText_);
