@@ -409,17 +409,17 @@ Spritesheet::Spritesheet()
 
 	const Json::Value *list = &root["leg"];
 
-	for (size_t i = 0; i < list->size(); i++)
+	for (int i = 0; i < (int)list->size(); i++)
 		legs.push_back(Sprite((*list)[i], this));
 
 	list = &root["arm-front"];
 
-	for (size_t i = 0; i < list->size(); i++)
+	for (int i = 0; i < (int)list->size(); i++)
 		armsfront.push_back(Sprite((*list)[i], this));
 
 	list = &root["arm-back"];
 
-	for (size_t i = 0; i < list->size(); i++)
+	for (int i = 0; i < (int)list->size(); i++)
 		armsback.push_back(Sprite((*list)[i], this));
 }
 

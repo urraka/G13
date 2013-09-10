@@ -84,7 +84,10 @@ private:
 	std::deque<BulletParams> bullets_;
 
 	friend class Multiplayer;
-	friend class g13::Debugger;
+
+	#ifdef DEBUG
+		friend class g13::Debugger;
+	#endif
 };
 
 }} // g13::net
