@@ -61,7 +61,7 @@ ifeq ($(debug),yes)
   def += -DDEBUG
   out-dir-suffix := -d
 else
-  opt += -O3
+  opt += -O3 -ffast-math
 endif
 
 ifeq ($(platform),win32)

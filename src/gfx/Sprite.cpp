@@ -18,16 +18,19 @@ Sprite::Sprite()
 
 void Sprite::vertices(SpriteVertex (&vertex)[4]) const
 {
-	vertex[0] = sprite_vertex(-center.x        , -center.y         , tx0.x, tx0.y, color);
-	vertex[1] = sprite_vertex(-center.x + width, -center.y         , tx1.x, tx0.y, color);
-	vertex[2] = sprite_vertex(-center.x + width, -center.y + height, tx1.x, tx1.y, color);
-	vertex[3] = sprite_vertex(-center.x        , -center.y + height, tx0.x, tx1.y, color);
+	vertex[0] = sprite_vertex( 0.0f,   0.0f, tx0.x, tx0.y, color);
+	vertex[1] = sprite_vertex(width,   0.0f, tx1.x, tx0.y, color);
+	vertex[2] = sprite_vertex(width, height, tx1.x, tx1.y, color);
+	vertex[3] = sprite_vertex( 0.0f, height, tx0.x, tx1.y, color);
 
-	mat2d m = transform;
+	const float &x  = position.x;
+	const float &y  = position.y;
+	const float &sx = scale.x;
+	const float &sy = scale.y;
+	const float &ox = center.x;
+	const float &oy = center.y;
 
-	m *= mat2d::translate(position.x, position.y);
-	m *= mat2d::rotate(rotation);
-	m *= mat2d::scale(scale.x, scale.y);
+	mat2d m = transform * mat2d::transform(x, y, rotation, sx, sy, ox, oy, 0.0f, 0.0f);
 
 	for (size_t i = 0; i < 4; i++)
 		vertex[i] = m * vertex[i];

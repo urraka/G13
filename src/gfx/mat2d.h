@@ -108,6 +108,31 @@ public:
 		return mat2d(2.0f / w, 0.0f, 0.0f, 2.0f / h, -(right + left) / w, -(top + bottom) / h);
 	}
 
+	static mat2d transform(float x, float y, float radians, float sx, float sy, float ox, float oy,
+		float kx, float ky)
+	{
+		float c = std::cos(radians);
+		float s = std::sin(radians);
+
+		// translate   rotate      scale       skew        origin
+		//  |1 0 x|   |c -s 0|   |sx  0 0|   | 1 ky 0|   |1  0 -ox|
+		//  |0 1 y| . |s  c 0| . | 0 sy 0| . |kx  1 0| . |0  1 -oy|
+		//  |0 0 1|   |0  0 1|   | 0  0 1|   | 0  0 1|   |0  0   1|
+
+		mat2d result(
+			c * sx - kx * s * sy,
+			s * sx + c * kx * sy,
+			c * ky * sx - s * sy,
+			ky * s * sx + c * sy,
+			0.0f, 0.0f
+		);
+
+		result[4] = x - ox * result[0] - oy * result[2];
+		result[5] = y - ox * result[1] - oy * result[3];
+
+		return result;
+	}
+
 private:
 	float matrix_[6];
 };
