@@ -30,6 +30,7 @@ public:
 	void showCollisionData();
 	void drawFontAtlas();
 	void drawConsole();
+	void drawStateBuffers(int tick, int interp, int local, const net::Player *players);
 
 	bool event(sys::Event *evt);
 	bool onKeyPressed(int key);
@@ -46,10 +47,12 @@ public:
 	int  ticksBehind;
 	bool showFontAtlas;
 	bool consoleEnabled;
+	bool showStateBuffers;
 
 private:
 	gfx::VBO *collisionHulls[2];
 	gfx::Text *consoleText_;
+	gfx::VBO *playersState_;
 };
 
 } // g13

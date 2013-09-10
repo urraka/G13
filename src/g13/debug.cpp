@@ -10,6 +10,8 @@
 #include "Map.h"
 #include "Collision.h"
 #include "ent/Soldier.h"
+#include "net/Multiplayer.h"
+#include "net/Player.h"
 
 namespace g13 {
 
@@ -25,8 +27,10 @@ Debugger::Debugger()
 		ticksBehind(4),
 		showFontAtlas(false),
 		consoleEnabled(false),
+		showStateBuffers(false),
 		collisionHulls(),
-		consoleText_(0)
+		consoleText_(0),
+		playersState_(0)
 {
 }
 
@@ -43,6 +47,9 @@ Debugger::~Debugger()
 		delete collisionHulls[1]->ibo();
 		delete collisionHulls[1];
 	}
+
+	if (playersState_)
+		delete playersState_;
 }
 
 void Debugger::loadCollisionHulls()
@@ -248,16 +255,12 @@ void Debugger::drawConsole()
 	{
 		std::string text;
 
-		text += "C: Start client\n";
-		text += "S: Start server\n";
-		text += "F: Toggle font atlas\n";
-		text += "W: Toggle wireframe\n";
-		text += "H: Toggle collision hulls\n";
-		text += "I: Toggle network interpolation\n";
-		text += "O: Toggle network extrapolation\n";
-		text += "E: Increment ticksBehind\n";
-		text += "Q: Decrement ticksBehind\n";
-		text += "M: Show collision data\n";
+		text += "CTRL+C: Start client\n";
+		text += "CTRL+S: Start server\n";
+		text += "     W: Toggle wireframe\n";
+		text += "     H: Toggle collision hulls\n";
+		text += "     L: Toggle game state bars\n";
+		text += "    F6: Toggle FPS\n";
 
 		consoleText_ = new gfx::Text();
 		consoleText_->size(9);
@@ -268,6 +271,93 @@ void Debugger::drawConsole()
 	gfx::matrix(mat2d());
 	gfx::translate(10.0f, 20.0f);
 	gfx::draw(consoleText_);
+}
+
+void Debugger::drawStateBuffers(int tick, int interp, int local, const net::Player *players)
+{
+	if (!showStateBuffers)
+		return;
+
+	const int nTicks = 40;
+	const int vpp = nTicks * 2 + 2; // vertices per player
+
+	if (!playersState_)
+	{
+		playersState_ = new gfx::VBO();
+		playersState_->allocate<gfx::ColorVertex>(net::Multiplayer::MaxPlayers * vpp, gfx::Dynamic);
+		playersState_->mode(gfx::Lines);
+	}
+
+	gfx::ColorVertex vertices[vpp];
+
+	const float padding = 20.0f;
+	const float L = padding;
+	const float R = sys::framebuffer_width() - padding;
+
+	int count = 0;
+
+	for (int i = 0; i < net::Multiplayer::MaxPlayers; i++)
+	{
+		if (players[i].state() != net::Player::Playing)
+			continue;
+
+		const int N = players[i].stateBuffer_.size();
+		const float y = padding + count * padding;
+		const gfx::Color color = (i == local) ? gfx::Color(0) : gfx::Color(0xCC);
+
+		int mintick = N > 0 ? players[i].stateBuffer_[0].tick : 0;
+		int maxtick = N > 0 ? players[i].stateBuffer_[0].tick : 0;
+
+		for (int j = 1; j < (int)N; j++)
+		{
+			mintick = std::min(mintick, players[i].stateBuffer_[j].tick);
+			maxtick = std::max(maxtick, players[i].stateBuffer_[j].tick);
+		}
+
+		vertices[0] = gfx::color_vertex(L, y, color);
+		vertices[1] = gfx::color_vertex(R, y, color);
+
+		for (int j = 0; j < nTicks; j++)
+		{
+			const int t = tick - (nTicks - j - 1);
+			const float hh = (t == mintick || t == maxtick) ? 6.0f : 3.0f;
+			const float x = L + (R - L) * j / float(nTicks - 1);
+
+			vertices[2 + 2*j + 0] = gfx::color_vertex(x, y - hh, color);
+			vertices[2 + 2*j + 1] = gfx::color_vertex(x, y + hh, color);
+		}
+
+		playersState_->set(vertices, count * vpp, vpp);
+
+		count++;
+	}
+
+	if (count == 0)
+		return;
+
+	gfx::Sprite bg;
+	bg.texture = res::texture(res::Soldier);
+	bg.tx0 = bg.tx1 = vec2(100.0f / bg.texture->width(), 100.0f / bg.texture->height());
+	bg.position = vec2(L - 10.0f, padding - 10.0f);
+	bg.width = R - L + padding;
+	bg.height = count * padding;
+	bg.color = gfx::Color(255);
+
+	gfx::Sprite mark = bg;
+	mark.position.x = L + (R - L) * (nTicks - 1 - interp) / float(nTicks - 1) - 4.0f;
+	mark.position.y = padding - 13.0f;
+	mark.width = 8.0f;
+	mark.height = count * padding + 6;
+	mark.color = gfx::Color(255, 0, 0, 128);
+
+	const float lineWidth = gfx::line_width();
+
+	gfx::line_width(2.0f);
+	gfx::matrix(mat2d());
+	gfx::draw(bg);
+	gfx::draw(playersState_, count * vpp);
+	gfx::draw(mark);
+	gfx::line_width(lineWidth);
 }
 
 bool Debugger::event(sys::Event *evt)
@@ -301,36 +391,12 @@ bool Debugger::onKeyPressed(int key)
 			showFPS = !showFPS;
 			break;
 
-		case 'I':
-			interpolation = !interpolation;
-			debug_log("Interpolation " << (interpolation ? "enabled." : "disabled."));
-			break;
-
-		case 'O':
-			extrapolation = !extrapolation;
-			debug_log("Extrapolation " << (extrapolation ? "enabled." : "disabled."));
-			break;
-
-		case 'Q':
-			ticksBehind--;
-			debug_log("ticksBehind = " << ticksBehind);
-			break;
-
-		case 'E':
-			ticksBehind++;
-			debug_log("ticksBehind = " << ticksBehind);
-			break;
-
 		case 'H':
 			showCollisionHulls = !showCollisionHulls;
 			break;
 
-		case 'M':
-			dbg->showCollisionData();
-			break;
-
-		case 'F':
-			showFontAtlas = !showFontAtlas;
+		case 'L':
+			showStateBuffers = !showStateBuffers;
 			break;
 
 		case 'S':

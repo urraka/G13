@@ -26,6 +26,7 @@ struct Context
 		ibo = 0;
 		attr = 0;
 		unit = 0;
+		lineWidth = 1.0f;
 		mvpModified = true;
 		maxTextureSize = 0;
 		shdrcolor = 0;
@@ -46,6 +47,9 @@ struct Context
 	IBO     *ibo;
 	int      attr;
 	int      unit;
+
+	// state
+	float lineWidth;
 
 	// ModelViewProjection matrix
 	std::vector<Shader*> shaders;

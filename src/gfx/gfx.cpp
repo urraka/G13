@@ -93,6 +93,17 @@ void wireframe(bool enable)
 	#endif
 }
 
+void line_width(float width)
+{
+	glLineWidth(width);
+	context->lineWidth = width;
+}
+
+float line_width()
+{
+	return context->lineWidth;
+}
+
 // -----------------------------------------------------------------------------
 // Bind
 // -----------------------------------------------------------------------------

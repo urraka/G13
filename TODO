@@ -1,5 +1,4 @@
 Game
-  x Change all tick values to int to avoid unsigned shitty issues.
   - Add some kind of World where entities to check collisions live.
   - Check & fix instances of for loops with i < vector.size() - 1.
   - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
@@ -54,6 +53,7 @@ Math
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Change all tick values to int to avoid unsigned shitty issues.
   x Add tick in disconnect event.
   x Remove BulletInfo from Server and add some cmp::BulletParams to carry bullet creation parameters.
   x Bullet messages should have some tick. Client should use that to create them at a proper time.

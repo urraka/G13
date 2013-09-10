@@ -428,6 +428,20 @@ void window_size(int *width, int *height)
 	#endif
 }
 
+int window_width()
+{
+	int w, h;
+	window_size(&w, &h);
+	return w;
+}
+
+int window_height()
+{
+	int w, h;
+	window_size(&w, &h);
+	return h;
+}
+
 void framebuffer_size(int *width, int *height)
 {
 	assert(sys.initialized);
@@ -437,6 +451,20 @@ void framebuffer_size(int *width, int *height)
 	#else
 		glfwGetFramebufferSize(sys.window, width, height);
 	#endif
+}
+
+int framebuffer_width()
+{
+	int w, h;
+	framebuffer_size(&w, &h);
+	return w;
+}
+
+int framebuffer_height()
+{
+	int w, h;
+	framebuffer_size(&w, &h);
+	return h;
 }
 
 // -----------------------------------------------------------------------------

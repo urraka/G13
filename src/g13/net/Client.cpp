@@ -20,7 +20,7 @@ Client::Client()
 	:	state_(Disconnected),
 		peer_(0),
 		id_(Player::InvalidId),
-		interpolation_(4),
+		interpolation_(5),
 		background_(0),
 		soldiersBatch_(0),
 		bulletsBatch_(0),
@@ -494,6 +494,7 @@ void Client::draw(const Frame &frame)
 	}
 
 	#ifdef DEBUG
+		dbg->drawStateBuffers(tick_, interpolation_, id_, players_);
 		dbg->drawFontAtlas();
 	#endif
 }

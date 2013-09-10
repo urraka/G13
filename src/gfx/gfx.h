@@ -20,12 +20,14 @@
 
 namespace gfx {
 
-void initialize();
-void terminate();
-void viewport(int width, int height, int rotation);
-void clear();
-void bgcolor(Color color);
-void wireframe(bool enable);
+void  initialize();
+void  terminate();
+void  viewport(int width, int height, int rotation);
+void  clear();
+void  bgcolor(Color color);
+void  wireframe(bool enable);
+void  line_width(float width);
+float line_width();
 
 void bind(Shader *shader);
 void bind(Texture *texture, int unit = 0);
