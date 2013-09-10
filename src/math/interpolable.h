@@ -16,7 +16,7 @@ namespace _ {
 	};
 }
 
-template<typename T, typename _::mix_t<T>::type F = (_::mix_default<T>)> class interpolable
+template<typename T, typename _::mix_t<T>::type F = _::mix_default<T> > class interpolable
 {
 public:
 	T previous;
