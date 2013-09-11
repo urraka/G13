@@ -232,13 +232,13 @@ void Client::onMessage(msg::Message *msg, ENetPeer *from)
 {
 	switch (msg->type())
 	{
-		case msg::ServerInfo::Type:       onServerInfo      ((msg::ServerInfo*)      msg); break;
-		case msg::PlayerConnect::Type:    onPlayerConnect   ((msg::PlayerConnect*)   msg); break;
+		case msg::ServerInfo::Type:       onServerInfo((msg::ServerInfo*)msg);             break;
+		case msg::PlayerConnect::Type:    onPlayerConnect((msg::PlayerConnect*)msg);       break;
 		case msg::PlayerDisconnect::Type: onPlayerDisconnect((msg::PlayerDisconnect*)msg); break;
-		case msg::PlayerJoin::Type:       onPlayerJoin      ((msg::PlayerJoin*)      msg); break;
-		case msg::Chat::Type:             onPlayerChat      ((msg::Chat*)            msg); break;
-		case msg::GameState::Type:        onGameState       ((msg::GameState*)       msg); break;
-		case msg::Bullet::Type:           onBulletCreated   ((msg::Bullet*)          msg); break;
+		case msg::PlayerJoin::Type:       onPlayerJoin((msg::PlayerJoin*)msg);             break;
+		case msg::Chat::Type:             onPlayerChat((msg::Chat*)msg);                   break;
+		case msg::GameState::Type:        onGameState((msg::GameState*)msg);               break;
+		case msg::Bullet::Type:           onBullet((msg::Bullet*)msg);                     break;
 
 		default: break;
 	}
@@ -385,7 +385,7 @@ void Client::onGameState(msg::GameState *gameState)
 	}
 }
 
-void Client::onBulletCreated(msg::Bullet *bullet)
+void Client::onBullet(msg::Bullet *bullet)
 {
 	for (int i = 0; i < bullet->nBullets; i++)
 	{

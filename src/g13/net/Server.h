@@ -4,6 +4,8 @@
 #include <g13/g13.h>
 #include <g13/cmp/BulletParams.h>
 
+#include "Ticked.h"
+
 namespace g13 {
 namespace net {
 
@@ -21,9 +23,11 @@ public:
 	State state() const;
 
 private:
+	typedef Ticked<cmp::BulletParams> BulletParams;
+
 	State state_;
 
-	std::vector<cmp::BulletParams> createdBullets_;
+	std::vector<BulletParams> createdBullets_;
 
 	void onConnect   (ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);

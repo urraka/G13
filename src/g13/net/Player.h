@@ -10,6 +10,8 @@
 #include <deque>
 #include <enet/enet.h>
 
+#include "Ticked.h"
+
 namespace g13 {
 namespace net {
 
@@ -57,17 +59,9 @@ public:
 	ent::Soldier *soldier();
 
 private:
-	template<typename T> struct TimedData
-	{
-		TimedData() {}
-		TimedData(int tck, const T &dat) : tick(tck), data(dat) {}
-		int tick;
-		T data;
-	};
-
-	typedef TimedData<cmp::BulletParams> BulletParams;
-	typedef TimedData<cmp::SoldierState> SoldierState;
-	typedef TimedData<cmp::SoldierInput> SoldierInput;
+	typedef Ticked<cmp::BulletParams> BulletParams;
+	typedef Ticked<cmp::SoldierState> SoldierState;
+	typedef Ticked<cmp::SoldierInput> SoldierInput;
 
 	uint8_t id_;
 	State state_;

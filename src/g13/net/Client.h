@@ -69,7 +69,7 @@ private:
 	void onPlayerJoin(msg::PlayerJoin *playerJoin);
 	void onPlayerChat(msg::Chat *chat);
 	void onGameState(msg::GameState *gameState);
-	void onBulletCreated(msg::Bullet *bullet);
+	void onBullet(msg::Bullet *bullet);
 
 	void onResize(int width, int height);
 };

@@ -11,8 +11,8 @@ class BulletParams
 public:
 	uint8_t playerid;
 	fixvec2 position;
-	fixed speed;
-	fixed angle;
+	fixed   speed;
+	fixed   angle;
 
 	BulletParams() {}
 

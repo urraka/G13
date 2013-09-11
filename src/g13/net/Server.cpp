@@ -109,15 +109,15 @@ void Server::update(Time dt)
 
 		for (int j = 0; j < N; j++)
 		{
-			if (createdBullets_[j].playerid == players_[i].id())
+			if (createdBullets_[j].data.playerid == players_[i].id())
 				continue;
 
 			assert(tick_ >= players_[i].tick());
 
-			const int offset = tick_ - players_[i].tick();
+			const int offset = tick_ - createdBullets_[j].tick;
 
 			msg.bullets[k].tickOffset = std::min<int>(offset, Player::MaxTickOffset);
-			msg.bullets[k].params = createdBullets_[j];
+			msg.bullets[k].params = createdBullets_[j].data;
 
 			if (++k == countof(msg.bullets) || j == N - 1)
 			{
@@ -316,7 +316,7 @@ void Server::onPlayerChat(Player *player, msg::Chat *chat)
 
 void Server::onBulletCreated(const cmp::BulletParams &params)
 {
-	createdBullets_.push_back(cmp::BulletParams(params));
+	createdBullets_.push_back(BulletParams(players_[params.playerid].tick(), params));
 }
 
 }} // g13::net
