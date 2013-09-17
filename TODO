@@ -1,4 +1,7 @@
 Game
+  - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
+    - Setting peer-data to id could help with this.
+  - Bullets may have to be kept by players.
   - Implement bullet-player collisions.
   - Implement lag compensation.
   - Add some kind of World where entities to check collisions live.
