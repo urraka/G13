@@ -24,6 +24,7 @@ static float winding_value(const vector<vec2> &polygon, const vertex_t &vertex);
 static bool is_ear_tip(const vector<vec2> &polygon, const vertex_t &v, const list<vertex_t*> &reflex);
 static bool triangle_contains(const vec2 &a, const vec2 &b, const vec2 &c, const vec2 &point);
 
+// expected: polygon[N - 1] != polygon[0]
 vector<uint16_t> triangulate(const vector<vec2> &polygon)
 {
 	assert(polygon.size() <= 0x10000);

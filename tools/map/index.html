@@ -14,8 +14,12 @@
 			display: block;
 		}
 
+		body {
+			background-color: #CCC;
+		}
+
 		canvas {
-			/*cursor: move;*/
+			cursor: move;
 		}
 
 		#toolbar {
@@ -26,9 +30,7 @@
 			padding: 5px 10px;
 			border-radius: 3px;
 			background-color: #EEE;
-			font-family: Tahoma;
-			font-size: 9pt;
-			opacity: 0.9;
+			opacity: 1;
 		}
 
 		#toolbar:hover {
@@ -40,12 +42,15 @@
 			width: 40px;
 			text-align: right;
 			padding-right: 5px;
+		}
+
+		#toolbar, button, input {
 			font-family: Tahoma;
-			font-size: 9pt;
+			font-size: 8pt;
 		}
 
 		input + * {
-			margin-left: 5px;
+			margin-left: 8px;
 		}
 
 		.separator {
@@ -53,24 +58,71 @@
 			display: inline-block;
 			margin: 0 5px;
 		}
+
+		#export-dlg {
+			display: none;
+			position: fixed;
+			top: 200px;
+			left: 35%;
+			right: 35%;
+			bottom: 200px;
+			background-color: #EEE;
+			border: 1px solid #000;
+			border-radius: 3px;
+		}
+
+		#export-dlg textarea {
+			display: block;
+			position: absolute;
+			border: 1px solid #000;
+			top: 10px;
+			left: 10px;
+			right: 10px;
+			bottom: 50px;
+			resize: none;
+			outline: none;
+		}
+
+		#export-dlg button {
+			position: absolute;
+			bottom: 10px;
+			right: 10px;
+		}
 	</style>
 </head>
 <body onload="main()">
 	<canvas></canvas>
 	<div id="toolbar">
-		<label for="width">width:</label>
-		<input id="width" type="text" value="1920" />
+		<label for="width">Width:</label>
+		<input id="width" type="text" value="1500" />
 
-		<label for="height">height:</label>
-		<input id="height" type="text" value="1080" />
+		<label for="height">Height:</label>
+		<input id="height" type="text" value="800" />
+
+		<label for="offset" title="Approximate distance between the random points used to generate the Voronoi diagram.">Offset:</label>
+		<input id="offset" type="text" value="30" />
+
+		<label for="noise-scale" title="Scale applied to the points before passing their coordinates to the perlin noise function.">Noise Scale:</label>
+		<input id="noise-scale" type="text" value="0.005" />
+
+		<label for="relaxation" title="Number of iterations for the Lloyd's relaxation algorithm.">Relaxation:</label>
+		<input id="relaxation" type="text" value="10" />
 
 		<button id="generate">Generate</button>
 
 		<span class="separator">|</span>
 
-		<label>zoom:</label>
+		<label>Zoom:</label>
 		<button id="zoomIn">+</button>
 		<button id="zoomOut">-</button>
+
+		<span class="separator">|</span>
+
+		<button id="export">Export...</button>
+	</div>
+	<div id="export-dlg">
+		<textarea id="export-text"></textarea>
+		<button id="export-close">Close</button>
 	</div>
 </body>
 </html>

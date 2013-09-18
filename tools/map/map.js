@@ -1,4 +1,4 @@
-var map = null;
+var map = new Map();
 
 var viewport = {
 	moving: false,
@@ -10,38 +10,44 @@ var viewport = {
 
 function main()
 {
-	map = new Map();
-	map.generate(1920, 1080);
-
 	var canvas = document.getElementsByTagName("canvas")[0];
 	var generateButton = document.getElementById("generate");
 	var zoomInButton = document.getElementById("zoomIn");
 	var zoomOutButton = document.getElementById("zoomOut");
+	var exportButton = document.getElementById("export");
+	var exportCloseButton = document.getElementById("export-close");
 
 	window.addEventListener("resize", resize);
 
-	// canvas.addEventListener("mousedown", mousedown);
-	// canvas.addEventListener("mouseup", mouseup);
-	// canvas.addEventListener("mousemove", mousemove);
+	canvas.addEventListener("mousedown", mousedown);
+	canvas.addEventListener("mouseup", mouseup);
+	canvas.addEventListener("mousemove", mousemove);
 
 	generateButton.addEventListener("click", generate);
 	zoomInButton.addEventListener("click", zoomIn);
 	zoomOutButton.addEventListener("click", zoomOut);
+	exportButton.addEventListener("click", exportMap);
+	exportCloseButton.addEventListener("click", exportClose);
 
 	resize();
+
+	generate();
 }
 
 // events
 
 function generate()
 {
-	var width = parseInt(document.getElementById("width").value, 10);
-	var height = parseInt(document.getElementById("height").value, 10);
+	var width = parseFloat(document.getElementById("width").value);
+	var height = parseFloat(document.getElementById("height").value);
+	var offset = parseFloat(document.getElementById("offset").value);
+	var noiseScale = parseFloat(document.getElementById("noise-scale").value);
+	var relaxation = parseInt(document.getElementById("relaxation").value);
 
-	if (isNaN(width) || isNaN(height))
+	if (isNaN(width) || isNaN(height) || isNaN(offset) || isNaN(noiseScale) || isNaN(relaxation))
 		return;
 
-	map.generate(width, height);
+	map.generate(width, height, offset, noiseScale, relaxation);
 	draw();
 }
 
@@ -55,6 +61,21 @@ function zoomOut()
 {
 	viewport.zoom /= 2;
 	draw();
+}
+
+function exportMap()
+{
+	var dlg = document.getElementById("export-dlg");
+	var text = document.getElementById("export-text");
+
+	text.value = JSON.stringify(map.export());
+	dlg.style.display = "block";
+}
+
+function exportClose()
+{
+	var dlg = document.getElementById("export-dlg");
+	dlg.style.display = "none";
 }
 
 function mousedown(evt)
@@ -125,9 +146,10 @@ function Map()
 	this.diagram = null;
 	this.sites = null;
 	this.polygons = null;
+	this.outlines = null;
 }
 
-Map.prototype.generate = function(width, height)
+Map.prototype.generate = function(width, height, offset, noiseScale, relaxation)
 {
 	this.width = width;
 	this.height = height;
@@ -136,7 +158,6 @@ Map.prototype.generate = function(width, height)
 	var bbox = { xl: 0, xr: width, yt: 0, yb: height };
 	var sites = [];
 
-	var offset = 30;
 	var n = (width * height) / (offset * offset);
 
 	for (var i = 0; i < n; i++)
@@ -144,7 +165,7 @@ Map.prototype.generate = function(width, height)
 
 	var diagram = voronoi.compute(sites, bbox);
 
-	for (var i = 0; i < 10; i++)
+	for (var i = 0; i < relaxation; i++)
 	{
 		sites = lloyd_relax(diagram);
 		diagram = voronoi.compute(sites, bbox);
@@ -156,7 +177,6 @@ Map.prototype.generate = function(width, height)
 	// perlin noise to select ground cells
 
 	var perlin = new Perlin();
-	var noiseScale = 0.005;
 	var seed = { x: rand(0, width), y: rand(0, height) };
 
 	var cells = diagram.cells;
@@ -310,6 +330,8 @@ Map.prototype.generate = function(width, height)
 		return a;
 	}
 
+	// removes some unnecessary lines from the polygon
+
 	function refine(polygon)
 	{
 		var size = polygon.length;
@@ -342,6 +364,125 @@ Map.prototype.generate = function(width, height)
 		return polygon;
 	}
 
+	// returns all outlines of a polygon
+
+	function outlines(polygon)
+	{
+		var result = [];
+		var linestrips = [];
+		var linestrip = [];
+
+		var N = polygon.length;
+
+		for (var i = 0; i < N; i++)
+		{
+			var inner = false;
+
+			for (var j = 0; j < N; j++)
+			{
+				if (i !== j && polygon[i].edge === polygon[j].edge)
+				{
+					inner = true;
+					break;
+				}
+			}
+
+			if (inner && linestrip.length > 0)
+			{
+				var len = linestrip.length;
+
+				if (linestrip[0].getStartpoint() === linestrip[len - 1].getEndpoint())
+					result.push(linestrip);
+				else
+					linestrips.push(linestrip);
+
+				linestrip = [];
+			}
+			else if (!inner)
+			{
+				linestrip.push(polygon[i]);
+			}
+		}
+
+		if (linestrip.length > 0)
+		{
+			var len = linestrip.length;
+
+			if (linestrip[0].getStartpoint() === linestrip[len - 1].getEndpoint())
+				result.push(linestrip);
+			else
+				linestrips.push(linestrip);
+		}
+
+		function equal(a, b)
+		{
+			return a === b; // || (a.x === b.x && a.y === b.y);
+		}
+
+		while (linestrips.length > 0)
+		{
+			var N = linestrips.length;
+
+			for (var i = 0; i < N; i++)
+			{
+				var stop = false;
+
+				for (var j = i + 1; j < N; j++)
+				{
+					var a = linestrips[i];
+					var b = linestrips[j];
+
+					var aSize = a.length;
+					var bSize = b.length;
+
+					if (equal(a[aSize - 1].getEndpoint(), b[0].getStartpoint()))
+					{
+						for (var k = 0; k < bSize; k++)
+							a.push(b[k]);
+
+						linestrips.splice(j, 1);
+
+						if (equal(a[a.length - 1].getEndpoint(), a[0].getStartpoint()))
+						{
+							result.push(a);
+							linestrips.splice(i, 1);
+						}
+
+						stop = true;
+						break;
+					}
+					else if (equal(b[bSize - 1].getEndpoint(), a[0].getStartpoint()))
+					{
+						for (var k = 0; k < aSize; k++)
+							b.push(a[k]);
+
+						if (equal(b[b.length - 1].getEndpoint(), b[0].getStartpoint()))
+						{
+							result.push(b);
+							linestrips.splice(j, 1);
+						}
+
+						linestrips.splice(i, 1);
+
+						stop = true;
+						break;
+					}
+				}
+
+				if (stop)
+					break;
+			}
+
+			// the next is necessary because bounds have different instance of vertices, making it
+			// fail to generate an outline
+
+			if (N === linestrips.length)
+				break;
+		}
+
+		return result;
+	}
+
 	var visited = [];
 	var polygons = [];
 
@@ -355,11 +496,113 @@ Map.prototype.generate = function(width, height)
 		polygons.push(refine(expand([], cell, visited)));
 	}
 
+	this.outlines = [];
+
+	for (var i = 0; i < polygons.length; i++)
+	{
+		var result = outlines(polygons[i]);
+
+		for (var j = 0; j < result.length; j++)
+			this.outlines.push(result[j]);
+	}
+
 	this.polygons = polygons;
+}
+
+Map.prototype.export = function()
+{
+	var hw = this.width / 2;
+	var hh = this.height / 2;
+
+	var data = {
+		bounds: {
+			left: -hw,
+			right: hw,
+			top: -hh,
+			bottom: hh
+		},
+		vertices: [],
+		polygons: [],
+		outlines: [],
+		diagram: {
+			edges: [],
+			cells: []
+		}
+	};
+
+	// vertices
+
+	for (var i = 0; i < this.diagram.vertices.length; i++)
+	{
+		var v = this.diagram.vertices[i];
+
+		v.vid_ = i;
+
+		data.vertices.push({
+			x: v.x - hw,
+			y: v.y - hh
+		});
+	}
+
+	// polygons
+
+	for (var i = 0; i < this.polygons.length; i++)
+	{
+		var src = this.polygons[i];
+		var dst = [];
+
+		for (var j = 0; j < src.length; j++)
+			dst.push(src[j].getStartpoint().vid_);
+
+		data.polygons.push(dst);
+	}
+
+	// outlines
+
+	for (var i = 0; i < this.outlines; i++)
+	{
+		var src = this.outlines[i];
+		var dst = [];
+
+		for (var j = 0; j < src.length; j++)
+			dst.push(src[j].getStartpoint().vid_);
+
+		data.outlines.push(dst);
+	}
+
+	// diagram edges
+
+	for (var i = 0; i < this.diagram.edges.length; i++)
+	{
+		var edge = this.diagram.edges[i];
+
+		data.diagram.edges.push({
+			a: edge.va.vid_,
+			b: edge.vb.vid_
+		});
+	}
+
+	// diagram cells
+
+	for (var i = 0; i < this.diagram.cells.length; i++)
+	{
+		var edges = this.diagram.cells[i].halfedges;
+		var dst = [];
+
+		for (var j = 0; j < edges.length; j++)
+			dst.push(edges[j].getStartpoint().vid_);
+
+		data.diagram.cells.push(dst);
+	}
+
+	return data;
 }
 
 Map.prototype.draw = function(context)
 {
+	if (!this.diagram)
+		return;
+
 	context.translate(-this.width / 2, -this.height / 2);
 
 	context.fillStyle = "#8080FF";
@@ -398,8 +641,8 @@ Map.prototype.draw = function(context)
 		context.stroke();
 	}
 
-	context.fillStyle = "rgba(255, 255, 0, 0.5)";
-	context.strokeStyle = "#CCC";
+	context.fillStyle = "rgba(0, 255, 0, 0.5)";
+	context.strokeStyle = "#000";
 	context.lineWidth = 3;
 
 	for (var i = 0; i < this.polygons.length; i++)
@@ -417,8 +660,26 @@ Map.prototype.draw = function(context)
 		}
 
 		context.fill();
+	}
+
+	for (var i = 0; i < this.outlines.length; i++)
+	{
+		var outline = this.outlines[i];
+		var p = outline[0].getStartpoint();
+
+		context.beginPath();
+		context.moveTo(p.x, p.y);
+
+		for (var j = 0; j < outline.length; j++)
+		{
+			p = outline[j].getEndpoint();
+			context.lineTo(p.x, p.y);
+		}
+
 		context.stroke();
 	}
+
+	context.strokeRect(0, 0, this.width, this.height);
 }
 
 // Perlin
