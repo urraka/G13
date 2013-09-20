@@ -11,6 +11,8 @@
 namespace gfx {
 
 static Attribute attr(const char*, GLint, GLenum, GLboolean, GLsizei, GLvoid*);
+
+static Attributes simple_attr();
 static Attributes color_attr();
 static Attributes sprite_attr();
 static Attributes text_attr();
@@ -18,6 +20,16 @@ static Attributes text_attr();
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
+
+SimpleVertex simple_vertex(float x, float y)
+{
+	SimpleVertex vertex;
+
+	vertex.x = x;
+	vertex.y = y;
+
+	return vertex;
+}
 
 ColorVertex color_vertex(float x, float y, Color color)
 {
@@ -65,6 +77,12 @@ TextVertex text_vertex(float x, float y, uint16_t u, uint16_t v)
 // attributes<T>()
 // -----------------------------------------------------------------------------
 
+template<> const Attributes *attributes<SimpleVertex>()
+{
+	static Attributes attribs = simple_attr();
+	return &attribs;
+}
+
 template<> const Attributes *attributes<ColorVertex>()
 {
 	static Attributes attribs = color_attr();
@@ -86,6 +104,11 @@ template<> const Attributes *attributes<TextVertex>()
 // -----------------------------------------------------------------------------
 // default_shader<T>()
 // -----------------------------------------------------------------------------
+
+template<> Shader *default_shader<SimpleVertex>()
+{
+	return context->shdrsimple;
+}
 
 template<> Shader *default_shader<ColorVertex>()
 {
@@ -122,6 +145,17 @@ Attribute attr(const char *name, GLint sz, GLenum type, GLboolean norm, GLsizei 
 	attribute.pointer    = ptr;
 
 	return attribute;
+}
+
+Attributes simple_attr()
+{
+	Attributes a;
+
+	const GLsizei sz = sizeof(SimpleVertex);
+
+	a.add(attr("in_position", 2, GL_FLOAT, GL_FALSE, sz, (GLvoid*)offsetof(SimpleVertex, x)));
+
+	return a;
 }
 
 Attributes color_attr()

@@ -29,6 +29,7 @@ struct Context
 		lineWidth = 1.0f;
 		mvpModified = true;
 		maxTextureSize = 0;
+		shdrsimple = 0;
 		shdrcolor = 0;
 		shdrsprite = 0;
 		shdrtext = 0;
@@ -61,6 +62,7 @@ struct Context
 	int maxTextureSize;
 
 	// default shaders
+	Shader *shdrsimple;
 	Shader *shdrcolor;
 	Shader *shdrsprite;
 	Shader *shdrtext;

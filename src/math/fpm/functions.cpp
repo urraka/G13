@@ -55,14 +55,14 @@ vec2 normalize(vec2 const & x)
 		scalar = fabs(x.x);
 
 	vec2 r = x / scalar;
-	assert(r.x != fixed::overflow && r.y != fixed::overflow);
+	// assert(r.x != fixed::overflow && r.y != fixed::overflow);
 
 	fixed L = length(r);
-	assert(L != fixed::overflow);
+	// assert(L != fixed::overflow);
 
 	r /= L;
 
-	assert(r.x != fixed::overflow && r.y != fixed::overflow);
+	// assert(r.x != fixed::overflow && r.y != fixed::overflow);
 
 	return r;
 }

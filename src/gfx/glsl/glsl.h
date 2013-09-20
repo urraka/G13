@@ -20,6 +20,19 @@ const char *color_vert =
 	"}\n";
 
 // -----------------------------------------------------------------------------
+// simple.vert
+// -----------------------------------------------------------------------------
+
+const char *simple_vert =
+	"uniform   mat3x2 mvp;\n"
+	"attribute vec2 in_position;\n"
+	"\n"
+	"void main()\n"
+	"{\n"
+	"\tgl_Position = vec4(mvp * vec3(in_position, 1.0), 0.0, 1.0);\n"
+	"}\n";
+
+// -----------------------------------------------------------------------------
 // sprite.vert
 // -----------------------------------------------------------------------------
 
@@ -67,6 +80,18 @@ const char *text_vert =
 const char *color_frag =
 	"varying lowp vec4 color;\n"
 	"uniform sampler2D sampler;\n"
+	"\n"
+	"void main()\n"
+	"{\n"
+	"\tgl_FragColor = color;\n"
+	"}\n";
+
+// -----------------------------------------------------------------------------
+// simple.frag
+// -----------------------------------------------------------------------------
+
+const char *simple_frag =
+	"uniform vec4 color;\n"
 	"\n"
 	"void main()\n"
 	"{\n"

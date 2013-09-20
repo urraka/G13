@@ -1,6 +1,300 @@
 #include "g13.h"
 #include "Map.h"
 
+#include <math/triangulate.h>
+#include <gfx/gfx.h>
+#include <json/json.h>
+#include <hlp/read.h>
+
+namespace g13 {
+
+Map::Map()
+	:	vbo_(0),
+		ground_(0),
+		outlines_(0),
+		diagram_(0),
+		background_(0),
+		colorLocation_(-1)
+{
+}
+
+Map::~Map()
+{
+	if (vbo_      != 0) delete vbo_;
+	if (ground_   != 0) delete ground_;
+	if (outlines_ != 0) delete outlines_;
+	if (diagram_  != 0) delete diagram_;
+	if (background_  != 0) delete background_;
+}
+
+void Map::load()
+{
+	using std::vector;
+
+	Json::Value data;
+	Json::Reader json(Json::Features::strictMode());
+	json.parse(hlp::read("data/map.json"), data);
+
+	vector<gfx::SimpleVertex> vertices;
+
+	int tl = 0;
+	int tr = 0;
+	int bl = 0;
+	int br = 0;
+
+	// get all vertices and create main vbo
+
+	{
+		Json::Value &vertexData = data["vertices"];
+
+		vertices.resize(vertexData.size());
+
+		for (int i = 0; i < (int)vertexData.size(); i++)
+		{
+			vertices[i].x = vertexData[i]["x"].asFloat() * 2.0f;
+			vertices[i].y = vertexData[i]["y"].asFloat() * 2.0f;
+		}
+
+		if (vbo_ != 0)
+			delete vbo_;
+
+		vbo_ = new gfx::VBO();
+		vbo_->allocate<gfx::SimpleVertex>(vertices.size(), gfx::Static);
+		vbo_->set(vertices.data(), 0, vertices.size());
+	}
+
+	// create collision map
+
+	{
+		typedef vector<glm::ivec2> LineStrip;
+
+		Json::Value &outlines = data["outlines"];
+		vector<LineStrip> linestrips(outlines.size());
+
+		debug_log("Number of outlines: " << outlines.size());
+
+		for (int i = 0; i < (int)outlines.size(); i++)
+		{
+			LineStrip &strip = linestrips[i];
+			Json::Value &outline = outlines[i];
+
+			strip.resize(outline.size() + 1);
+
+			for (int j = 0; j < (int)outline.size(); j++)
+			{
+				int index = outline[j].asInt();
+
+				strip[j].x = std::floor(vertices[index].x);
+				strip[j].y = std::floor(vertices[index].y);
+			}
+
+			strip[strip.size() - 1] = strip[0];
+		}
+
+		collisionMap_.create(linestrips);
+	}
+
+	// create ground ibo and calculate bound indices on the way
+
+	{
+		Json::Value &polygonsData = data["polygons"];
+
+		vector< vector<uint16_t> > indicesList(polygonsData.size());
+
+		int count = 0;
+
+		for (int i = 0; i < (int)polygonsData.size(); i++)
+		{
+			Json::Value &polygonData = polygonsData[i];
+			vector<vec2> polygon(polygonData.size());
+
+			if (i == 0)
+			{
+				int index = polygonData[0].asInt();
+
+				tl = index;
+				tr = index;
+				bl = index;
+				br = index;
+			}
+
+			for (int j = 0; j < (int)polygonData.size(); j++)
+			{
+				int index = polygonData[j].asInt();
+
+				polygon[j].x = vertices[index].x;
+				polygon[j].y = vertices[index].y;
+
+				if (polygon[j].x < vertices[tl].x || polygon[j].y < vertices[tl].y) tl = index;
+				if (polygon[j].x > vertices[tr].x || polygon[j].y < vertices[tr].y) tr = index;
+				if (polygon[j].x < vertices[bl].x || polygon[j].y > vertices[bl].y) bl = index;
+				if (polygon[j].x > vertices[br].x || polygon[j].y > vertices[br].y) br = index;
+			}
+
+			indicesList[i] = math::triangulate<uint16_t>(polygon);
+
+			for (int j = 0; j < (int)indicesList[i].size(); j++)
+				indicesList[i][j] = polygonData[indicesList[i][j]].asInt();
+
+			count += indicesList[i].size();
+		}
+
+		if (ground_ != 0)
+			delete ground_;
+
+		ground_ = new gfx::IBO(count, gfx::Static);
+
+		int offset = 0;
+
+		for (int i = 0; i < (int)indicesList.size(); i++)
+		{
+			ground_->set(indicesList[i].data(), offset, indicesList[i].size());
+			offset += indicesList[i].size();
+		}
+	}
+
+	// create diagram ibo
+
+	{
+		Json::Value &edges = data["diagram"]["edges"];
+
+		vector<uint16_t> indices(edges.size() * 2);
+
+		for (int i = 0; i < (int)edges.size(); i++)
+		{
+			Json::Value &edge = edges[i];
+
+			indices[i * 2 + 0] = edge["a"].asInt();
+			indices[i * 2 + 1] = edge["b"].asInt();
+		}
+
+		if (diagram_ != 0)
+			delete diagram_;
+
+		diagram_ = new gfx::IBO(indices.size(), gfx::Static);
+		diagram_->set(indices.data(), 0, indices.size());
+	}
+
+	// create outlines ibo
+
+	{
+		Json::Value &outlines = data["outlines"];
+
+		vector<uint16_t> indices;
+
+		for (int i = 0; i < (int)outlines.size(); i++)
+		{
+			Json::Value &outline = outlines[i];
+
+			for (int j = 0; j < (int)outline.size() - 1; j++)
+			{
+				indices.push_back(outline[j].asInt());
+				indices.push_back(outline[j + 1].asInt());
+			}
+
+			indices.push_back(outline[(int)outline.size() - 1].asInt());
+			indices.push_back(outline[0].asInt());
+		}
+
+		// bounding outline
+
+		indices.push_back(tl);
+		indices.push_back(tr);
+		indices.push_back(tr);
+		indices.push_back(br);
+		indices.push_back(br);
+		indices.push_back(bl);
+		indices.push_back(bl);
+		indices.push_back(tl);
+
+		if (outlines_ != 0)
+			delete outlines_;
+
+		outlines_ = new gfx::IBO(indices.size(), gfx::Static);
+		outlines_->set(indices.data(), 0, indices.size());
+	}
+
+	// create background ibo
+
+	{
+		if (background_ != 0)
+			delete background_;
+
+		uint16_t indices[4];
+
+		indices[0] = tl;
+		indices[1] = tr;
+		indices[2] = br;
+		indices[3] = bl;
+
+		background_ = new gfx::IBO(4, gfx::Static);
+		background_->set(indices, 0, 4);
+	}
+
+	gfx::Shader *shader = gfx::default_shader<gfx::SimpleVertex>();
+	colorLocation_ = shader->location("color");
+}
+
+void Map::draw()
+{
+	gfx::Shader *shader = gfx::default_shader<gfx::SimpleVertex>();
+
+	float lineWidth = gfx::line_width();
+
+	gfx::line_width(1.0f);
+
+	shader->uniform(colorLocation_, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
+	vbo_->ibo(background_);
+	vbo_->mode(gfx::TriangleFan);
+	gfx::draw(vbo_);
+
+	#ifdef DEBUG
+		gfx::wireframe(dbg->wireframe);
+	#endif
+
+	shader->uniform(colorLocation_, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vbo_->ibo(ground_);
+	vbo_->mode(gfx::Triangles);
+	gfx::draw(vbo_);
+
+	#ifdef DEBUG
+		gfx::wireframe(false);
+
+		if (!dbg->wireframe)
+		{
+	#endif
+
+	shader->uniform(colorLocation_, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	vbo_->ibo(diagram_);
+	vbo_->mode(gfx::Lines);
+	gfx::draw(vbo_);
+
+	shader->uniform(colorLocation_, glm::vec4(0.0f, 1.0f, 0.0f, 0.5f));
+	vbo_->ibo(ground_);
+	vbo_->mode(gfx::Triangles);
+	gfx::draw(vbo_);
+
+	shader->uniform(colorLocation_, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vbo_->ibo(outlines_);
+	vbo_->mode(gfx::Lines);
+	gfx::line_width(3.0f);
+	gfx::draw(vbo_);
+
+	#ifdef DEBUG
+		}
+	#endif
+
+	gfx::line_width(lineWidth);
+}
+
+const Collision::Map *Map::collisionMap() const
+{
+	return &collisionMap_;
+}
+
+} // g13
+
+/*
 #include <g13/res.h>
 #include <g13/math.h>
 #include <math/triangulate.h>
@@ -10,7 +304,8 @@
 #include <hlp/read.h>
 #include <algorithm>
 
-namespace g13 {
+namespace g13
+{
 
 typedef glm::ivec2 ivec2;
 
@@ -641,3 +936,4 @@ std::vector< std::vector<ivec2> > line_strips()
 }
 
 } // g13
+*/

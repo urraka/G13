@@ -1,4 +1,5 @@
 Game
+  - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.
   - Bullets may have to be kept by players.

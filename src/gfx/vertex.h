@@ -8,13 +8,19 @@
 #endif
 
 #define VERTEX_INSTANCES()         \
-	VERTEX_INSTANCE(ColorVertex ); \
+	VERTEX_INSTANCE(SimpleVertex); \
+	VERTEX_INSTANCE(ColorVertex);  \
 	VERTEX_INSTANCE(SpriteVertex); \
 	VERTEX_INSTANCE(TextVertex);
 
 #include <stdint.h>
 
 namespace gfx {
+
+struct SimpleVertex
+{
+	float x, y;
+};
 
 struct ColorVertex
 {

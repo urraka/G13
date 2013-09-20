@@ -364,6 +364,38 @@ Map.prototype.generate = function(width, height, offset, noiseScale, relaxation)
 		return polygon;
 	}
 
+	function simplify(polygon, epsilon)
+	{
+		var N = polygon.length;
+
+		var dmax = 0;
+		var index = 0;
+
+		for (var i = 1; i < N - 1; i++)
+		{
+			var d = distToSegmentSquared(polygon[i], polygon[0], polygon[N - 1]);
+
+			if (d > dmax)
+			{
+				index = i;
+				dmax = d;
+			}
+		}
+
+		if (dmax > epsilon)
+		{
+			var a = simplify(polygon.slice(0, index + 1), epsilon);
+			var b = simplify(polygon.slice(index, N), epsilon);
+
+			for (var i = 1; i < b.length; i++)
+				a.push(b[i]);
+
+			return a;
+		}
+
+		return [polygon[0], polygon[N - 1]];
+	}
+
 	// returns all outlines of a polygon
 
 	function outlines(polygon)
@@ -493,7 +525,10 @@ Map.prototype.generate = function(width, height, offset, noiseScale, relaxation)
 		if (visited.indexOf(cell) !== -1 || !cell.ground)
 			continue;
 
-		polygons.push(refine(expand([], cell, visited)));
+		var polygon = expand([], cell, visited);
+		polygon = refine(polygon);
+
+		polygons.push(polygon);
 	}
 
 	this.outlines = [];
@@ -507,6 +542,18 @@ Map.prototype.generate = function(width, height, offset, noiseScale, relaxation)
 	}
 
 	this.polygons = polygons;
+
+	this.simplified = [];
+
+	for (var i = 0; i < this.outlines.length; i++)
+	{
+		var outline = [];
+
+		for (var j = 0; j < this.outlines[i].length; j++)
+			outline.push(this.outlines[i][j].getStartpoint());
+
+		this.simplified.push(simplify(outline, offset * 20));
+	}
 }
 
 Map.prototype.export = function()
@@ -538,6 +585,9 @@ Map.prototype.export = function()
 
 		v.vid_ = i;
 
+		if (v.x < 0 || v.x > this.width || v.y < 0 || v.y > this.height)
+			console.log("out of bounds: [" + i + "] (" + v.x + "," + v.y + ")");
+
 		data.vertices.push({
 			x: v.x - hw,
 			y: v.y - hh
@@ -559,7 +609,7 @@ Map.prototype.export = function()
 
 	// outlines
 
-	for (var i = 0; i < this.outlines; i++)
+	for (var i = 0; i < this.outlines.length; i++)
 	{
 		var src = this.outlines[i];
 		var dst = [];
@@ -662,24 +712,50 @@ Map.prototype.draw = function(context)
 		context.fill();
 	}
 
-	for (var i = 0; i < this.outlines.length; i++)
+	// for (var i = 0; i < this.outlines.length; i++)
+	// {
+	// 	var outline = this.outlines[i];
+	// 	var p = outline[0].getStartpoint();
+
+	// 	context.beginPath();
+	// 	context.moveTo(p.x, p.y);
+
+	// 	for (var j = 0; j < outline.length; j++)
+	// 	{
+	// 		p = outline[j].getEndpoint();
+	// 		context.lineTo(p.x, p.y);
+	// 	}
+
+	// 	context.stroke();
+	// }
+
+	context.strokeRect(0, 0, this.width, this.height);
+
+	// context.strokeStyle = "rgba(0, 0, 0, 0.7)";
+	// context.lineWidth = 2;
+
+	for (var i = 0; i < this.simplified.length; i++)
 	{
-		var outline = this.outlines[i];
-		var p = outline[0].getStartpoint();
+		var outline = this.simplified[i];
 
 		context.beginPath();
-		context.moveTo(p.x, p.y);
+		context.moveTo(outline[0].x, outline[0].y);
 
 		for (var j = 0; j < outline.length; j++)
-		{
-			p = outline[j].getEndpoint();
-			context.lineTo(p.x, p.y);
-		}
+			context.lineTo(outline[j].x, outline[j].y);
 
+		context.closePath();
 		context.stroke();
 	}
 
-	context.strokeRect(0, 0, this.width, this.height);
+	// context.fillStyle = "#FF0";
+
+	// for (var i = 0; i < this.diagram.vertices.length; i++)
+	// {
+	// 	context.beginPath();
+	// 	context.arc(this.diagram.vertices[i].x, this.diagram.vertices[i].y, 2 * (1 / viewport.zoom), 0, Math.PI * 2);
+	// 	context.fill();
+	// }
 }
 
 // Perlin
@@ -950,4 +1026,34 @@ function lloyd_relax(diagram)
 function rand(min, max)
 {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function sqr(x)
+{
+	return x * x;
+}
+
+function dist2(v, w)
+{
+	return sqr(v.x - w.x) + sqr(v.y - w.y);
+}
+
+function distToSegmentSquared(p, v, w)
+{
+	var l2 = dist2(v, w);
+
+	if (l2 == 0)
+		return dist2(p, v);
+
+	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+
+	if (t < 0) return dist2(p, v);
+	if (t > 1) return dist2(p, w);
+
+	return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+}
+
+function distToSegment(p, v, w)
+{
+	return Math.sqrt(distToSegmentSquared(p, v, w));
 }

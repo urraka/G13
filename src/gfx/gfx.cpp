@@ -31,6 +31,9 @@ void initialize()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	context->shdrsimple = new Shader();
+	context->shdrsimple->compile<SimpleVertex>(glsl::simple_vert, glsl::simple_frag);
+
 	context->shdrcolor = new Shader();
 	context->shdrcolor->compile<ColorVertex>(glsl::color_vert, glsl::color_frag);
 
@@ -54,6 +57,7 @@ void terminate()
 		FT_Done_FreeType(context->freetype);
 
 	delete context->vbosprite;
+	delete context->shdrsimple;
 	delete context->shdrcolor;
 	delete context->shdrsprite;
 	delete context->shdrtext;
