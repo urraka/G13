@@ -2,122 +2,41 @@
 <html>
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-	<title>Map</title>
+	<title>Map generator</title>
+	<link rel="stylesheet" type="text/css" href="style.css" />
 	<script type="text/javascript" src="rhill-voronoi-core.min.js"></script>
-	<script type="text/javascript" src="map.js"></script>
-	<style type="text/css">
-		html,body,canvas {
-			margin: 0;
-			padding: 0;
-			width: 100%;
-			height: 100%;
-			display: block;
-		}
-
-		body {
-			background-color: #CCC;
-		}
-
-		canvas {
-			cursor: move;
-		}
-
-		#toolbar {
-			position: fixed;
-			top: 0;
-			left: 0;
-			margin: 10px;
-			padding: 5px 10px;
-			border-radius: 3px;
-			background-color: #EEE;
-			opacity: 1;
-		}
-
-		#toolbar:hover {
-			opacity: 1;
-		}
-
-		input {
-			border: 1px solid #000;
-			width: 40px;
-			text-align: right;
-			padding-right: 5px;
-		}
-
-		#toolbar, button, input {
-			font-family: Tahoma;
-			font-size: 8pt;
-		}
-
-		input + * {
-			margin-left: 8px;
-		}
-
-		.separator {
-			color: #CCC;
-			display: inline-block;
-			margin: 0 5px;
-		}
-
-		#export-dlg {
-			display: none;
-			position: fixed;
-			top: 200px;
-			left: 35%;
-			right: 35%;
-			bottom: 200px;
-			background-color: #EEE;
-			border: 1px solid #000;
-			border-radius: 3px;
-		}
-
-		#export-dlg textarea {
-			display: block;
-			position: absolute;
-			border: 1px solid #000;
-			top: 10px;
-			left: 10px;
-			right: 10px;
-			bottom: 50px;
-			resize: none;
-			outline: none;
-		}
-
-		#export-dlg button {
-			position: absolute;
-			bottom: 10px;
-			right: 10px;
-		}
-	</style>
+	<script type="text/javascript" src="rand.js"></script>
+	<script type="text/javascript" src="perlin_noise.js"></script>
+	<script type="text/javascript" src="voronoi_relax.js"></script>
+	<script type="text/javascript" src="voronoi_polygons.js"></script>
+	<script type="text/javascript" src="polygon_outlines.js"></script>
+	<script type="text/javascript" src="polygon_simplify.js"></script>
+	<script type="text/javascript" src="map_generate.js"></script>
+	<script type="text/javascript" src="map_export.js"></script>
+	<script type="text/javascript" src="map_draw.js"></script>
+	<script type="text/javascript" src="main.js"></script>
 </head>
 <body onload="main()">
 	<canvas></canvas>
 	<div id="toolbar">
 		<label for="width">Width:</label>
 		<input id="width" type="text" value="1500" />
-
 		<label for="height">Height:</label>
 		<input id="height" type="text" value="800" />
-
 		<label for="offset" title="Approximate distance between the random points used to generate the Voronoi diagram.">Offset:</label>
 		<input id="offset" type="text" value="30" />
-
 		<label for="noise-scale" title="Scale applied to the points before passing their coordinates to the perlin noise function.">Noise Scale:</label>
 		<input id="noise-scale" type="text" value="0.005" />
-
 		<label for="relaxation" title="Number of iterations for the Lloyd's relaxation algorithm.">Relaxation:</label>
 		<input id="relaxation" type="text" value="10" />
-
+		<label for="simplification" title="Threshold for the polygon simplification (0 to disable it). Recommended values: offset * 5|10|20">Simplification:</label>
+		<input id="simplification" type="text" value="0" />
 		<button id="generate">Generate</button>
-
 		<span class="separator">|</span>
-
 		<label>Zoom:</label>
 		<button id="zoomIn">+</button>
 		<button id="zoomOut">-</button>
-
 		<span class="separator">|</span>
-
 		<button id="export">Export...</button>
 	</div>
 	<div id="export-dlg">

@@ -33,7 +33,7 @@ void Map::load()
 
 	Json::Value data;
 	Json::Reader json(Json::Features::strictMode());
-	json.parse(hlp::read("data/map.json"), data);
+	json.parse(hlp::read("data/map2.json"), data);
 
 	vector<gfx::SimpleVertex> vertices;
 
@@ -132,6 +132,9 @@ void Map::load()
 			}
 
 			indicesList[i] = math::triangulate<uint16_t>(polygon);
+
+			if (indicesList[i].size() == 0)
+				debug_log("triangulation failed for polygon " << i << " with " << polygon.size() << " vertices");
 
 			for (int j = 0; j < (int)indicesList[i].size(); j++)
 				indicesList[i][j] = polygonData[indicesList[i][j]].asInt();
