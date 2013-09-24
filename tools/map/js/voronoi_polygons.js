@@ -1,10 +1,14 @@
-// voronoi_polygons(diagram, cell_solid)
-//
-// Returns a list of polygons from a voronoi diagram, given a function that returns true for solid cells.
+/**
+ *  voronoi_polygons(diagram, cell_solid)
+ *
+ *  Returns a list of polygons from a voronoi diagram, given a function
+ *  that returns true for solid cells.
+ */
 
 (function() {
 
-// Expands a polygon defined by an array of halfedges recursively to contain the adjacent solid cells
+// Expands a polygon defined by an array of halfedges recursively
+// to contain the adjacent solid cells
 
 function expand(polygon, cell, cells, cell_solid, visited)
 {
@@ -128,40 +132,6 @@ function expand(polygon, cell, cells, cell_solid, visited)
 	return polygon;
 }
 
-// Removes unnecessary lines from a polygon defined by an array of halfedges
-
-function refine(polygon)
-{
-	var size = polygon.length;
-
-	if (size < 2)
-		return polygon;
-
-	for (var i = 0; i < size - 1; i++)
-	{
-		var a = polygon[i + 0].edge;
-		var b = polygon[i + 1].edge;
-
-		if (a === b)
-		{
-			var c = polygon.slice(0, i);
-
-			for (var j = i + 2; j < size; j++)
-				c.push(polygon[j]);
-
-			return refine(c);
-		}
-	}
-
-	var a = polygon[size - 1].edge;
-	var b = polygon[0].edge;
-
-	if (a === b)
-		return refine(polygon.slice(1, size - 1));
-
-	return polygon;
-}
-
 function voronoi_polygons(diagram, cell_solid)
 {
 	var visited = [];
@@ -179,12 +149,11 @@ function voronoi_polygons(diagram, cell_solid)
 			continue;
 
 		var polygon = expand([], cells[i], cells, cell_solid, visited);
-		polygon = refine(polygon);
 
 		for (var j = 0; j < polygon.length; j++)
 			polygon[j] = polygon[j].getStartpoint();
 
-		polygons.push(polygon);
+		polygons.push(polygon_refine(polygon));
 	}
 
 	return polygons;

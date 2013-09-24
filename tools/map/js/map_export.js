@@ -27,8 +27,8 @@ function map_export(map)
 
 		v.vid_ = i;
 
-		if (v.x < 0 || v.x > map.width || v.y < 0 || v.y > map.height)
-			console.log("out of bounds: [" + i + "] (" + v.x + "," + v.y + ")");
+		// if (v.x < 0 || v.x > map.width || v.y < 0 || v.y > map.height)
+		// 	console.log("out of bounds: [" + i + "] (" + v.x + "," + v.y + ")");
 
 		data.vertices.push({
 			x: v.x - hw,

@@ -50,33 +50,3 @@ input + * {
 	display: inline-block;
 	margin: 0 5px;
 }
-
-#export-dlg {
-	display: none;
-	position: fixed;
-	top: 200px;
-	left: 35%;
-	right: 35%;
-	bottom: 200px;
-	background-color: #EEE;
-	border: 1px solid #000;
-	border-radius: 3px;
-}
-
-#export-dlg textarea {
-	display: block;
-	position: absolute;
-	border: 1px solid #000;
-	top: 10px;
-	left: 10px;
-	right: 10px;
-	bottom: 50px;
-	resize: none;
-	outline: none;
-}
-
-#export-dlg button {
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-}

@@ -45,7 +45,7 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 			fixvec2 position = physics.position + fixvec2(0, fixed(-26.25));
 			position += fixvec2(fpm::cos(angle), fpm::sin(angle)) * fixed(80);
 
-			createBullet(listener, cmp::BulletParams(id, position, 1500, angle));
+			createBullet(listener, cmp::BulletParams(id, position, 2000, angle));
 		}
 
 		shootingTime_ += dt;

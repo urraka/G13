@@ -4,17 +4,18 @@
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<title>Map generator</title>
 	<link rel="stylesheet" type="text/css" href="style.css" />
-	<script type="text/javascript" src="rhill-voronoi-core.min.js"></script>
-	<script type="text/javascript" src="rand.js"></script>
-	<script type="text/javascript" src="perlin_noise.js"></script>
-	<script type="text/javascript" src="voronoi_relax.js"></script>
-	<script type="text/javascript" src="voronoi_polygons.js"></script>
-	<script type="text/javascript" src="polygon_outlines.js"></script>
-	<script type="text/javascript" src="polygon_simplify.js"></script>
-	<script type="text/javascript" src="map_generate.js"></script>
-	<script type="text/javascript" src="map_export.js"></script>
-	<script type="text/javascript" src="map_draw.js"></script>
-	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="js/rhill-voronoi-core.min.js"></script>
+	<script type="text/javascript" src="js/rand.js"></script>
+	<script type="text/javascript" src="js/perlin_noise.js"></script>
+	<script type="text/javascript" src="js/voronoi_relax.js"></script>
+	<script type="text/javascript" src="js/voronoi_polygons.js"></script>
+	<script type="text/javascript" src="js/polygon_refine.js"></script>
+	<script type="text/javascript" src="js/polygon_outlines.js"></script>
+	<script type="text/javascript" src="js/polygon_simplify.js"></script>
+	<script type="text/javascript" src="js/map_generate.js"></script>
+	<script type="text/javascript" src="js/map_export.js"></script>
+	<script type="text/javascript" src="js/map_draw.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
 </head>
 <body onload="main()">
 	<canvas></canvas>
@@ -29,7 +30,7 @@
 		<input id="noise-scale" type="text" value="0.005" />
 		<label for="relaxation" title="Number of iterations for the Lloyd's relaxation algorithm.">Relaxation:</label>
 		<input id="relaxation" type="text" value="10" />
-		<label for="simplification" title="Threshold for the polygon simplification (0 to disable it). Recommended values: offset * 5|10|20">Simplification:</label>
+		<label for="simplification" title="Threshold for the polygon simplification (0 to disable it).">Simplification:</label>
 		<input id="simplification" type="text" value="0" />
 		<button id="generate">Generate</button>
 		<span class="separator">|</span>
@@ -37,11 +38,7 @@
 		<button id="zoomIn">+</button>
 		<button id="zoomOut">-</button>
 		<span class="separator">|</span>
-		<button id="export">Export...</button>
-	</div>
-	<div id="export-dlg">
-		<textarea id="export-text"></textarea>
-		<button id="export-close">Close</button>
+		<button id="export">Export</button>
 	</div>
 </body>
 </html>

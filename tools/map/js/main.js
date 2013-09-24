@@ -15,7 +15,6 @@ function main()
 	var zoomInButton = document.getElementById("zoomIn");
 	var zoomOutButton = document.getElementById("zoomOut");
 	var exportButton = document.getElementById("export");
-	var exportCloseButton = document.getElementById("export-close");
 
 	window.addEventListener("resize", resize);
 
@@ -27,7 +26,6 @@ function main()
 	zoomInButton.addEventListener("click", zoomIn);
 	zoomOutButton.addEventListener("click", zoomOut);
 	exportButton.addEventListener("click", exportMap);
-	exportCloseButton.addEventListener("click", exportClose);
 
 	resize();
 
@@ -76,11 +74,7 @@ function zoomOut()
 
 function exportMap()
 {
-	var dlg = document.getElementById("export-dlg");
-	var text = document.getElementById("export-text");
-
-	text.value = JSON.stringify(map_export(map));
-	dlg.style.display = "block";
+	window.open("data:text/octet-stream," + encodeURIComponent(JSON.stringify(map_export(map))));
 }
 
 function exportClose()

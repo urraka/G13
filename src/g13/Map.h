@@ -24,6 +24,7 @@ protected:
 	gfx::IBO *outlines_;
 	gfx::IBO *diagram_;
 	gfx::IBO *background_;
+	gfx::SpriteBatch *rocks_;
 
 	GLint colorLocation_;
 };

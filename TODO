@@ -1,4 +1,5 @@
 Game
+  - Keep camera within map bounds. Figure something for when the map is not big enough (center it perhaps).
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.

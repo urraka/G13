@@ -1,10 +1,91 @@
 #include "g13.h"
 #include "Map.h"
+#include "res.h"
 
 #include <math/triangulate.h>
+#include <glm/gtc/random.hpp>
 #include <gfx/gfx.h>
 #include <json/json.h>
 #include <hlp/read.h>
+#include <algorithm>
+
+typedef glm::vec2  vec2;
+typedef glm::ivec2 ivec2;
+typedef std::vector<vec2>  linestripf_t;
+typedef std::vector<ivec2> linestripi_t;
+
+static inline float slope(const vec2 &a, const vec2 &b)
+{
+	return (a.y - b.y) / (a.x - b.x);
+}
+
+static inline vec2 normal(const vec2 &a, const vec2 &b)
+{
+	return glm::normalize(vec2(-(b.y - a.y), b.x - a.x));
+}
+
+static inline bool is_floor(const vec2 &a, const vec2 &b)
+{
+	return a.x != b.x &&
+		glm::abs(slope(a, b)) <= 2.0f &&
+		glm::dot(vec2(0.0f, -1.0f), normal(a, b)) > 0.0f;
+}
+
+static inline bool is_floor(const ivec2 &a, const ivec2 &b)
+{
+	return is_floor(vec2(a), vec2(b));
+}
+
+static std::vector<linestripf_t> find_floorstrips(const std::vector<linestripi_t> &linestrips)
+{
+	std::vector<linestripf_t> floorstrips;
+
+	for (int i = 0; i < (int)linestrips.size(); i++)
+	{
+		const linestripi_t &strip = linestrips[i];
+
+		const int N = strip.size();
+		const int is_loop = (strip[0] == strip[N - 1] ? 1 : 0);
+
+		// find a starting point
+
+		int first = 0;
+
+		if (is_loop == 1)
+		{
+			while (first < N && is_floor(strip[first], strip[(first + 1) % N]))
+				first++;
+		}
+
+		// fill floorstrips vector
+
+		int hook = -1;
+
+		for (int j = 0; j < N - 1; j++)
+		{
+			const ivec2 &a = strip[(first + j) % (N - is_loop)];
+			const ivec2 &b = strip[(first + j + 1) % (N - is_loop)];
+
+			if (!is_floor(a, b))
+			{
+				hook = -1;
+				continue;
+			}
+
+			if (hook == -1)
+			{
+				hook = j;
+
+				floorstrips.push_back(std::vector<vec2>());
+				floorstrips.back().push_back(vec2(a));
+			}
+
+			floorstrips.back().push_back(vec2(b));
+		}
+	}
+
+	return floorstrips;
+}
 
 namespace g13 {
 
@@ -14,6 +95,7 @@ Map::Map()
 		outlines_(0),
 		diagram_(0),
 		background_(0),
+		rocks_(0),
 		colorLocation_(-1)
 {
 }
@@ -25,6 +107,7 @@ Map::~Map()
 	if (outlines_ != 0) delete outlines_;
 	if (diagram_  != 0) delete diagram_;
 	if (background_  != 0) delete background_;
+	if (rocks_  != 0) delete rocks_;
 }
 
 void Map::load()
@@ -36,6 +119,7 @@ void Map::load()
 	json.parse(hlp::read("data/map2.json"), data);
 
 	vector<gfx::SimpleVertex> vertices;
+	vector<linestripf_t> floorstrips;
 
 	int tl = 0;
 	int tr = 0;
@@ -63,19 +147,17 @@ void Map::load()
 		vbo_->set(vertices.data(), 0, vertices.size());
 	}
 
-	// create collision map
+	// create collision map and find floorstrips
 
 	{
-		typedef vector<glm::ivec2> LineStrip;
-
 		Json::Value &outlines = data["outlines"];
-		vector<LineStrip> linestrips(outlines.size());
+		vector<linestripi_t> linestrips(outlines.size());
 
 		debug_log("Number of outlines: " << outlines.size());
 
 		for (int i = 0; i < (int)outlines.size(); i++)
 		{
-			LineStrip &strip = linestrips[i];
+			linestripi_t &strip = linestrips[i];
 			Json::Value &outline = outlines[i];
 
 			strip.resize(outline.size() + 1);
@@ -92,6 +174,8 @@ void Map::load()
 		}
 
 		collisionMap_.create(linestrips);
+
+		floorstrips = find_floorstrips(linestrips);
 	}
 
 	// create ground ibo and calculate bound indices on the way
@@ -234,6 +318,120 @@ void Map::load()
 		background_->set(indices, 0, 4);
 	}
 
+	// create rocks spritebatch
+
+	{
+		// find a bunch of points where rock sprites will be placed
+
+		std::vector<vec2> rockpoints;
+
+		for (size_t i = 0; i < floorstrips.size(); i++)
+		{
+			for (size_t j = 0; j < floorstrips[i].size() - 1; j++)
+			{
+				const vec2 &a = floorstrips[i][j];
+				const vec2 &b = floorstrips[i][j + 1];
+
+				const float desiredDistance = 10.0f;
+
+				const float length = glm::length(b - a);
+				const int N = (int)glm::floor(length / desiredDistance);
+				const vec2 v = ((b - a) / length) * (length / N);
+
+				vec2 p = a;
+
+				for (int k = 0; k < N; k++, p += v)
+					rockpoints.push_back(p);
+			}
+
+			rockpoints.push_back(floorstrips[i].back());
+		}
+
+		std::random_shuffle(rockpoints.begin(), rockpoints.end());
+
+		// load rock spritesheet information
+
+		struct sprite_t
+		{
+			float width, height;
+			vec2 tx0, tx1;
+		};
+
+		sprite_t *sheet = 0;
+		int sheetsize = 0;
+
+		{
+			Json::Value root;
+
+			Json::Reader json(Json::Features::strictMode());
+			json.parse(hlp::read("data/rocks.json"), root);
+
+			int width = root["width"].asInt();
+			int height = root["height"].asInt();
+
+			const Json::Value &list = root["sprites"];
+
+			sheetsize = list.size();
+
+			if (sheetsize > 0)
+				sheet = new sprite_t[sheetsize];
+
+			for (int i = 0; i < sheetsize; i++)
+			{
+				const Json::Value &sprite = list[i];
+
+				float x = sprite["x"].asFloat();
+				float y = sprite["y"].asFloat();
+
+				sheet[i].width = sprite["width"].asFloat();
+				sheet[i].height = sprite["height"].asFloat();
+
+				sheet[i].tx0.x = x / width;
+				sheet[i].tx0.y = y / height;
+				sheet[i].tx1.x = (x + sheet[i].width) / width;
+				sheet[i].tx1.y = (y + sheet[i].height) / height;
+			}
+		}
+
+		// create the sprite batch
+
+		std::vector<gfx::Sprite> rocks(rockpoints.size());
+
+		gfx::Color colors[] = {
+			gfx::Color(0x4C, 0x54, 0x5F),
+			gfx::Color(0x78, 0x57, 0x38),
+			gfx::Color(0x3A, 0x37, 0x40),
+			gfx::Color(0x56, 0x5F, 0x66),
+			gfx::Color(0xFA, 0xD0, 0x84),
+			gfx::Color(0xDF, 0x9D, 0x61)
+		};
+
+		for (size_t i = 0; i < rockpoints.size(); i++)
+		{
+			sprite_t &sprite = sheet[rand() % sheetsize];
+
+			rocks[i].position = rockpoints[i];
+			rocks[i].width = sprite.width;
+			rocks[i].height = sprite.height;
+			rocks[i].tx0 = sprite.tx0;
+			rocks[i].tx1 = sprite.tx1;
+			rocks[i].center = vec2(sprite.width, sprite.height) / 2.0f;
+			rocks[i].color = colors[i % countof(colors)];
+			rocks[i].rotation = glm::linearRand(-M_PI, M_PI);
+			rocks[i].scale = vec2(0.15f);
+		}
+
+		if (rocks_ != 0)
+			delete rocks_;
+
+		rocks_ = new gfx::SpriteBatch(rocks.size(), gfx::Static);
+		rocks_->texture(res::texture(res::Rocks));
+		rocks_->add(rocks.data(), rocks.size());
+
+		if (sheet != 0)
+			delete[] sheet;
+	}
+
 	gfx::Shader *shader = gfx::default_shader<gfx::SimpleVertex>();
 	colorLocation_ = shader->location("color");
 }
@@ -282,6 +480,8 @@ void Map::draw()
 	vbo_->mode(gfx::Lines);
 	gfx::line_width(3.0f);
 	gfx::draw(vbo_);
+
+	gfx::draw(rocks_);
 
 	#ifdef DEBUG
 		}

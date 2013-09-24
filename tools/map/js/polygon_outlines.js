@@ -1,4 +1,10 @@
-// Returns all outlines of a polygon defined by an array of vertices
+/**
+ *  polygon_outlines(polygon)
+ *
+ *  Returns all outlines of a polygon defined by an array of vertices.
+ *  Useful for the case of a polygon with holes.
+ *  It is assumed that equal vertices share the same instance.
+ */
 
 function polygon_outlines(polygon)
 {

@@ -1,4 +1,9 @@
-// perlin_noise(x, y, z)
+/**
+ *  perlin_noise(x, y, z)
+ *
+ *  Taken from http://www.sjeiti.com/perlin-noise-in-javascript-comparisons/
+ *  Using the sjeiti version.
+ */
 
 (function() {
 

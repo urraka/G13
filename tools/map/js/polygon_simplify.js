@@ -1,9 +1,13 @@
-// polygon_simplify(polygon, epsilon)
-//
-// Simplifies a polygon defined by an array of vertices.
-
-// TODO: refine polygon after simplifying, which requires rewriting the refining algorithm
-// to work with list of vertices instead of edges. Might aswell make it non-recursive.
+/**
+ *  polygon_simplify(polygon, epsilon)
+ *
+ *  Simplifies a polygon defined by an array of vertices, applying
+ *  the Ramer–Douglas–Peucker algorithm.
+ *
+ *  TODO:
+ *  - after simplification self-intersection can happen
+ *  - simplify inner linestrips
+ */
 
 (function() {
 
@@ -32,11 +36,6 @@ function distToSegmentSquared(p, v, w)
 	return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 }
 
-function distToSegment(p, v, w)
-{
-	return Math.sqrt(distToSegmentSquared(p, v, w));
-}
-
 function simplify(linestrip, epsilon)
 {
 	var N = linestrip.length;
@@ -55,7 +54,7 @@ function simplify(linestrip, epsilon)
 		}
 	}
 
-	if (dmax > epsilon)
+	if (Math.sqrt(dmax) > epsilon)
 	{
 		var a = simplify(linestrip.slice(0, index + 1), epsilon);
 		var b = simplify(linestrip.slice(index, N), epsilon);
@@ -120,7 +119,7 @@ function polygon_simplify(polygon, epsilon)
 		prevend = ranges[i].end;
 	}
 
-	return result;
+	return polygon_refine(result);
 }
 
 window.polygon_simplify = polygon_simplify;

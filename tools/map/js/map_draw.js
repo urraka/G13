@@ -45,7 +45,7 @@ function map_draw(map, context)
 	// polygons
 
 	context.fillStyle = "rgba(0, 255, 0, 0.5)";
-	context.strokeStyle = "rgba(255, 255, 0, 0.5)";
+	context.strokeStyle = "rgba(255, 255, 0, 1)";
 
 	for (var i = 0; i < map.polygons.length; i++)
 	{

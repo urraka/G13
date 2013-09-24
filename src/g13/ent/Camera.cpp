@@ -48,8 +48,7 @@ void Camera::frame(const Frame &frame)
 	position_.interpolate(frame.percent);
 
 	float scale = initialScale * glm::exp(maxZoom_ * (float)zoom_);
-	// const vec2 &pos = position_;
-	const vec2 pos;
+	const vec2 &pos = position_;
 
 	matrix_ = mat2d::translate(width_ / 2.0f, height_ / 2.0f);
 	matrix_ *= mat2d::scale(scale, scale);

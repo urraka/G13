@@ -2,6 +2,7 @@
 
 #include <sys/sys.h>
 #include <string>
+#include <hlp/countof.h>
 
 #include "types.h"
 #include "debug.h"

@@ -1,4 +1,9 @@
-// lloyd_relax(diagram)
+/**
+ *  voronoi_relax(diagram)
+ *
+ *  Applies the Lloyd's relaxation algorithm to a voronoi diagram,
+ *  returning a new list of sites.
+ */
 
 (function() {
 
