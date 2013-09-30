@@ -2,7 +2,7 @@
  *  polygon_simplify(polygon, epsilon)
  *
  *  Simplifies a polygon defined by an array of vertices, applying
- *  the Ramer–Douglas–Peucker algorithm.
+ *  the Ramer-Douglas-Peucker algorithm.
  *
  *  TODO:
  *  - after simplification self-intersection can happen

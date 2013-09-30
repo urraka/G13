@@ -92,7 +92,7 @@ const std::vector<const Collision::Node*> &Collision::Map::retrieve(const fixrec
 Collision::Result Collision::resolve(const Collision::Map *map, const fixvec2 &position, const fixvec2 &dest, const fixrect &bbox)
 {
 	const fixed epsilon = fixed::from_value(2048); // 1/32
-	const fixed half = fixed::from_value(65536 / 2);
+	const fixed half    = fixed::from_value(65536 / 2);
 
 	Result result;
 	result.position = dest;

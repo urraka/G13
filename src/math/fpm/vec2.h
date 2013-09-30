@@ -19,9 +19,13 @@ public:
 	fixed x;
 	fixed y;
 
-	vec2()                 : x(0),     y(0)     {}
-	vec2(fixed X, fixed Y) : x(X),     y(Y)     {}
-	vec2(int   X, int   Y) : x(X),     y(Y)     {}
+	vec2() : x(0), y(0) {}
+
+	vec2(fixed X, fixed Y) : x(X), y(Y) {}
+	vec2(int X, int Y)     : x(X), y(Y) {}
+
+	vec2(fixed X) : x(X), y(X) {}
+	vec2(int X)   : x(X), y(X) {}
 
 	vec2 operator- ()                  const { return vec2(-x,        -y);         }
 	vec2 operator+ (vec2  const & rhs) const { return vec2( x + rhs.x, y + rhs.y); }

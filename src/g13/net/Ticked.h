@@ -1,8 +1,7 @@
 #pragma once
 
 namespace g13 {
-namespace net
-{
+namespace net {
 
 template<typename T> class Ticked
 {

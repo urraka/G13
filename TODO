@@ -41,6 +41,7 @@ Game
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Graphics
+  - Switch shaders to mat3 (mat3x2 not supported on GLES2)
   - Add text outlines.
   - Add special case in text shader for black/white color. Fix blending.
   - Add easy to draw rectangles.

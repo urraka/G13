@@ -18,13 +18,12 @@ class fixed
 private:
 	int32_t value_;
 
-	explicit fixed(int32_t value, bool);
-
 public:
 	static const fixed max;
 	static const fixed min;
 	static const fixed overflow;
 	static const fixed one;
+	static const fixed half;
 	static const fixed pi;
 	static const fixed e;
 	static const fixed zero;

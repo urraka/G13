@@ -5,19 +5,19 @@
 namespace math {
 namespace fpm {
 
-const fixed fixed::max     (fix16_maximum , true);
-const fixed fixed::min     (fix16_minimum , true);
-const fixed fixed::overflow(fix16_overflow, true);
-const fixed fixed::one     (fix16_one     , true);
-const fixed fixed::pi      (fix16_pi      , true);
-const fixed fixed::e       (fix16_e       , true);
-const fixed fixed::zero    (0             , true);
+const fixed fixed::max      = fixed::from_value(fix16_maximum);
+const fixed fixed::min      = fixed::from_value(fix16_minimum);
+const fixed fixed::overflow = fixed::from_value(fix16_overflow);
+const fixed fixed::one      = fixed::from_value(fix16_one);
+const fixed fixed::half     = fixed::from_value(fix16_one / 2);
+const fixed fixed::pi       = fixed::from_value(fix16_pi);
+const fixed fixed::e        = fixed::from_value(fix16_e);
+const fixed fixed::zero     = fixed::from_value(0);
 
-fixed fixed::from_value(int32_t value) { return fixed(value, true); }
+fixed fixed::from_value(int32_t value) { fixed result; result.value_ = value; return result; }
 int32_t fixed::value() const { return value_; }
 
 fixed::fixed() {}
-fixed::fixed(int32_t value, bool) : value_(value)    {}
 
 fixed::fixed(int    x) : value_(  fix16_from_int(x)   ) {}
 fixed::fixed(float  x) : value_(  fix16_from_float(x) ) {}

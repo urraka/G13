@@ -9,41 +9,44 @@ class rect;
 class line;
 
 // fixed
-fixed sign (fixed const & x);
-fixed fabs (fixed const & x);
-fixed ceil (fixed const & x);
-fixed floor(fixed const & x);
-fixed sqrt (fixed const & x);
-fixed exp  (fixed const & x);
-fixed log  (fixed const & x);
-fixed sin  (fixed const & x);
-fixed cos  (fixed const & x);
-fixed tan  (fixed const & x);
-fixed asin (fixed const & x);
-fixed acos (fixed const & x);
-fixed atan (fixed const & x);
-fixed atan2(fixed const & y, fixed const & x);
-fixed min  (fixed const & x, fixed const & y);
-fixed max  (fixed const & x, fixed const & y);
-fixed fmod (fixed const & x, fixed const & y);
+fixed sign         (const fixed &x);
+fixed fabs         (const fixed &x);
+fixed ceil         (const fixed &x);
+fixed floor        (const fixed &x);
+fixed sqrt         (const fixed &x);
+fixed exp          (const fixed &x);
+fixed log          (const fixed &x);
+fixed sin          (const fixed &x);
+fixed cos          (const fixed &x);
+fixed tan          (const fixed &x);
+fixed asin         (const fixed &x);
+fixed acos         (const fixed &x);
+fixed atan         (const fixed &x);
+fixed atan2        (const fixed &y, const fixed &x);
+fixed min          (const fixed &x, const fixed &y);
+fixed max          (const fixed &x, const fixed &y);
+fixed fmod         (const fixed &x, const fixed &y);
+fixed epsilon_check(const fixed &x, const fixed &epsilon);
 
 // vec2
-fixed dot       (vec2 const & a, vec2 const & b);
-fixed length    (vec2 const & x);
-fixed length2   (vec2 const & x);
-vec2  normalize (vec2 const & x);
-vec2  sign      (vec2 const & x);
+fixed dot          (const vec2 &a, const vec2 &b);
+fixed length       (const vec2 &x);
+fixed length2      (const vec2 &x);
+vec2  normalize    (const vec2 &x);
+vec2  sign         (const vec2 &x);
+vec2  epsilon_check(const vec2 &x, const fixed &epsilon);
 
 // rect
-bool  contains  (rect const & rc, vec2 const & p);
-bool  intersects(rect const & rc1, rect const & rc2);
-rect  expand    (rect const & rc1, rect const & rc2);
+bool  contains  (const rect &rc, const vec2 &p);
+rect  expand    (const rect &rc1, const rect &rc2);
+bool  intersects(const rect &rc1, const rect &rc2);
+bool  intersects(const rect &rc, const line &line);
 
 // line
-fixed slope       (line const & l);
-vec2  normal      (line const & l);
-vec2  midpoint    (line const & l);
-rect  bounds      (line const & l);
-bool  intersection(line const & A, line const & B, vec2 *result);
+fixed slope       (const line &l);
+vec2  normal      (const line &l);
+vec2  midpoint    (const line &l);
+rect  bounds      (const line &l);
+bool  intersection(const line &A, const line &B, vec2 *result);
 
 }} // math::fpm

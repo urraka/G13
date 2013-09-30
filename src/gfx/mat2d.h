@@ -2,8 +2,7 @@
 
 #include <cmath>
 
-namespace gfx
-{
+namespace gfx {
 
 class mat2d
 {
