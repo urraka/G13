@@ -156,7 +156,10 @@ void Map::load()
 			indicesList[i] = math::triangulate<uint16_t>(polygon);
 
 			if (indicesList[i].size() == 0)
-				debug_log("triangulation failed for polygon " << i << " with " << polygon.size() << " vertices");
+			{
+				debug_log("triangulation failed for polygon " << i << " with " <<
+					polygon.size() << " vertices");
+			}
 
 			for (int j = 0; j < (int)indicesList[i].size(); j++)
 				indicesList[i][j] = polygonData[indicesList[i][j]].asInt();
@@ -374,7 +377,7 @@ void Map::load()
 	colorLocation_ = shader->location("color");
 }
 
-void Map::draw()
+void Map::draw(const ent::Camera *camera)
 {
 	gfx::Shader *shader = gfx::default_shader<gfx::SimpleVertex>();
 
@@ -382,10 +385,10 @@ void Map::draw()
 
 	gfx::line_width(1.0f);
 
-	shader->uniform(colorLocation_, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
-	vbo_->ibo(background_);
-	vbo_->mode(gfx::TriangleFan);
-	gfx::draw(vbo_);
+	// shader->uniform(colorLocation_, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
+	// vbo_->ibo(background_);
+	// vbo_->mode(gfx::TriangleFan);
+	// gfx::draw(vbo_);
 
 	#ifdef DEBUG
 		gfx::wireframe(dbg->wireframe);
@@ -403,10 +406,10 @@ void Map::draw()
 		{
 	#endif
 
-	shader->uniform(colorLocation_, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-	vbo_->ibo(diagram_);
-	vbo_->mode(gfx::Lines);
-	gfx::draw(vbo_);
+	// shader->uniform(colorLocation_, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+	// vbo_->ibo(diagram_);
+	// vbo_->mode(gfx::Lines);
+	// gfx::draw(vbo_);
 
 	shader->uniform(colorLocation_, glm::vec4(0.0f, 1.0f, 0.0f, 0.5f));
 	vbo_->ibo(ground_);

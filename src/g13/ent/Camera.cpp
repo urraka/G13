@@ -8,7 +8,7 @@ namespace ent {
 Camera::Camera()
 	:	zoom_(0.0f),
 		maxZoom_(1.2f),
-		zoomRate_(1.5f),
+		zoomRate_(1.8f),
 		zoomVelocity_(0.0f),
 		zoomTarget_(0.0f),
 		zoomType_(ZoomNone),
@@ -36,18 +36,35 @@ void Camera::update(Time dt)
 
 	velocity_ = distance * kVelMultiplier;
 	position_.current += velocity_ * dts;
+
+	// calculate position/scale constraints
+
+	float W = brBounds_.x - tlBounds_.x;
+	float H = brBounds_.y - tlBounds_.y;
+	float w = width_;
+	float h = height_;
+
+	float minScale = (w / h) < (W / H) ? (h / H) : (w / W);
+	float defScale = defaultScale();
+	float minZoom = glm::log(minScale / defScale) / maxZoom_;
+
+	zoom_.current = glm::max(minZoom, zoom_.current);
+	zoomTarget_ = glm::max(minZoom, zoomTarget_);
+
+	float scale = defScale * glm::exp(maxZoom_ * zoom_.current);
+
+	vec2 min = tlBounds_ + 0.5f * viewport() / scale;
+	vec2 max = brBounds_ - 0.5f * viewport() / scale;
+
+	position_.current = glm::clamp(position_.current, min, max);
 }
 
 void Camera::frame(const Frame &frame)
 {
-	const float worldUnitsPerPixel = 1.0f;
-	const float initialWidth = 1200.0f; // in world units
-	const float initialScale = width_ * worldUnitsPerPixel / initialWidth;
-
 	zoom_.interpolate(frame.percent);
 	position_.interpolate(frame.percent);
 
-	float scale = initialScale * glm::exp(maxZoom_ * (float)zoom_);
+	float scale = defaultScale() * glm::exp(maxZoom_ * (float)zoom_);
 	const vec2 &pos = position_;
 
 	matrix_ = mat2d::translate(width_ / 2.0f, height_ / 2.0f);
@@ -76,6 +93,20 @@ void Camera::viewport(int width, int height)
 void Camera::zoom(ZoomType zoomType)
 {
 	zoomType_ = zoomType;
+}
+
+void Camera::bounds(const vec2 &tl, const vec2 &br)
+{
+	tlBounds_ = tl;
+	brBounds_ = br;
+}
+
+float Camera::defaultScale() const
+{
+	const float worldUnitsPerPixel = 1.0f;
+	const float initialWidth = 1200.0f; // in world units
+
+	return width_ * worldUnitsPerPixel / initialWidth;
 }
 
 }} // g13::ent

@@ -24,9 +24,13 @@ public:
 	void target(const vec2 *target);
 	void viewport(int width, int height);
 	void zoom(ZoomType zoomType);
+	void bounds(const vec2 &tl, const vec2 &br);
 
 	const mat2d &matrix()    const { return matrix_; }
 	const mat2d &matrixinv() const { return matrixinv_; }
+	const vec2  viewport()   const { return vec2(width_, height_); }
+
+	float defaultScale() const;
 
 private:
 	math::interpolable<float> zoom_;
@@ -40,9 +44,10 @@ private:
 	const vec2 *target_;
 	math::interpolable<vec2> position_;
 	vec2 velocity_;
-
 	mat2d matrix_;
 	mat2d matrixinv_;
+	vec2 tlBounds_;
+	vec2 brBounds_;
 };
 
 }} // g13::ent

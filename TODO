@@ -1,13 +1,11 @@
 Game
-  - Keep camera within map bounds. Figure something for when the map is not big enough (center it perhaps).
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.
   - Bullets may have to be kept by players.
   - Implement bullet-player collisions.
   - Implement lag compensation.
-  - Add some kind of World where entities to check collisions live.
-  - Check & fix instances of for loops with i < vector.size() - 1.
+  / Add some kind of World where entities to check collisions live.
   - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
   - Set channel on message definitions.
   - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
@@ -26,13 +24,10 @@ Game
   / Add debug hints: frozen time, remote players render ticks.
   - Make a class for the chatbox.
   - Move all the Client rendering to a separate class.
-  - Fix hardcoded map bounds on Bullet.cpp.
   - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  - kGravity constant repeated in different files.
-  - Map should carry some parameters (like gravity).
+  / Map should carry some parameters (like gravity).
   - Add some real menu. Consider removing debug menu.
   - Think how the event system should work. Consider some minimalistic ui system.
-  - Maybe some refactor in collision class, is_floor() predicate is duplicated in Map and Collision.
   - Replace network.txt with config.cfg and move it to root directory.
   - Add some INI parsing lib.
   - Separate collision map from map rendering stuff.
@@ -41,6 +36,7 @@ Game
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Graphics
+  - Add ability to update specific sprites in SpriteBatch.
   - Switch shaders to mat3 (mat3x2 not supported on GLES2)
   - Add text outlines.
   - Add special case in text shader for black/white color. Fix blending.
@@ -56,11 +52,17 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
-  - Possible bug in fpm::rect. Check header. Perhaps it's just fine.
+  x Possible bug in fpm::rect. Check header. Perhaps it's just fine.
   - Add some overflow checks in fpm functions.
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Calculate min camera zoom.
+  x Keep camera within map bounds.
+  x Check & fix instances of for loops with i < vector.size() - 1.
+  x Fix hardcoded map bounds on Bullet.cpp.
+  x kGravity constant repeated in different files.
+  x Maybe some refactor in collision class, is_floor() predicate is duplicated in Map and Collision.
   x Bullet tickOffsets should be set at the moment of bullet creation on server.
   x Promote Player::TimedData to net so it can be used in Servera aswell. Think of a different name.
   x Change all tick values to int to avoid unsigned shitty issues.

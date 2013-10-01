@@ -251,6 +251,8 @@ void Client::onServerInfo(msg::ServerInfo *info)
 
 	loadMap();
 
+	camera_.bounds(from_fixed(map_->world()->bounds().tl), from_fixed(map_->world()->bounds().br));
+
 	for (int i = 0; i < MaxPlayers; i++)
 		players_[i].initialize();
 
@@ -410,7 +412,7 @@ void Client::draw(const Frame &frame)
 
 		// draw map
 
-		map_->draw();
+		map_->draw(&camera_);
 
 		#ifdef DEBUG
 			dbg->drawCollisionHulls();
@@ -628,10 +630,10 @@ void Client::onResize(int width, int height)
 	float w = (float)width;
 	float h = (float)height;
 
-	vertex[0] = gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xCC));
-	vertex[1] = gfx::color_vertex(w   , 0.0f, gfx::Color(0xCC));
-	vertex[2] = gfx::color_vertex(w   , h   , gfx::Color(0xCC));
-	vertex[3] = gfx::color_vertex(0.0f, h   , gfx::Color(0xCC));
+	vertex[0] = gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xF9, 0xFE, 0xEE));
+	vertex[1] = gfx::color_vertex(w   , 0.0f, gfx::Color(0xF9, 0xFE, 0xEE));
+	vertex[2] = gfx::color_vertex(w   , h   , gfx::Color(0xFD, 0xFD, 0x63));
+	vertex[3] = gfx::color_vertex(0.0f, h   , gfx::Color(0xFD, 0xFD, 0x63));
 
 	background_->set(vertex, 0, 4);
 

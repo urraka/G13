@@ -13,7 +13,7 @@ public:
 	Map();
 	~Map();
 	void load();
-	void draw();
+	void draw(const ent::Camera *camera);
 
 	const coll::World *world() const { return world_; }
 
