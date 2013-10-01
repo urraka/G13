@@ -2,7 +2,6 @@
 
 #include <g13/g13.h>
 #include <g13/math.h>
-#include <g13/Collision.h>
 #include <g13/cmp/SoldierInput.h>
 #include <g13/cmp/SoldierPhysics.h>
 #include <g13/cmp/SoldierGraphics.h>
@@ -18,7 +17,7 @@ public:
 
 	void update(Time dt, const cmp::SoldierInput *inpt = 0);
 	void reset(fixvec2 pos);
-	void map(const Collision::Map *map);
+	void world(const coll::World *world);
 	cmp::SoldierState state() const;
 
 	cmp::SoldierInput input;

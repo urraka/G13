@@ -65,9 +65,9 @@ void Soldier::reset(fixvec2 pos)
 	input.angle = UINT16_MAX / 2;
 }
 
-void Soldier::map(const Collision::Map *map)
+void Soldier::world(const coll::World *world)
 {
-	physics.map = map;
+	physics.world = world;
 }
 
 cmp::SoldierState Soldier::state() const

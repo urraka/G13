@@ -4,7 +4,6 @@ namespace g13
 {
 	class Frame;
 	class Map;
-	class Collision;
 
 	namespace stt
 	{
@@ -55,5 +54,14 @@ namespace g13
 		class BulletParams;
 		class BulletPhysics;
 		class BulletGraphics;
+	}
+
+	namespace coll
+	{
+		class Segment;
+		class Hull;
+		class Entity;
+		class Result;
+		class World;
 	}
 }

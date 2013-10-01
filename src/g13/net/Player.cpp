@@ -1,7 +1,7 @@
 #include "Player.h"
 
 #include <g13/Map.h>
-#include <g13/Collision.h>
+#include <g13/coll/collision.h>
 
 #include <hlp/assign.h>
 #include <math/mix_angle.h>
@@ -97,10 +97,9 @@ void Player::updateRemote(Time dt, int tick)
 					const fixrect *bboxDucked = &soldier_.physics.bboxDucked;
 					const fixrect *bbox = state.duck ? bboxDucked : bboxNormal;
 
-					Collision::Result result;
-					result = Collision::resolve(soldier_.physics.map, state.position, dest, *bbox);
+					coll::Result result = soldier_.physics.world->collision(state.position, dest, *bbox);
 
-					if (result.node != 0)
+					if (result.segment != 0)
 						dest = result.position;
 				}
 			#endif
@@ -220,7 +219,7 @@ void Player::onJoin(int tick, const Map *map, const fixvec2 &position)
 	lastInputTick_ = tick - 1;
 	tick_ = joinTick_ = tick;
 	soldier_.reset(position);
-	soldier_.map(map->collisionMap());
+	soldier_.world(map->world());
 
 	inputs_.clear();
 	stateBuffer_.clear();

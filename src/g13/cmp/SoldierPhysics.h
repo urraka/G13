@@ -2,7 +2,7 @@
 
 #include <g13/g13.h>
 #include <g13/math.h>
-#include <g13/Collision.h>
+#include <g13/coll/collision.h>
 
 namespace g13 {
 namespace cmp {
@@ -24,13 +24,13 @@ public:
 	fixvec2 acceleration;
 
 	const SoldierInput *input;
-	const Collision::Map *map;
+	const coll::World *world;
 
 private:
 	bool ducked_;
 
-	Collision::Hull currentHull_;
-	const Collision::Node *currentNode_;
+	coll::Hull hull_;
+	const coll::Segment *segment_;
 };
 
 }} // g13::cmp

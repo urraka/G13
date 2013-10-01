@@ -17,7 +17,7 @@ typedef fpm::vec2  fixvec2;
 typedef fpm::rect  fixrect;
 typedef fpm::line  fixline;
 
-static inline vec2 from_fixed(fixvec2 x)
+static inline vec2 from_fixed(const fixvec2 &x)
 {
 	return vec2(x.x.to_float(), x.y.to_float());
 }

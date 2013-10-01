@@ -14,13 +14,15 @@ static const fixed epsilon = fixed::from_value(2048); // 0,03125 = 1 / 32
 template std::vector<const Segment*> &World::retrieve<Segment>(const fixrect &bounds) const;
 template std::vector<const Entity*> &World::retrieve<Entity>(const fixrect &bounds) const;
 
+// World
+
 World::World(const fixrect &bounds)
 	:	segmentsGrid_(0),
 		entitiesGrid_(0),
 		bounds_(bounds),
 		gravity_(1470)
 {
-	const fixvec2 cellsize(200, 200);
+	const fixvec2 cellsize(200);
 
 	const int cols = fpm::ceil(bounds.width()  / cellsize.x).to_int();
 	const int rows = fpm::ceil(bounds.height() / cellsize.y).to_int();
@@ -66,9 +68,7 @@ void World::create(const std::vector<Linestrip> &linestrips)
 			segment.prev = &segments[(N + j - 1) % N];
 			segment.next = &segments[(N + j + 1) % N];
 
-			segment.floor = segment.line.p1.x != segment.line.p2.x &&
-				fpm::fabs(fpm::slope(segment.line)) <= 2 &&
-				fpm::dot(fixvec2(0, -1), fpm::normal(segment.line)) > 0;
+			segment.floor = is_floor(segment.line);
 
 			map[&segment] = segmentsGrid_->push(segment);
 		}
@@ -183,10 +183,12 @@ template<typename T> std::vector<const T*> &World::retrieve(const fixrect &bound
 	int cols = grid.cols();
 	int rows = grid.rows();
 
-	int x0 = std::max(   0, fpm::floor(bounds.tl.x / w).to_int());
-	int y0 = std::max(   0, fpm::floor(bounds.tl.y / h).to_int());
-	int x1 = std::min(cols, fpm::ceil (bounds.br.x / w).to_int());
-	int y1 = std::min(rows, fpm::ceil (bounds.br.y / h).to_int());
+	const fixrect rc = bounds - bounds_.tl;
+
+	int x0 = std::max(   0, fpm::floor(rc.tl.x / w).to_int());
+	int y0 = std::max(   0, fpm::floor(rc.tl.y / h).to_int());
+	int x1 = std::min(cols, fpm::ceil (rc.br.x / w).to_int());
+	int y1 = std::min(rows, fpm::ceil (rc.br.y / h).to_int());
 
 	cache.clear();
 	sharedIndices_.clear();
@@ -228,10 +230,6 @@ template<typename T> std::vector<const T*> &World::retrieve(const fixrect &bound
 
 	return cache;
 }
-
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
 
 void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &map)
 {

@@ -1,23 +1,24 @@
 #include "BulletPhysics.h"
+#include <g13/coll/collision.h>
 
 namespace g13 {
 namespace cmp {
 
-bool BulletPhysics::update(Time dt, const Collision::Map *map)
+bool BulletPhysics::update(Time dt, const coll::World *world)
 {
 	const fixed dts = fixed((int)dt / 1000) / fixed(1000);
-	const fixed kGravity = fixed(1470); // 9.8 * 150 - warning: duplicated in SoldierPhysics.cpp
+	const fixed kGravity = world->gravity();
 	const fixrect bbox(0, 0, 1, 1);
 
 	velocity += fixvec2(0, kGravity) * dts;
 
 	fixvec2 delta = velocity * dts;
 
-	Collision::Result collision = Collision::resolve(map, position, position + delta, bbox);
+	coll::Result collision = world->collision(position, position + delta, bbox);
 
 	position = collision.position;
 
-	return collision.node != 0;
+	return collision.segment != 0;
 }
 
 }} // g13::cmp

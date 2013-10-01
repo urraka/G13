@@ -1,5 +1,6 @@
 #include "Bullet.h"
 #include <g13/cmp/BulletParams.h>
+#include <g13/coll/collision.h>
 
 namespace g13 {
 namespace ent {
@@ -18,16 +19,15 @@ Bullet::Bullet(const cmp::BulletParams &params)
 	graphics.angle.set(params.angle.to_float());
 }
 
-void Bullet::update(Time dt, const Collision::Map *map)
+void Bullet::update(Time dt, const coll::World *world)
 {
 	if (state != Alive)
 		return;
 
-	if (physics.update(dt, map))
+	if (physics.update(dt, world))
 		state = Impact;
 
-	// TODO: change this 20000 number to some map bounds
-	if (fpm::fabs(physics.position.x) > 20000 || fpm::fabs(physics.position.y) > 20000)
+	if (!fpm::contains(world->bounds(), physics.position))
 		state = Dead;
 
 	graphics.update(dt, &physics);

@@ -11,6 +11,8 @@ public:
 	Hull(const Segment &segment, const fixrect &bbox);
 	Hull& operator =(const Hull &hull);
 
+	bool owns(const Segment *segment) const;
+
 	Segment segments[3];
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Collision.h"
+#include <g13/g13.h>
 #include <gfx/forward.h>
 #include <gfx/gl.h>
 #include <vector>
@@ -14,10 +14,11 @@ public:
 	~Map();
 	void load();
 	void draw();
-	const Collision::Map *collisionMap() const;
+
+	const coll::World *world() const { return world_; }
 
 protected:
-	Collision::Map collisionMap_;
+	coll::World *world_;
 
 	gfx::VBO *vbo_;
 	gfx::IBO *ground_;
@@ -28,23 +29,5 @@ protected:
 
 	GLint colorLocation_;
 };
-
-/*
-class Map
-{
-public:
-	Map();
-	~Map();
-	void load();
-	void draw();
-	const Collision::Map *collisionMap() const;
-
-protected:
-	std::vector<gfx::VBO*> vbos_;
-	gfx::SpriteBatch *rocks_;
-	gfx::SpriteBatch *trees_;
-	Collision::Map collisionMap_;
-};
-*/
 
 } // g13

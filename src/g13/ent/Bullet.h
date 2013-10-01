@@ -16,7 +16,7 @@ public:
 	Bullet();
 	Bullet(const cmp::BulletParams &params);
 
-	void update(Time dt, const Collision::Map *map);
+	void update(Time dt, const coll::World *world);
 
 	cmp::BulletPhysics physics;
 	cmp::BulletGraphics graphics;

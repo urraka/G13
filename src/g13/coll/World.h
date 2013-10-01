@@ -23,10 +23,10 @@ public:
 	void add(const Entity &entity);
 	void clear();
 
-	Result collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox, Mode mode) const;
+	Result collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox, Mode mode = Static) const;
 
-	const fixed &gravity() const;
-	const fixrect &bounds() const;
+	const fixed &gravity() const { return gravity_; }
+	const fixrect &bounds() const { return bounds_; }
 
 	void gravity(fixed value);
 
@@ -42,12 +42,11 @@ private:
 	mutable std::vector<const Entity*> entities_;
 
 	template<typename T> std::vector<const T*> &retrieve(const fixrect &bounds) const;
-
 	template<typename T> inline std::vector<const T*> &cache() const;
 	template<typename T> inline const Grid<T> &grid() const;
 };
 
-// World specialization
+// World methods specialization
 
 template<> inline const Grid<Segment> &World::grid<Segment>() const
 {

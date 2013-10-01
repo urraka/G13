@@ -33,7 +33,7 @@ public:
 	{
 		Location location;
 
-		fixrect bounds = Grid<T>::bounds(item);
+		fixrect bounds = Grid<T>::bounds(item) - bounds_.tl;
 
 		const fixed &w = cellWidth_;
 		const fixed &h = cellHeight_;
@@ -59,7 +59,7 @@ public:
 			{
 				for (int y = y0; y < y1; y++)
 				{
-					if (intersects(item, bounds + fixvec2(w * x, h * y)))
+					if (intersects(item, bounds + fixvec2(w * x, h * y) + bounds_.tl))
 						cell(x, y).shared.push_back(location.index);
 				}
 			}

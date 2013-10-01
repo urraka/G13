@@ -148,7 +148,7 @@ void Multiplayer::updateBullets(Time dt)
 {
 	for (size_t i = 0; i < bullets_.size(); i++)
 	{
-		bullets_[i].update(dt, map_->collisionMap());
+		bullets_[i].update(dt, map_->world());
 
 		if (bullets_[i].state != ent::Bullet::Alive)
 		{

@@ -185,4 +185,9 @@ Hull::Hull(const Segment &segment, const fixrect &bbox)
 	}
 }
 
+bool Hull::owns(const Segment *segment) const
+{
+	return segment == &segments[0] || segment == &segments[1] || segment == &segments[2];
+}
+
 }} // g13::coll
