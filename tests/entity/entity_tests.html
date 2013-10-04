@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Entity motion bounds test results</title>
+	<script src="data.js" type="text/javascript"></script>
+	<style type="text/css">
+		html, body { margin: 0; padding: 0; }
+		canvas { display: inline-block; }
+	</style>
+</head>
+<body>
+	<div id="content"></div>
+	<script>
+		show(data);
+
+		function show(data)
+		{
+			var w1 = data[0].a[1].x - data[0].a[0].x;
+			var w2 = data[0].b[1].x - data[0].b[0].x;
+			var h1 = data[0].a[2].y - data[0].a[1].y;
+			var h2 = data[0].b[2].y - data[0].b[1].y;
+			
+			var W = (w1 + w2) * 3;
+			var H = (h1 + h2) * 3;
+			
+			var content = document.getElementById("content");
+			
+			for (var i = 0; i < data.length; i++)
+			{
+				var canvas = document.createElement("canvas");
+				var context = canvas.getContext("2d");
+				
+				canvas.width = W;
+				canvas.height = H;
+				
+				context.strokeStyle = "#000";
+				context.fillStyle = "rgba(255, 255, 0, 0.5)";
+				
+				context.translate(W / 2, H / 2);
+
+				draw_polygon(context, data[i].a);
+				context.fill();
+				context.stroke();
+				
+				draw_polygon(context, data[i].b);
+				context.fill();
+				context.stroke();
+				
+				draw_polygon(context, data[i].R);
+				context.fill();
+				context.stroke();
+				
+				draw_points(context, data[i].R);
+				
+				content.appendChild(canvas);
+			}
+		}
+		
+		function draw_points(context, polygon)
+		{
+			for (var i = 0; i < polygon.length; i++)
+			{
+				context.beginPath();
+				context.arc(polygon[i].x, polygon[i].y, 2, 0, 2 * Math.PI);
+				context.stroke();
+			}
+		}
+		
+		function draw_polygon(context, polygon)
+		{
+			context.beginPath();
+			context.moveTo(polygon[0].x, polygon[0].y);
+			
+			for (var i = 1; i < polygon.length; i++)
+				context.lineTo(polygon[i].x, polygon[i].y);
+			
+			context.closePath();
+		}
+	</script>
+</body>
+</html>

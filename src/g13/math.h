@@ -5,6 +5,7 @@
 #include <math/interpolable.h>
 #include <math/minbits.h>
 #include <math/fpm/fpm.h>
+#include <hlp/countof.h>
 
 namespace g13 {
 

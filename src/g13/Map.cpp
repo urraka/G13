@@ -2,6 +2,7 @@
 #include "Map.h"
 #include "res.h"
 
+#include <g13/ent/Camera.h>
 #include <g13/coll/collision.h>
 #include <math/triangulate.h>
 #include <glm/gtc/random.hpp>
@@ -24,18 +25,26 @@ Map::Map()
 		diagram_(0),
 		background_(0),
 		rocks_(0),
+		textures_(),
+		parallax_(0),
+		sky_(0),
 		colorLocation_(-1)
 {
 }
 
 Map::~Map()
 {
-	if (vbo_      != 0) delete vbo_;
-	if (ground_   != 0) delete ground_;
-	if (outlines_ != 0) delete outlines_;
-	if (diagram_  != 0) delete diagram_;
+	if (vbo_         != 0) delete vbo_;
+	if (ground_      != 0) delete ground_;
+	if (outlines_    != 0) delete outlines_;
+	if (diagram_     != 0) delete diagram_;
 	if (background_  != 0) delete background_;
-	if (rocks_  != 0) delete rocks_;
+	if (rocks_       != 0) delete rocks_;
+	if (textures_[0] != 0) delete textures_[0];
+	if (textures_[1] != 0) delete textures_[1];
+	if (parallax_    != 0) delete parallax_;
+	if (sky_         != 0) delete sky_->ibo();
+	if (sky_         != 0) delete sky_;
 }
 
 void Map::load()
@@ -109,6 +118,9 @@ void Map::load()
 			fixed(SCALE * boundsData["right"].asFloat()),
 			fixed(SCALE * boundsData["bottom"].asFloat())
 		);
+
+		if (world_ != 0)
+			delete world_;
 
 		world_ = new coll::World(bounds);
 		world_->create(linestrips);
@@ -373,6 +385,77 @@ void Map::load()
 			delete[] sheet;
 	}
 
+	// create parallax background
+
+	{
+		if (textures_[0] != 0) delete textures_[0];
+		if (textures_[1] != 0) delete textures_[1];
+		if (parallax_    != 0) delete parallax_;
+
+		textures_[0] = new gfx::Texture("data/background1.png");
+		textures_[1] = new gfx::Texture("data/background2.png");
+
+		textures_[0]->wrap(gfx::Repeat, gfx::WrapX);
+		textures_[1]->wrap(gfx::Repeat, gfx::WrapX);
+
+		gfx::Sprite sprites[2];
+
+		const fixrect &bounds = world_->bounds();
+
+		float L = bounds.tl.x.to_float();
+		float T = bounds.tl.y.to_float();
+		float R = bounds.br.x.to_float();
+		float B = bounds.br.y.to_float();
+		float W = R - L;
+		float H = B - T;
+
+		sprites[0].width = 2.0f * W;
+		sprites[0].height = H;
+		sprites[0].position.x = (L + R) / 2.0f - sprites[0].width / 2.0f;
+		sprites[0].position.y = T + sprites[0].height * 0.5f;
+		sprites[0].tx1.x = 0.5f * (sprites[0].width  / (float)textures_[0]->width());
+		sprites[0].tx1.y = 0.5f * (sprites[0].height / (float)textures_[0]->height());
+
+		sprites[1].width = 4.0f * W;
+		sprites[1].height = H;
+		sprites[1].position.x = (L + R) / 2.0f - sprites[1].width / 2.0f;
+		sprites[1].position.y = T + sprites[1].height * 0.5f;
+		sprites[1].tx1.x = 0.25f * (sprites[1].width  / (float)textures_[1]->width());
+		sprites[1].tx1.y = 0.25f * (sprites[1].height / (float)textures_[1]->height());
+
+		parallax_ = new gfx::SpriteBatch(2, gfx::Static);
+		parallax_->add(sprites[0]);
+		parallax_->add(sprites[1]);
+	}
+
+	// create sky
+
+	{
+		gfx::ColorVertex v[6];
+
+		v[0] = v[1] = gfx::color_vertex(0.0f,  0.0f, gfx::Color(0xF9, 0xFE, 0xEE));
+		v[2] = v[3] = gfx::color_vertex(0.0f, 0.44f, gfx::Color(0xFD, 0xFD, 0x63));
+		v[4] = v[5] = gfx::color_vertex(0.0f,  1.0f, gfx::Color(0xFD, 0xFD, 0x63));
+
+		v[1].x = v[3].x = v[5].x = 1.0f;
+
+		uint16_t indices[] = {0, 1, 2, 3, 4, 5};
+
+		if (sky_ != 0)
+		{
+			delete sky_->ibo();
+			delete sky_;
+		}
+
+		gfx::IBO *ibo = new gfx::IBO(countof(indices), gfx::Static);
+		ibo->set(indices, 0, countof(indices));
+
+		sky_ = new gfx::VBO(ibo);
+		sky_->allocate<gfx::ColorVertex>(countof(v), gfx::Static);
+		sky_->set(v, 0, countof(v));
+		sky_->mode(gfx::TriangleStrip);
+	}
+
 	gfx::Shader *shader = gfx::default_shader<gfx::SimpleVertex>();
 	colorLocation_ = shader->location("color");
 }
@@ -380,15 +463,36 @@ void Map::load()
 void Map::draw(const ent::Camera *camera)
 {
 	gfx::Shader *shader = gfx::default_shader<gfx::SimpleVertex>();
-
 	float lineWidth = gfx::line_width();
-
 	gfx::line_width(1.0f);
 
 	// shader->uniform(colorLocation_, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
 	// vbo_->ibo(background_);
 	// vbo_->mode(gfx::TriangleFan);
 	// gfx::draw(vbo_);
+
+	const mat2d &matrix = camera->matrix();
+
+	gfx::matrix(mat2d::scale(camera->viewport().x, camera->viewport().y));
+	gfx::draw(sky_);
+
+	mat2d m0 = mat2d::translate(camera->viewport().x / 2.0f, camera->viewport().y / 2.0f) *
+		mat2d::scale(0.5f, 0.5f) *
+		mat2d::translate(-camera->viewport().x / 2.0f, -camera->viewport().y / 2.0f);
+
+	mat2d m1 = mat2d::translate(camera->viewport().x / 2.0f, camera->viewport().y / 2.0f) *
+		mat2d::scale(0.25f, 0.25f) *
+		mat2d::translate(-camera->viewport().x / 2.0f, -camera->viewport().y / 2.0f);
+
+	gfx::matrix(m1 * matrix);
+	parallax_->texture(textures_[1]);
+	gfx::draw(parallax_, 1, 1);
+
+	gfx::matrix(m0 * matrix);
+	parallax_->texture(textures_[0]);
+	gfx::draw(parallax_, 0, 1);
+
+	gfx::matrix(matrix);
 
 	#ifdef DEBUG
 		gfx::wireframe(dbg->wireframe);

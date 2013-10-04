@@ -26,6 +26,9 @@ protected:
 	gfx::IBO *diagram_;
 	gfx::IBO *background_;
 	gfx::SpriteBatch *rocks_;
+	gfx::Texture *textures_[2];
+	gfx::SpriteBatch *parallax_;
+	gfx::VBO *sky_;
 
 	GLint colorLocation_;
 };

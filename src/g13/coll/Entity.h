@@ -9,8 +9,10 @@ public:
 	Entity() : data(0) {}
 
 	void   *data;
-	fixrect previus;
+	fixrect previous;
 	fixrect current;
+
+	int motionBounds(Segment (&segments)[8]) const;
 };
 
 }} // g13::coll

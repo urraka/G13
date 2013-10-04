@@ -403,12 +403,7 @@ void Client::draw(const Frame &frame)
 	if (active() && players_[id_].state() == Player::Playing)
 	{
 		camera_.frame(frame);
-
 		target_ = camera_.matrixinv() * vec2(sys::mousex(), sys::mousey());
-
-		gfx::matrix(mat2d());
-		gfx::draw(background_);
-		gfx::matrix(camera_.matrix());
 
 		// draw map
 

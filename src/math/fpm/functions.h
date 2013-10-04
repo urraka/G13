@@ -38,6 +38,7 @@ vec2  epsilon_check(const vec2 &x, const fixed &epsilon);
 
 // rect
 bool  contains  (const rect &rc, const vec2 &p);
+bool  contains  (const rect &rc1, const rect &rc2);
 rect  expand    (const rect &rc1, const rect &rc2);
 bool  intersects(const rect &rc1, const rect &rc2);
 bool  intersects(const rect &rc, const line &line);

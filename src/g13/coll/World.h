@@ -5,9 +5,9 @@ namespace coll {
 
 enum Mode
 {
-	Static,
-	Dynamic,
-	All
+	Static  = 1,
+	Dynamic = 2,
+	All     = (Static | Dynamic)
 };
 
 class World
@@ -82,14 +82,14 @@ template<> inline bool Grid<Segment>::intersects(const Segment &item, const fixr
 
 template<> inline fixrect Grid<Entity>::bounds(const Entity &item)
 {
-	return fpm::expand(item.previus, item.current);
+	return fpm::expand(item.previous, item.current);
 }
 
 template<> inline bool Grid<Entity>::intersects(const Entity &item, const fixrect &bounds)
 {
 	// TODO: change fpm::expand with something better
 
-	return fpm::intersects(bounds, fpm::expand(item.previus, item.current));
+	return fpm::intersects(bounds, fpm::expand(item.previous, item.current));
 }
 
 }} // g13::coll

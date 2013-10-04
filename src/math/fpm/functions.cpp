@@ -164,6 +164,11 @@ bool contains(const rect &rc, const vec2 &p)
 	return p.x >= rc.tl.x && p.x <= rc.br.x && p.y >= rc.tl.y && p.y <= rc.br.y;
 }
 
+bool contains(const rect &rc1, const rect &rc2)
+{
+	return contains(rc1, rc2.tl) && contains(rc1, rc2.br);
+}
+
 rect expand(const rect &rc1, const rect &rc2)
 {
 	return rect(

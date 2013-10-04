@@ -115,56 +115,74 @@ Result World::collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox,
 	const fixline path   = fixline(a, b);
 	const fixrect bounds = fpm::expand(bbox + a, bbox + b);
 
-	std::vector<const Segment*> &segments = retrieve<Segment>(bounds);
-
-	for (int i = 0; i < (int)segments.size(); i++)
+	if (mode & Static)
 	{
-		check_collision(*segments[i], path, bbox, result);
+		std::vector<const Segment*> &segments = retrieve<Segment>(bounds);
 
-		if (result.percent == 0)
-			break;
+		for (int i = 0; i < (int)segments.size(); i++)
+		{
+			check_collision(*segments[i], path, bbox, result);
+
+			if (result.percent == 0)
+				break;
+		}
+
+		// the next is some kind of hack to prevent going through walls
+		if (result.position != a)
+		{
+			fixrect rc = fixrect(
+				result.position - fixvec2(epsilon),
+				result.position + fixvec2(epsilon)
+			);
+
+			for (int i = 0; i < (int)segments.size(); i++)
+			{
+				const Segment &segment = *segments[i];
+
+				if (!fpm::intersects(fpm::bounds(segment.line), rc))
+					continue;
+
+				Hull hull(segment, bbox);
+
+				for (int j = 0; j < 3; j++)
+				{
+					const fixline &hullLine = hull.segments[j].line;
+
+					if (hullLine.p1 == hullLine.p2)
+						continue;
+
+					fixvec2 normal = fpm::normal(hullLine);
+
+					if (fpm::dot(normal, delta) > 0)
+						continue;
+
+					fixvec2 point;
+					fixline line(result.position, result.position - normal * epsilon);
+
+					if (fpm::intersection(hullLine, line, &point))
+					{
+						fixvec2 offset = line.p2 - point;
+						result.position -= offset;
+						rc -= offset;
+					}
+				}
+			}
+		}
 	}
 
-
-	if (result.position == a)
-		return result;
-
-	// the next is some kind of hack to prevent going through walls
-
-	fixrect rc = fixrect(
-		result.position - fixvec2(epsilon),
-		result.position + fixvec2(epsilon)
-	);
-
-	for (int i = 0; i < (int)segments.size(); i++)
+	if (mode & Dynamic && result.position != a)
 	{
-		const Segment &segment = *segments[i];
+		std::vector<const Entity*> &entities = retrieve<Entity>(bounds);
 
-		if (!fpm::intersects(fpm::bounds(segment.line), rc))
-			continue;
+		Segment segments[8];
 
-		Hull hull(segment, bbox);
-
-		for (int j = 0; j < 3; j++)
+		for (int i = 0; i < (int)entities.size(); i++)
 		{
-			const fixline &hullLine = hull.segments[j].line;
+			int n = entities[i]->motionBounds(segments);
 
-			if (hullLine.p1 == hullLine.p2)
-				continue;
-
-			fixvec2 normal = fpm::normal(hullLine);
-
-			if (fpm::dot(normal, delta) > 0)
-				continue;
-
-			fixvec2 point;
-			fixline line(result.position, result.position - normal * epsilon);
-
-			if (fpm::intersection(hullLine, line, &point))
+			for (int j = 0; j < n; j++)
 			{
-				fixvec2 offset = line.p2 - point;
-				result.position -= offset;
-				rc -= offset;
+				check_collision(segments[i], path, bbox, result);
 			}
 		}
 	}
