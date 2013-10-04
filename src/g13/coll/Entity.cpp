@@ -8,13 +8,13 @@ namespace coll {
 
 static int update_segments(Segment *segments, const fixvec2 *linestrip, int count)
 {
-	for (int i = 0; i < count; i++)
+	for (int i = count - 1; i >= 0; i--)
 	{
 		segments[i].floor = false;
 		segments[i].line.p1 = linestrip[i];
-		segments[i].line.p2 = linestrip[(i + 1) % count];
-		segments[i].prev = &segments[(count + i - 1) % count];
-		segments[i].next = &segments[(i + 1) % count];
+		segments[i].line.p2 = linestrip[(count + i - 1) % count];
+		segments[i].prev = &segments[(i + 1) % count];
+		segments[i].next = &segments[(count + i - 1) % count];
 	}
 
 	return count;

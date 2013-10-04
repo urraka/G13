@@ -182,7 +182,10 @@ Result World::collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox,
 
 			for (int j = 0; j < n; j++)
 			{
-				check_collision(segments[i], path, bbox, result);
+				check_collision(segments[j], path, bbox, result);
+
+				if (result.percent == 0)
+					return result;
 			}
 		}
 	}

@@ -15,6 +15,7 @@ public:
 	void load();
 	void draw(const ent::Camera *camera);
 
+	coll::World *world() { return world_; }
 	const coll::World *world() const { return world_; }
 
 protected:

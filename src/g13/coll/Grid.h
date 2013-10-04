@@ -82,7 +82,10 @@ public:
 		items_.clear();
 
 		for (int i = 0; i < (int)cells_.size(); i++)
+		{
 			cells_[i].items.clear();
+			cells_[i].shared.clear();
+		}
 	}
 
 	Cell &cell(int x, int y)      { return cells_[y * cols_ + x]; }

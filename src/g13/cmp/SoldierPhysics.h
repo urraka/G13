@@ -17,6 +17,11 @@ public:
 	bool ducking() const;
 	bool floor() const;
 
+	const fixrect &bounds() const
+	{
+		return ducked_ ? bboxDucked : bboxNormal;
+	}
+
 	fixrect bboxNormal;
 	fixrect bboxDucked;
 	fixvec2 position;

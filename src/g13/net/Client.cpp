@@ -128,14 +128,16 @@ void Client::update(Time dt)
 
 	if (active())
 	{
+		map_->world()->clear();
+
 		if (players_[id_].state() == Player::Playing)
 		{
-			// input_.update();
-
 			players_[id_].soldier()->graphics.aim(input_.angle, input_.rightwards);
 
 			players_[id_].onInput(tick_, input_);
 			players_[id_].updateLocal(dt);
+
+			map_->world()->add(players_[id_].soldier()->collisionEntity);
 
 			msg::Input input;
 
@@ -160,6 +162,8 @@ void Client::update(Time dt)
 				continue;
 
 			player->updateRemote(dt, tick_ - interpolation_);
+
+			map_->world()->add(player->soldier()->collisionEntity);
 		}
 
 		updateBullets(dt);
@@ -328,7 +332,10 @@ void Client::onPlayerDisconnect(msg::PlayerDisconnect *playerDisconnect)
 
 void Client::onPlayerJoin(msg::PlayerJoin *playerJoin)
 {
-	players_[playerJoin->id].onJoin(playerJoin->tick, map_, playerJoin->position);
+	Player *player = &players_[playerJoin->id];
+
+	player->onJoin(playerJoin->tick, map_, playerJoin->position);
+	player->onSoldierState(playerJoin->tick, player->soldier()->state());
 
 	if (playerJoin->id == id_)
 	{

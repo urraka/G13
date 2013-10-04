@@ -14,7 +14,7 @@ bool BulletPhysics::update(Time dt, const coll::World *world)
 
 	fixvec2 delta = velocity * dts;
 
-	coll::Result collision = world->collision(position, position + delta, bbox);
+	coll::Result collision = world->collision(position, position + delta, bbox, coll::All);
 
 	position = collision.position;
 

@@ -38,7 +38,7 @@ void SoldierPhysics::update(Time dt)
 		ducked_ = input->duck;
 	}
 
-	fixrect bbox = ducked_ ? bboxDucked : bboxNormal;
+	const fixrect &bbox = bounds();
 
 	if (input->jump && floor())
 	{

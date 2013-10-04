@@ -6,6 +6,7 @@
 #include <g13/cmp/SoldierPhysics.h>
 #include <g13/cmp/SoldierGraphics.h>
 #include <g13/cmp/SoldierState.h>
+#include <g13/coll/Entity.h>
 
 namespace g13 {
 namespace ent {
@@ -29,6 +30,8 @@ public:
 	uint8_t id;
 	void *listener;
 	CreateBulletCallback createBullet;
+
+	coll::Entity collisionEntity;
 
 private:
 	Time shootingTime_;

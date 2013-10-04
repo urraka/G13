@@ -27,8 +27,12 @@ void Player::updateLocal(Time dt)
 
 	if (inputs_.size() == 1)
 	{
+		soldier_.collisionEntity.previous = soldier_.physics.bounds() + soldier_.physics.position;
+
 		soldier_.update(dt, &inputs_[0].data);
 		inputs_.clear();
+
+		soldier_.collisionEntity.current = soldier_.physics.bounds() + soldier_.physics.position;
 	}
 }
 
@@ -36,13 +40,8 @@ void Player::updateRemote(Time dt, int tick)
 {
 	cmp::SoldierState state;
 
-	// int ticksBehind = 4;
+	soldier_.collisionEntity.previous = soldier_.collisionEntity.current;
 
-	// #ifdef DEBUG
-	// 	ticksBehind = dbg->ticksBehind;
-	// #endif
-
-	// int desiredTick = std::max(tick - ticksBehind, joinTick_);
 	int desiredTick = std::max(tick, joinTick_);
 	int renderedTick = desiredTick;
 
@@ -147,6 +146,7 @@ void Player::updateRemote(Time dt, int tick)
 		state = stateBuffer_[a].data;
 	}
 
+
 	std::deque<BulletParams>::iterator it = bullets_.begin();
 
 	while (it != bullets_.end() && it->tick <= renderedTick)
@@ -155,6 +155,15 @@ void Player::updateRemote(Time dt, int tick)
 
 		bullets_.pop_front();
 		it = bullets_.begin();
+	}
+
+	// update collision entity
+	{
+		const fixrect &bboxNormal = soldier_.physics.bboxNormal;
+		const fixrect &bboxDucked = soldier_.physics.bboxDucked;
+		const fixrect &bbox = state.duck ? bboxDucked : bboxNormal;
+
+		soldier_.collisionEntity.current = bbox + to_fixed(soldier_.graphics.position.current);
 	}
 
 	soldier_.graphics.update(dt, state);
@@ -223,13 +232,24 @@ void Player::onJoin(int tick, const Map *map, const fixvec2 &position)
 
 	inputs_.clear();
 	stateBuffer_.clear();
-	stateBuffer_.push(SoldierState(tick, soldier_.state()));
 }
 
 void Player::onSoldierState(int tick, const cmp::SoldierState &soldierState)
 {
 	if (stateBuffer_.size() == 0 || tick > stateBuffer_[stateBuffer_.size() - 1].tick)
+	{
 		stateBuffer_.push(SoldierState(tick, soldierState));
+
+		if (stateBuffer_.size() == 1)
+		{
+			coll::Entity &entity = soldier_.collisionEntity;
+			const cmp::SoldierPhysics *physics = &soldier_.physics;
+
+			const fixrect &bbox = soldierState.duck ? physics->bboxDucked : physics->bboxNormal;
+
+			entity.current = entity.previous = bbox + soldierState.position;
+		}
+	}
 }
 
 void Player::onInput(int tick, const cmp::SoldierInput &input)

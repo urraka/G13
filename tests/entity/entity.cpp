@@ -100,7 +100,7 @@ static void test(const fixrect &A, fixrect B)
 			entity.previous = A;
 			entity.current  = B;
 
-			int n = entity.segments(segments);
+			int n = entity.motionBounds(segments);
 
 			std::cout << "\t{" << std::endl;
 			std::cout << "\t\ta: "; rc_out(entity.previous); std::cout << "," << std::endl;

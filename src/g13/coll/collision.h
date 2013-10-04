@@ -13,6 +13,9 @@
 namespace g13 {
 namespace coll {
 
+// winding:
+// is_floor(vec2(10,0), vec2(0,0)) = true
+
 inline bool is_floor(const fixline &line)
 {
 	return line.p1.x != line.p2.x && fpm::fabs(fpm::slope(line)) <= 2 &&
