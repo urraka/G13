@@ -1,11 +1,12 @@
 Game
+  - Entity collision can return invalid segment pointers.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.
   - Bullets may have to be kept by players.
-  - Implement bullet-player collisions.
+  / Implement bullet-player collisions.
   - Implement lag compensation.
-  / Add some kind of World where entities to check collisions live.
+  / Add some kind of World where entities live to check collisions.
   - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
   - Set channel on message definitions.
   - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.

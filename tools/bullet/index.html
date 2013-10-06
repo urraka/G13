@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bullets</title>
+	<script type="text/javascript" src="bullet.js"></script>
+	<style type="text/css">
+		html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+		canvas { display: block; }
+
+		#assets {
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			z-index: -1;
+		}
+	</style>
+</head>
+<body onload="main()">
+	<canvas></canvas>
+	<div id="assets">
+		<img id="bullet" src="bullet.png" />
+	</div>
+	<script id="shader-vs" type="x-shader/x-vertex">
+		attribute vec2 vposition;
+		attribute vec2 vtexcoords;
+		attribute vec4 vcolor;
+		uniform mat3 mvp;
+		varying vec2 texcoords;
+		varying vec4 color;
+
+		void main(void)
+		{
+			color = vcolor;
+			texcoords = vtexcoords;
+			gl_Position = vec4(mvp * vec3(vposition, 1.0), 1.0);
+		}
+	</script>
+	<script id="shader-fs" type="x-shader/x-fragment">
+		precision mediump float;
+		varying mediump vec2 texcoords;
+		varying mediump vec4 color;
+		uniform sampler2D sampler;
+
+		void main(void)
+		{
+			gl_FragColor = texture2D(sampler, texcoords) * color;
+		}
+	</script>
+</body>
+</html>
