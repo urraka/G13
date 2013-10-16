@@ -1,4 +1,5 @@
 var map = null;
+selectedCell = null;
 
 var viewport = {
 	moving: false,
@@ -16,7 +17,12 @@ function main()
 	var zoomOutButton = document.getElementById("zoomOut");
 	var exportButton = document.getElementById("export");
 
-	window.addEventListener("resize", resize);
+	var resizeTimer = null;
+
+	window.addEventListener("resize", function() {
+		if (resizeTimer) clearTimeout(resizeTimer);
+		resizeTimer = setTimeout(function() { resizeTimer = null; resize(); }, 1000);
+	});
 
 	canvas.addEventListener("mousedown", mousedown);
 	canvas.addEventListener("mouseup", mouseup);
@@ -27,8 +33,11 @@ function main()
 	zoomOutButton.addEventListener("click", zoomOut);
 	exportButton.addEventListener("click", exportMap);
 
-	resize();
+	gfx.initialize(canvas, { antialias: true, alpha: false, preserveDrawingBuffer: true });
+	gfx.bgcolor(255, 255, 255, 1);
+	gfx.clear();
 
+	resize();
 	generate();
 }
 
@@ -57,19 +66,19 @@ function generate()
 
 	map = map_generate(params);
 
-	draw();
+	draw(true);
 }
 
 function zoomIn()
 {
 	viewport.zoom *= 2;
-	draw();
+	draw(false);
 }
 
 function zoomOut()
 {
 	viewport.zoom /= 2;
-	draw();
+	draw(false);
 }
 
 function exportMap()
@@ -106,7 +115,32 @@ function mousemove(evt)
 		viewport.offset.x = (evt.clientX - viewport.hook.x) * (1 / viewport.zoom);
 		viewport.offset.y = (evt.clientY - viewport.hook.y) * (1 / viewport.zoom);
 
-		draw();
+		draw(false);
+	}
+	else if (map)
+	{
+		var prev = selectedCell;
+
+		selectedCell = null;
+
+		var canvas = document.getElementsByTagName("canvas")[0];
+
+		var x = (evt.clientX - canvas.width/2) * (1/viewport.zoom) + map.width/2 - viewport.position.x;
+		var y = (evt.clientY - canvas.height/2) * (1/viewport.zoom) + map.height/2 - viewport.position.y;
+
+		var cells = map.diagram.cells;
+
+		for (var i = 0; i < cells.length; i++)
+		{
+			if (cells[i].pointIntersection(x, y) > 0)
+			{
+				selectedCell = cells[i];
+				break;
+			}
+		}
+
+		if (selectedCell !== prev)
+			draw(false);
 	}
 }
 
@@ -120,26 +154,51 @@ function resize()
 	canvas.width = w;
 	canvas.height = h;
 
-	draw();
+	gfx.viewport(w, h);
+	gfx.clear();
+
+	draw(false);
 }
 
 // draw
 
-function draw()
+function draw(update)
 {
+	if (!map)
+		return;
+
 	var canvas = document.getElementsByTagName("canvas")[0];
-	var context = canvas.getContext("2d");
 
 	var x = viewport.position.x + viewport.offset.x;
 	var y = viewport.position.y + viewport.offset.y;
 
-	context.save();
-	context.clearRect(0, 0, canvas.width, canvas.height);
-	context.translate(canvas.width / 2, canvas.height / 2);
-	context.scale(viewport.zoom, viewport.zoom);
-	context.translate(x, y);
+	if (true)
+	{
+		// gfx.bgcolor(255, 255, 255, 1);
+		// gfx.clear();
 
-	map_draw(map, context);
+		gfx.identity();
+		gfx.translate(canvas.width / 2, canvas.height / 2);
+		gfx.scale(viewport.zoom, viewport.zoom);
+		gfx.translate(x, y);
 
-	context.restore();
+		map_render(map, update);
+	}
+	else
+	{
+		var context = canvas.getContext("2d");
+
+		var x = viewport.position.x + viewport.offset.x;
+		var y = viewport.position.y + viewport.offset.y;
+
+		context.save();
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.translate(canvas.width / 2, canvas.height / 2);
+		context.scale(viewport.zoom, viewport.zoom);
+		context.translate(x, y);
+
+		map_draw(map, context);
+
+		context.restore();
+	}
 }

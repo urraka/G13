@@ -1,0 +1,234 @@
+/* labels */
+
+*[class*='ui-'] label {
+	font-family: "Segoe UI", Tahoma;
+	font-size: 12px;
+	line-height: 1.5em;
+}
+
+/* container for popups */
+
+#ui-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+/* general separator */
+
+.ui-separator {
+	border-top: 1px solid #808080;
+	border-bottom: 1px solid #FFF;
+}
+
+.ui-separator.vertical {
+	display: inline-block;
+	vertical-align: top;
+	border-top: 0 none;
+	border-bottom: 0 none;
+	border-left: 1px solid #808080;
+	border-right: 1px solid #FFF;
+	height: 100%;
+}
+
+/* menu-bar */
+
+.ui-menu-bar {
+	background-color: #D4D0C8;
+	white-space: nowrap;
+	cursor: default;
+	padding: 1px 0;
+}
+
+/* menu */
+
+.ui-menu {
+	position: absolute;
+	background-color: #D4D0C8;
+	border: 1px outset #D4D0C8;
+	box-shadow: 3px 3px 5px -3px rgba(0, 0, 0, 0.95);
+	white-space: nowrap;
+}
+
+.ui-menu > div {
+	border: 1px outset #FFF;
+	padding: 1px;
+}
+
+/* menu-item */
+
+.ui-menu-item {
+	color: #000;
+}
+
+/* menu-bar -> item */
+
+.ui-menu-bar > .ui-menu-item {
+	display: inline-block;
+	vertical-align: top;
+	padding: 1px 4px;
+	border: 1px outset;
+	border-color: transparent;
+}
+
+.ui-menu-bar > .ui-menu-item.hover {
+	border-color: #FFF;
+}
+
+.ui-menu-bar > .ui-menu-item.active {
+	border-color: #FFF;
+	border-style: inset;
+	padding: 2px 3px 0px 5px;
+}
+
+.ui-menu-bar > .ui-menu-item > label {
+	display: inline;
+}
+
+/* menu -> item */
+
+.ui-menu .ui-menu-item {
+	display: block;
+	padding: 0 21px 0 16px;
+	position: relative;
+}
+
+.ui-menu .ui-menu-item.has-submenu:after {
+	content: "\f0da";
+	font-family: "icomoon";
+	font-size: 13px;
+	line-height: 1.5em;
+	display: block;
+	position: absolute;
+	right: 6px;
+	top: 0;
+	bottom: 0;
+}
+
+.ui-menu .ui-menu-item.hover.has-submenu:after,
+.ui-menu .ui-menu-item.active.has-submenu:after {
+	background-position: -4px;
+}
+
+.ui-menu .ui-menu-item.hover,
+.ui-menu .ui-menu-item.active {
+	background-color: #0A246A;
+	color: #FFF;
+}
+
+.ui-menu .ui-menu-item.disabled {
+	color: #808080;
+	text-shadow: 1px 1px #FFF;
+}
+
+.ui-menu .ui-menu-item.disabled:hover {
+	color: #808080;
+	text-shadow: none;
+}
+
+.ui-menu .ui-menu-item > label {
+	display: inline;
+}
+
+/* menu separator */
+
+.ui-menu .ui-separator {
+	display: block;
+	border-top: 1px solid #808080;
+	border-bottom: 1px solid #FFF;
+	height: 0px;
+	margin: 3px 2px 4px;
+}
+
+.ui-menu-bar .ui-separator {
+	display: none;
+}
+
+/* toolbar */
+
+.ui-htoolbar, .ui-vtoolbar {
+	background-color: #D4D0C8;
+	padding: 2px 2px 1px;
+	cursor: default;
+	white-space: normal;
+}
+
+.ui-vtoolbar {
+	width: 23px;
+	display: inline-block;
+}
+
+/* toolbar button icon */
+
+.ui-htoolbar .ui-icon-button,
+.ui-vtoolbar .ui-icon-button {
+	display: inline-block;
+	border: 1px outset;
+	border-color: transparent;
+	width: 21px;
+	height: 21px;
+	line-height: 21px;
+	font-size: 14px;
+	overflow: hidden;
+	text-align: center;
+	vertical-align: top;
+}
+
+.ui-htoolbar .ui-icon-button:hover,
+.ui-vtoolbar .ui-icon-button:hover {
+	border-color: #FFF;
+}
+
+.ui-htoolbar .ui-icon-button:active,
+.ui-vtoolbar .ui-icon-button:active {
+	border-color: #FFF;
+	border-style: inset;
+	padding-top: 1px;
+	padding-left: 1px;
+	width: 20px;
+	height: 20px;
+}
+
+.ui-htoolbar .ui-icon-button.disabled,
+.ui-vtoolbar .ui-icon-button.disabled {
+	color: #808080;
+	text-shadow: 1px 1px #FFF;
+}
+
+.ui-htoolbar .ui-icon-button.disabled:hover,
+.ui-vtoolbar .ui-icon-button.disabled:hover {
+	border-color: transparent;
+}
+
+.ui-htoolbar .ui-icon-button.disabled:active,
+.ui-vtoolbar .ui-icon-button.disabled:active {
+	border-color: transparent;
+	padding: 0;
+	width: 21px;
+	height: 21px;
+}
+
+/* toolbar separator */
+
+.ui-htoolbar .ui-separator {
+	display: inline-block;
+	border-left: 1px solid #808080;
+	border-right: 1px solid #FFF;
+	height: 16px;
+	vertical-align: top;
+	margin: 2px 2px 0;
+}
+
+.ui-vtoolbar .ui-separator {
+	display: inline-block;
+	border-top: 1px solid #808080;
+	border-bottom: 1px solid #FFF;
+	width: 16px;
+	margin: 2px 0 2px 3px;
+}
+
+/* status bar */
+
+.ui-statusbar {
+	padding: 0 2px;
+}

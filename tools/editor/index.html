@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>Map Editor</title>
+	<link rel="stylesheet" type="text/css" href="layout.css">
+	<link rel="stylesheet" type="text/css" href="src/ui/ui.css">
+	<script type="text/javascript" src="lib/jquery-1.10.2.min.js"></script>
+	<script type="text/javascript" src="src/inherit.js"></script>
+	<script type="text/javascript" src="src/ui/ui.js"></script>
+	<script type="text/javascript" src="src/gfx/gfx.js"></script>
+	<script type="text/javascript" src="src/editor/Editor.js"></script>
+	<script type="text/javascript" src="src/editor/UI.js"></script>
+	<script type="text/javascript" src="src/editor/Renderer.js"></script>
+	<script type="text/javascript" src="src/editor/tools/Select.js"></script>
+	<script type="text/javascript" src="src/editor/tools/Soldier.js"></script>
+	<script type="text/javascript" src="src/main.js"></script>
+</head>
+<body onload="main()">
+	<table id="layout" cellspacing="0" cellpadding="0" border="0">
+		<tr height="1">
+			<td valign="top" id="panel-top" colspan="2"></td>
+		</tr>
+		<tr>
+			<td valign="top" id="panel-left" width="1"></td>
+			<td valign="top" id="panel-view"></td>
+		</tr>
+		<tr height="1">
+			<td valign="top" id="panel-bottom" colspan="2"></td>
+		</tr>
+	</table>
+</body>
+</html>

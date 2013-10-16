@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>gfx test</title>
+	<script type="text/javascript" src="js/gfx.js"></script>
+	<style type="text/css">
+		html,body { margin: 0; padding: 0; }
+		canvas { display: block; }
+	</style>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+	<script type="text/javascript">
+
+		var canvas = document.getElementById("canvas");
+
+		gfx.initialize(canvas);
+
+		var vbo = new gfx.VBO(4, gfx.Static);
+		vbo.mode = gfx.TriangleFan;
+
+		function resize()
+		{
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+
+			gfx.viewport(canvas.width, canvas.height);
+
+			var w = canvas.width;
+			var h = canvas.height;
+
+			vbo.set(0, 0, 0, 0, 0, 0, 0, 255, 1);
+			vbo.set(1, w, 0, 0, 0, 255, 0, 0, 1);
+			vbo.set(2, w, h, 0, 0, 0, 255, 0, 1);
+			vbo.set(3, 0, h, 0, 0, 255, 255, 0, 1);
+
+			vbo.upload();
+			gfx.bgcolor(0, 0, 0, 1);
+			gfx.clear();
+			gfx.draw(vbo);
+		}
+
+		window.addEventListener("resize", resize);
+		resize();
+
+	</script>
+</body>
+</html>

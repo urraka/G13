@@ -4,6 +4,7 @@
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<title>Map generator</title>
 	<link rel="stylesheet" type="text/css" href="style.css" />
+	<script type="text/javascript" src="js/gfx.js"></script>
 	<script type="text/javascript" src="js/rhill-voronoi-core.min.js"></script>
 	<script type="text/javascript" src="js/rand.js"></script>
 	<script type="text/javascript" src="js/perlin_noise.js"></script>
@@ -14,6 +15,7 @@
 	<script type="text/javascript" src="js/polygon_simplify.js"></script>
 	<script type="text/javascript" src="js/map_generate.js"></script>
 	<script type="text/javascript" src="js/map_export.js"></script>
+	<script type="text/javascript" src="js/map_render.js"></script>
 	<script type="text/javascript" src="js/map_draw.js"></script>
 	<script type="text/javascript" src="js/main.js"></script>
 </head>
@@ -25,7 +27,7 @@
 		<label for="height">Height:</label>
 		<input id="height" type="text" value="800" />
 		<label for="offset" title="Approximate distance between the random points used to generate the Voronoi diagram.">Offset:</label>
-		<input id="offset" type="text" value="30" />
+		<input id="offset" type="text" value="10" />
 		<label for="noise-scale" title="Scale applied to the points before passing their coordinates to the perlin noise function.">Noise Scale:</label>
 		<input id="noise-scale" type="text" value="0.005" />
 		<label for="relaxation" title="Number of iterations for the Lloyd's relaxation algorithm.">Relaxation:</label>

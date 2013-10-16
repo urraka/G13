@@ -44,22 +44,22 @@ function map_generate(params)
 		diagram = voronoi.compute(sites, bbox);
 	}
 
-	var polygons = voronoi_polygons(diagram, function(cell) { return cell_solid(cell, params); });
+	// var polygons = voronoi_polygons(diagram, function(cell) { return cell_solid(cell, params); });
 
-	if (params["simplification"] > 0)
-	{
-		for (var i = 0; i < polygons.length; i++)
-			polygons[i] = polygon_simplify(polygons[i], params["simplification"]);
-	}
+	// if (params["simplification"] > 0)
+	// {
+	// 	for (var i = 0; i < polygons.length; i++)
+	// 		polygons[i] = polygon_simplify(polygons[i], params["simplification"]);
+	// }
 
-	var outlines = [];
+	// var outlines = [];
 
-	for (var i = 0; i < polygons.length; i++)
-		outlines = outlines.concat(polygon_outlines(polygons[i]));
+	// for (var i = 0; i < polygons.length; i++)
+	// 	outlines = outlines.concat(polygon_outlines(polygons[i]));
 
 	map.diagram = diagram;
-	map.polygons = polygons;
-	map.outlines = outlines;
+	// map.polygons = polygons;
+	// map.outlines = outlines;
 
 	return map;
 }

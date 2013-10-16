@@ -18,7 +18,7 @@ var shader = {
 	mvp: new Float32Array(3 * 3),
 	loc: {
 		mvp: -1,
-		sampler: - 1,
+		sampler: -1,
 		position: -1,
 		texcoords: -1,
 		color: -1
