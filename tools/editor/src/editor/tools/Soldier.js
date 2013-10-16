@@ -8,12 +8,15 @@ function Soldier()
 {
 	this.vbo = new gfx.VBO(4, gfx.Dynamic);
 	this.vbo.mode = gfx.TriangleFan;
+	this.prevTool = null;
 }
 
-Soldier.prototype.toolactivate = function(editor)
+Soldier.prototype.toolactivate = function(editor, event)
 {
 	editor.setCursor(null);
 	editor.invalidate();
+
+	this.prevTool = event.prevTool;
 }
 
 Soldier.prototype.tooldeactivate = function(editor)
@@ -23,36 +26,17 @@ Soldier.prototype.tooldeactivate = function(editor)
 
 Soldier.prototype.mousedown = function(editor, event)
 {
-	if (event.which !== 1)
-		return;
+	if (event.which === 1)
+	{
+		var x = editor.cursorMapPosition.x;
+		var y = editor.cursorMapPosition.y;
 
-	var texture = editor.resources["soldier"];
-	var x = editor.cursorMapPosition.x;
-	var y = editor.cursorMapPosition.y;
-
-	editor.addObject({type: "soldier", x: x, y: y});
-
-	editor.renderer.addSoldier({
-		x: x,
-		y: y,
-		w: texture.width,
-		h: texture.height,
-		rotation: 0,
-		cx: texture.width / 2,
-		cy: texture.height / 2,
-		sx: 1.00390625 * 0.15,
-		sy: 1.00390625 * 0.15,
-		kx: 0,
-		ky: 0,
-		u0: 0,
-		u1: 1,
-		v0: 0,
-		v1: 1,
-		r: 255,
-		g: 255,
-		b: 255,
-		a: 1
-	});
+		editor.addObject(new g13.Soldier(x, y));
+	}
+	else if (event.which === 3 && this.prevTool !== null)
+	{
+		editor.setCurrentTool(this.prevTool);
+	}
 }
 
 Soldier.prototype.mousemove = function(editor)
@@ -71,7 +55,7 @@ Soldier.prototype.draw = function(editor)
 	if (!editor.isCursorActive())
 		return;
 
-	var texture = editor.resources["soldier"];
+	var texture = editor.renderer.textures["soldier"];
 
 	var w = 1.00390625 * 0.15 * texture.width;
 	var h = 1.00390625 * 0.15 * texture.height;

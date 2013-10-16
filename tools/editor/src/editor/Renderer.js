@@ -3,6 +3,10 @@
 g13 = window.g13 || {};
 g13["Renderer"] = Renderer;
 
+var cache = {
+	matrix: mat3.create()
+};
+
 function Renderer(editor, container)
 {
 	var self = this;
@@ -25,6 +29,16 @@ function Renderer(editor, container)
 
 	gfx.initialize(this.canvas, {alpha: false});
 	gfx.bgcolor(0xC0, 0xC0, 0xC0, 1);
+	gfx.pointSize(5);
+
+	this.textures = {
+		"soldier": (function() {
+			var tx = new gfx.Texture("res/soldier.png");
+			tx.filter(gfx.LinearMipmapLinear, gfx.Linear);
+			tx.generateMipmap();
+			return tx;
+		})()
+	};
 
 	this.background = {
 		ibo: new gfx.IBO(6 * 8),
@@ -64,7 +78,13 @@ function Renderer(editor, container)
 	this.background.texture.filter(gfx.Nearest, gfx.Nearest);
 	this.background.texture.wrap(gfx.Repeat, gfx.Repeat);
 
+	this.selection = {
+		ibo: null,
+		vbo: null
+	};
+
 	this.soldiers = new gfx.SpriteBatch(5, gfx.Static);
+	this.soldiers.texture = this.textures["soldier"];
 
 	$(this.canvas).appendTo(container);
 
@@ -86,19 +106,84 @@ Renderer.prototype.draw = function()
 	gfx.identity();
 	gfx.translate(this.canvas.width / 2, this.canvas.height / 2);
 	gfx.scale(this.zoom, this.zoom);
+	gfx.translate(this.position.x, this.position.y);
 
-	if (this.editor.map)
+	this.background.vbo.mode = gfx.Triangles;
+	gfx.bind(this.background.shadow);
+	gfx.draw(this.background.vbo, this.background.ibo);
+
+	this.background.vbo.mode = gfx.TriangleFan;
+	gfx.bind(this.background.texture);
+	gfx.draw(this.background.vbo, 4);
+
+	this.soldiers.draw();
+
+	if (this.editor.selection.length > 0)
 	{
-		this.background.vbo.mode = gfx.Triangles;
-		gfx.bind(this.background.shadow);
-		gfx.draw(this.background.vbo, this.background.ibo);
+		var selcount = this.editor.selection.length;
 
-		this.background.vbo.mode = gfx.TriangleFan;
-		gfx.bind(this.background.texture);
-		gfx.draw(this.background.vbo, 4);
+		var vbo = this.selection.vbo;
+		var ibo = this.selection.ibo;
 
-		gfx.bind(this.editor.resources["soldier"]);
-		this.soldiers.draw();
+		if (!vbo || vbo.size < selcount * 4)
+		{
+			if (!vbo)
+			{
+				vbo = this.selection.vbo = new gfx.VBO(selcount * 4, gfx.Dynamic);
+				ibo = this.selection.ibo = new gfx.IBO(selcount * 8, gfx.Dynamic);
+			}
+			else
+			{
+				vbo.resize(selcount * 4, gfx.Dynamic);
+				ibo.resize(selcount * 8, gfx.Dynamic);
+			}
+
+			for (var i = 0; i < selcount; i++)
+			{
+				ibo.set(i * 8 + 0, i * 4 + 0);
+				ibo.set(i * 8 + 1, i * 4 + 1);
+				ibo.set(i * 8 + 2, i * 4 + 1);
+				ibo.set(i * 8 + 3, i * 4 + 2);
+				ibo.set(i * 8 + 4, i * 4 + 2);
+				ibo.set(i * 8 + 5, i * 4 + 3);
+				ibo.set(i * 8 + 6, i * 4 + 3);
+				ibo.set(i * 8 + 7, i * 4 + 0);
+			}
+
+			ibo.upload();
+		}
+
+		var m = mat3.copy(gfx.transform(), cache.matrix);
+
+		var mx = mat3.mulx;
+		var my = mat3.muly;
+		var fl = Math.floor;
+
+		for (var i = 0; i < selcount; i++)
+		{
+			var x0 = this.editor.selection[i].bounds.x;
+			var y0 = this.editor.selection[i].bounds.y;
+			var x1 = this.editor.selection[i].bounds.w + x0;
+			var y1 = this.editor.selection[i].bounds.h + y0;
+
+			vbo.set(i * 4 + 0, fl(mx(m, x0, y0)) + 0.5, fl(my(m, x0, y0)) + 0.5, 0, 0, 0, 0, 0, 1);
+			vbo.set(i * 4 + 1, fl(mx(m, x1, y0)) + 0.5, fl(my(m, x1, y0)) + 0.5, 0, 0, 0, 0, 0, 1);
+			vbo.set(i * 4 + 2, fl(mx(m, x1, y1)) + 0.5, fl(my(m, x1, y1)) + 0.5, 0, 0, 0, 0, 0, 1);
+			vbo.set(i * 4 + 3, fl(mx(m, x0, y1)) + 0.5, fl(my(m, x0, y1)) + 0.5, 0, 0, 0, 0, 0, 1);
+		}
+
+		vbo.upload();
+
+		gfx.identity();
+		gfx.bind(gfx.White);
+
+		vbo.mode = gfx.Lines;
+		gfx.draw(vbo, ibo, selcount * 8);
+
+		vbo.mode = gfx.Points;
+		gfx.draw(vbo, selcount * 4);
+
+		gfx.transform(m);
 	}
 
 	this.editor.event({type: "draw"});
@@ -170,7 +255,11 @@ Renderer.prototype.updateBackground = function()
 
 Renderer.prototype.onNewMap = function()
 {
+	this.zoom = 1;
+	this.position.x = 0;
+	this.position.y = 0;
 	this.updateBackground();
+	this.soldiers.clear();
 	this.invalidate();
 }
 

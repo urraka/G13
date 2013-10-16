@@ -105,6 +105,46 @@ function StatusBar(content)
 }
 
 // -----------------------------------------------------------------------------
+// Functions
+// -----------------------------------------------------------------------------
+
+var capturedElement = null;
+
+function captureHandler(e)
+{
+	e.stopPropagation();
+
+	var newEvent = new $.Event(e.type, {pageX: e.pageX, pageY: e.pageY, which: e.which});
+	$(capturedElement).trigger(newEvent);
+}
+
+function hasCapture(element)
+{
+	return element === capturedElement;
+}
+
+function capture(element)
+{
+	capturedElement = element;
+
+	if (!element)
+	{
+		$(".ui-capture").remove();
+		$(window).off("mouseup", captureHandler);
+		return;
+	}
+
+	var capturer = $(document.createElement("div"));
+	capturer.addClass("ui-capture");
+	capturer.css("cursor", $(element).css("cursor"));
+
+	$(window).on("mouseup", captureHandler);
+	capturer.on("mousemove mousedown mouseup", captureHandler);
+
+	capturer.appendTo(document.body);
+}
+
+// -----------------------------------------------------------------------------
 // Menu actions
 // -----------------------------------------------------------------------------
 
@@ -435,5 +475,7 @@ ui["Toolbar"]    = Toolbar;
 ui["IconButton"] = IconButton;
 ui["Separator"]  = Separator;
 ui["StatusBar"]  = StatusBar;
+ui["capture"]    = capture;
+ui["hasCapture"]    = hasCapture;
 
 })();

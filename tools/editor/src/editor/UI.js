@@ -13,20 +13,24 @@ function UI(editor)
 		"cut":     { font: "icomoon", ch: "\uf0c4" },
 		"paste":   { font: "icomoon", ch: "\uf0ea" },
 		"select":  { font: "icomoon", ch: "\ue000" },
-		"soldier": { font: "icomoon", ch: "\uf183" }
+		"soldier": { font: "icomoon", ch: "\uf183" },
+		"zoomin":  { font: "icomoon", ch: "\uf00e" },
+		"zoomout": { font: "icomoon", ch: "\uf010" }
 	};
 
 	var disabled = [];
 
 	var cmd = {};
-	cmd["new"] = function() { editor.newMap(3000/2, 1600/2); }
-	cmd["open"] = null;
-	cmd["save"] = null;
-	cmd["copy"] = null;
-	cmd["cut"] = null;
-	cmd["paste"] = null;
-	cmd["select"] = function() { editor.setCurrentTool("select"); };
+	cmd["new"]     = function() { editor.newMap(3000/2, 1600/2); }
+	cmd["open"]    = null;
+	cmd["save"]    = null;
+	cmd["copy"]    = null;
+	cmd["cut"]     = null;
+	cmd["paste"]   = null;
+	cmd["select"]  = function() { editor.setCurrentTool("selection"); };
 	cmd["soldier"] = function() { editor.setCurrentTool("soldier"); };
+	cmd["zoomin"]  = function() { editor.zoomIn(); };
+	cmd["zoomout"] = function() { editor.zoomOut(); };
 
 	// main menu
 
@@ -68,12 +72,14 @@ function UI(editor)
 
 	// top toolbar
 
-	this.tb_new   = ui.IconButton({icon: ico["new"],   tooltip: "New...",  handler: cmd["new"]});
-	this.tb_open  = ui.IconButton({icon: ico["open"],  tooltip: "Open...", handler: cmd["open"]});
-	this.tb_save  = ui.IconButton({icon: ico["save"],  tooltip: "Save",    handler: cmd["save"]});
-	this.tb_copy  = ui.IconButton({icon: ico["copy"],  tooltip: "Copy",    handler: cmd["copy"]});
-	this.tb_cut   = ui.IconButton({icon: ico["cut"],   tooltip: "Cut",     handler: cmd["cut"]});
-	this.tb_paste = ui.IconButton({icon: ico["paste"], tooltip: "Paste",   handler: cmd["paste"]});
+	this.tb_new     = ui.IconButton({icon: ico["new"],     tooltip: "New...",   handler: cmd["new"]});
+	this.tb_open    = ui.IconButton({icon: ico["open"],    tooltip: "Open...",  handler: cmd["open"]});
+	this.tb_save    = ui.IconButton({icon: ico["save"],    tooltip: "Save",     handler: cmd["save"]});
+	this.tb_copy    = ui.IconButton({icon: ico["copy"],    tooltip: "Copy",     handler: cmd["copy"]});
+	this.tb_cut     = ui.IconButton({icon: ico["cut"],     tooltip: "Cut",      handler: cmd["cut"]});
+	this.tb_paste   = ui.IconButton({icon: ico["paste"],   tooltip: "Paste",    handler: cmd["paste"]});
+	this.tb_zoomin  = ui.IconButton({icon: ico["zoomin"],  tooltip: "Zoom In",  handler: cmd["zoomin"]});
+	this.tb_zoomout = ui.IconButton({icon: ico["zoomout"], tooltip: "Zoom Out", handler: cmd["zoomout"]});
 
 	this.toolbar_top = ui.Toolbar({
 		layout: "horizontal",
@@ -84,7 +90,10 @@ function UI(editor)
 			ui.Separator(),
 			this.tb_copy,
 			this.tb_cut,
-			this.tb_paste
+			this.tb_paste,
+			ui.Separator(),
+			this.tb_zoomin,
+			this.tb_zoomout
 		]
 	});
 
@@ -134,7 +143,14 @@ function UI(editor)
 		this.statusbar
 	);
 
+	// disable some default stuff
+
 	$(document).on("contextmenu", function() { return false; });
+
+	$(document).on("keydown", function(e) {
+		if (e.ctrlKey && (e.which === 107 || e.which === 109 || e.which === 83 || e.which === 96))
+			return false;
+	});
 }
 
 UI.prototype.onNewMap = function()

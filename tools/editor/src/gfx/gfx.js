@@ -21,6 +21,7 @@ var shader = {
 	loc: {
 		mvp: -1,
 		sampler: -1,
+		pointSize: -1,
 		position: -1,
 		texcoords: -1,
 		color: -1
@@ -29,6 +30,7 @@ var shader = {
 		"attribute vec2 vtexcoords;\n" +
 		"attribute vec4 vcolor;\n" +
 		"uniform mat3 mvp;\n" +
+		"uniform float pointSize;\n" +
 		"varying vec2 texcoords;\n" +
 		"varying vec4 color;\n" +
 		"void main(void)\n" +
@@ -36,6 +38,7 @@ var shader = {
 		"	color = vcolor;\n" +
 		"	texcoords = vtexcoords;\n" +
 		"	gl_Position = vec4(mvp * vec3(vposition, 1.0), 1.0);\n" +
+		"	gl_PointSize = pointSize;\n" +
 		"}\n",
 	fs: "precision mediump float;\n" +
 		"varying mediump vec2 texcoords;\n" +
@@ -69,6 +72,7 @@ function initialize(canvas, params)
 	shader.id = shader_create(shader.vs, shader.fs);
 	shader.loc.mvp = gl.getUniformLocation(shader.id, "mvp");
 	shader.loc.sampler = gl.getUniformLocation(shader.id, "sampler");
+	shader.loc.pointSize = gl.getUniformLocation(shader.id, "pointSize");
 	shader.loc.position = gl.getAttribLocation(shader.id, "vposition");
 	shader.loc.texcoords = gl.getAttribLocation(shader.id, "vtexcoords");
 	shader.loc.color = gl.getAttribLocation(shader.id, "vcolor");
@@ -164,6 +168,11 @@ function clear()
 function lineWidth(width)
 {
 	gl.lineWidth(width);
+}
+
+function pointSize(size)
+{
+	gl.uniform1f(shader.loc.pointSize, size);
 }
 
 function bind(texture)
@@ -558,6 +567,42 @@ Texture.prototype.wrap = function(u, v)
 	gl.bindTexture(gl.TEXTURE_2D, this.id);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, u);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, v);
+}
+
+// -----------------------------------------------------------------------------
+// Sprite
+// -----------------------------------------------------------------------------
+
+function Sprite(properties)
+{
+	this.x = 0;
+	this.y = 0;
+	this.w = 0;
+	this.h = 0;
+	this.rotation = 0;
+	this.cx = 0;
+	this.cy = 0;
+	this.sx = 1;
+	this.sy = 1;
+	this.kx = 0;
+	this.ky = 0;
+	this.u0 = 0;
+	this.u1 = 1;
+	this.v0 = 0;
+	this.v1 = 1;
+	this.r = 255;
+	this.g = 255;
+	this.b = 255;
+	this.a = 1;
+
+	if (properties)
+	{
+		for (var i in properties)
+		{
+			if (i in this)
+				this[i] = properties[i];
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -1176,6 +1221,7 @@ gfx.viewport = viewport;
 gfx.bgcolor = bgcolor;
 gfx.clear = clear;
 gfx.lineWidth = lineWidth;
+gfx.pointSize = pointSize;
 gfx.bind = bind;
 gfx.draw = draw;
 gfx.transform = transform;
@@ -1189,8 +1235,24 @@ gfx.VBO = VBO;
 gfx.IBO = IBO;
 gfx.Texture = Texture;
 gfx.LineBatch = LineBatch;
+gfx.Sprite = Sprite;
 gfx.SpriteBatch = SpriteBatch;
 
 window.gfx = gfx;
+
+window.mat3 = {
+	create:    mat3,
+	copy:      mat3copy,
+	identity:  mat3identity,
+	mul:       mat3mul,
+	mulx:      mat3mulx,
+	muly:      mat3muly,
+	translate: mat3translate,
+	scale:     mat3scale,
+	skew:      mat3skew,
+	rotate:    mat3rotate,
+	ortho:     mat3ortho,
+	transform: mat3transform
+};
 
 })();
