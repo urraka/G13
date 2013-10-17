@@ -4,7 +4,8 @@ g13 = window.g13 || {};
 g13["Renderer"] = Renderer;
 
 var cache = {
-	matrix: mat3.create()
+	matrix: mat3.create(),
+	sprite: new gfx.Sprite()
 };
 
 function Renderer(editor, container)
@@ -29,7 +30,7 @@ function Renderer(editor, container)
 
 	gfx.initialize(this.canvas, {alpha: false});
 	gfx.bgcolor(0xC0, 0xC0, 0xC0, 1);
-	gfx.pointSize(5);
+	gfx.pointSize(7);
 
 	this.textures = {
 		"soldier": (function() {
@@ -83,7 +84,7 @@ function Renderer(editor, container)
 		vbo: null
 	};
 
-	this.soldiers = new gfx.SpriteBatch(5, gfx.Static);
+	this.soldiers = new gfx.SpriteBatch(5, gfx.Dynamic);
 	this.soldiers.texture = this.textures["soldier"];
 
 	$(this.canvas).appendTo(container);
@@ -116,7 +117,22 @@ Renderer.prototype.draw = function()
 	gfx.bind(this.background.texture);
 	gfx.draw(this.background.vbo, 4);
 
-	this.soldiers.draw();
+	var objects = this.editor.map.objects;
+	var soldiers = this.soldiers;
+
+	if (objects.length > 0)
+	{
+		if (soldiers.maxSize < objects.length)
+			soldiers.resize(objects.length);
+
+		soldiers.clear();
+
+		for (var i = 0; i < objects.length; i++)
+			soldiers.add(objects[i].sprite(cache.sprite));
+
+		soldiers.upload();
+		soldiers.draw();
+	}
 
 	if (this.editor.selection.length > 0)
 	{
@@ -260,16 +276,6 @@ Renderer.prototype.onNewMap = function()
 	this.position.y = 0;
 	this.updateBackground();
 	this.soldiers.clear();
-	this.invalidate();
-}
-
-Renderer.prototype.addSoldier = function(sprite)
-{
-	if (this.soldiers.size === this.soldiers.maxSize)
-		this.soldiers.resize(this.soldiers.size * 2, gfx.Static, true);
-
-	this.soldiers.add(sprite);
-	this.soldiers.upload();
 	this.invalidate();
 }
 

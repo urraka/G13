@@ -39,14 +39,13 @@ function Editor()
 
 Editor.prototype.newMap = function(width, height)
 {
-	// TODO: destroy current map
-
 	this.map = {
 		width: width,
 		height: height,
 		objects: []
 	};
 
+	this.selection = [];
 	this.setCurrentTool("selection");
 	this.ui.onNewMap();
 	this.renderer.onNewMap();
@@ -130,13 +129,7 @@ Editor.prototype.zoomOut = function()
 Editor.prototype.addObject = function(object)
 {
 	this.map.objects.push(object);
-
-	switch (object.constructor)
-	{
-		case g13.Soldier:
-			this.renderer.addSoldier(object.sprite());
-			break;
-	}
+	this.renderer.invalidate();
 }
 
 Editor.prototype.updateCursorPosition = function(x, y)
