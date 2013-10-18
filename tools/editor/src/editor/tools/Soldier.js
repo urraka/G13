@@ -11,7 +11,9 @@ function Soldier()
 	this.prevTool = null;
 }
 
-Soldier.prototype.toolactivate = function(editor, event)
+Soldier.prototype.on = {};
+
+Soldier.prototype.on["toolactivate"] = function(editor, event)
 {
 	editor.setCursor(null);
 	editor.invalidate();
@@ -19,38 +21,38 @@ Soldier.prototype.toolactivate = function(editor, event)
 	this.prevTool = event.prevTool;
 }
 
-Soldier.prototype.tooldeactivate = function(editor)
+Soldier.prototype.on["tooldeactivate"] = function(editor)
 {
 	editor.invalidate();
 }
 
-Soldier.prototype.mousedown = function(editor, event)
+Soldier.prototype.on["mousedown"] = function(editor, event)
 {
 	if (event.which === 1)
 	{
-		var x = editor.cursorMapPosition.x;
-		var y = editor.cursorMapPosition.y;
+		var x = editor.cursor.mapX;
+		var y = editor.cursor.mapY;
 
 		editor.addObject(new g13.Soldier(x, y));
 	}
 	else if (event.which === 3 && this.prevTool !== null)
 	{
-		editor.setCurrentTool(this.prevTool);
+		editor.setTool(this.prevTool);
 	}
 }
 
-Soldier.prototype.mousemove = function(editor)
+Soldier.prototype.on["mousemove"] = function(editor)
 {
 	if (editor.isCursorActive())
 		editor.invalidate();
 }
 
-Soldier.prototype.mouseleave = function(editor)
+Soldier.prototype.on["mouseleave"] = function(editor)
 {
 	editor.invalidate();
 }
 
-Soldier.prototype.draw = function(editor)
+Soldier.prototype.on["draw"] = function(editor)
 {
 	if (!editor.isCursorActive())
 		return;
@@ -60,8 +62,8 @@ Soldier.prototype.draw = function(editor)
 	var w = 1.00390625 * 0.15 * texture.width;
 	var h = 1.00390625 * 0.15 * texture.height;
 
-	var x = editor.cursorMapPosition.x;
-	var y = editor.cursorMapPosition.y;
+	var x = editor.cursor.mapX;
+	var y = editor.cursor.mapY;
 
 	var alpha = 0.8;
 

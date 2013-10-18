@@ -46,6 +46,26 @@ Soldier.prototype.sprite = function(sprite)
 	return sprite;
 }
 
+Soldier.prototype.contained = function(x, y, w, h)
+{
+	var X = this.bounds.x;
+	var Y = this.bounds.y;
+	var W = this.bounds.w;
+	var H = this.bounds.h;
+
+	return X > x && X + W < x + w && Y > y && Y + H < y + h;
+}
+
+Soldier.prototype.intersects = function(x, y, w, h)
+{
+	var X = this.bounds.x;
+	var Y = this.bounds.y;
+	var W = this.bounds.w;
+	var H = this.bounds.h;
+
+	return X < x + w && X + W > x && Y < y + h && Y + H > y;
+}
+
 Soldier.prototype.hittest = function(x, y)
 {
 	var L = this.bounds.x;

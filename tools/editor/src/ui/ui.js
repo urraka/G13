@@ -114,7 +114,15 @@ function captureHandler(e)
 {
 	e.stopPropagation();
 
-	var newEvent = new $.Event(e.type, {pageX: e.pageX, pageY: e.pageY, which: e.which});
+	var newEvent = new $.Event(e.type, {
+		pageX: e.pageX,
+		pageY: e.pageY,
+		which: e.which,
+		ctrlKey: e.ctrlKey,
+		shiftKey: e.shiftKey,
+		altKey: e.altKey
+	});
+
 	$(capturedElement).trigger(newEvent);
 }
 

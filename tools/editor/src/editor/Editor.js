@@ -6,53 +6,67 @@ g13["Editor"] = Editor;
 function Editor()
 {
 	this.map = null;
-
+	this.renderer = new g13.Renderer();
 	this.ui = new g13.UI(this);
-	this.renderer = new g13.Renderer(this, $("#panel-view")[0]);
-	this.cursor = null;
-	this.cursorActive = false;
-	this.cursorPosition = {x: 0, y: 0};
-	this.cursorMapPosition = {x: 0, y: 0};
-	this.selection = [];
 
-	this.pan = {
+	this.cursor = {
 		active: false,
-		hook: {x: 0, y: 0},
-		position: {x: 0, y: 0},
-		cursor: null
+		current: null,
+		absX: 0,
+		absY: 0,
+		mapX: 0,
+		mapY: 0
 	};
 
-	this.tools = {};
-	this.tools["selection"] = new g13.tools.Selection();
-	this.tools["soldier"] = new g13.tools.Soldier();
-	this.currentTool = null;
+	this.tools = {
+		current: null,
+		"selection": new g13.tools.Selection(),
+		"soldier": new g13.tools.Soldier(),
+		"pan": new g13.tools.Pan()
+	};
 
+	this.listeners = [
+		this.renderer,
+		this.ui,
+		this.tools["pan"]
+	];
+
+	// initialize
+
+	this.event({type: "resize"});
 	this.newMap(1500, 800);
-
-	// events
-	var self = this;
-	function fwd(event) { self.event(event); }
-	$(window).on("resize", fwd);
-	$(document).on("keydown keyup", fwd);
-	$(this.renderer.canvas).on("mousemove mousedown mouseup mouseenter mouseleave", fwd);
 }
 
 Editor.prototype.newMap = function(width, height)
 {
+	// replace this with new g13.Map()
 	this.map = {
 		width: width,
 		height: height,
-		objects: []
+		objects: [],
+		selection: new g13.Selection()
 	};
 
-	this.selection = [];
-	this.setCurrentTool("selection");
-	this.ui.onNewMap();
-	this.renderer.onNewMap();
-	this.updateCursorPosition(this.cursorPosition.x, this.cursorPosition.y);
+	this.setTool("selection");
+	this.event({type: "newmap", map: this.map});
 }
 
-Editor.prototype.setCurrentTool = function(tool)
+Editor.prototype.getCanvas = function()
+{
+	return this.renderer.canvas;
+}
+
+Editor.prototype.getSelection = function()
+{
+	return this.map.selection;
+}
+
+Editor.prototype.getObjects = function()
+{
+	return this.map.objects;
+}
+
+Editor.prototype.setTool = function(tool)
 {
 	var nextTool = null;
 
@@ -63,10 +77,10 @@ Editor.prototype.setCurrentTool = function(tool)
 
 	if (nextTool)
 	{
-		var prevTool = this.currentTool;
+		var prevTool = this.tools.current;
 
 		this.event({type: "tooldeactivate", nextTool: nextTool});
-		this.currentTool = nextTool;
+		this.tools.current = nextTool;
 		this.event({type: "toolactivate", prevTool: prevTool});
 	}
 	else
@@ -75,55 +89,42 @@ Editor.prototype.setCurrentTool = function(tool)
 	}
 }
 
-Editor.prototype.setCursor = function(cursor, x, y)
+Editor.prototype.setCursor = function(cursor)
 {
-	if (cursor)
-	{
-		if (typeof x !== "undefined")
-			$(this.renderer.canvas).css("cursor", "url(" + cursor + ") " + x + " " + y + ", default");
-		else
-			$(this.renderer.canvas).css("cursor", "url(" + cursor + "), default");
-	}
-	else
-	{
-		$(this.renderer.canvas).css("cursor", "none");
-	}
+	var css = "none";
 
-	this.cursor = cursor;
+	if (cursor)
+		css = "url(" + cursor + "), default";
+
+	$(this.getCanvas()).css("cursor", css);
+
+	this.cursor.current = cursor;
 }
 
 Editor.prototype.isCursorActive = function()
 {
-	return this.cursorActive;
+	return this.cursor.active;
 }
 
 Editor.prototype.setZoom = function(zoom)
 {
 	if (zoom !== this.renderer.zoom)
-	{
-		this.renderer.zoom = zoom;
-		this.updateCursorPosition(this.cursorPosition.x, this.cursorPosition.y);
-		this.renderer.updateBackground();
-		this.renderer.invalidate();
+		this.event({type: "zoomchange", zoom: zoom});
+}
 
-		if (this.pan.active)
-		{
-			this.pan.hook.x = this.cursorPosition.x;
-			this.pan.hook.y = this.cursorPosition.y;
-			this.pan.position.x = this.renderer.position.x;
-			this.pan.position.y = this.renderer.position.y;
-		}
-	}
+Editor.prototype.getZoom = function()
+{
+	return this.renderer.zoom;
 }
 
 Editor.prototype.zoomIn = function()
 {
-	this.setZoom(this.renderer.zoom * 1.5);
+	this.setZoom(this.getZoom() * 1.5);
 }
 
 Editor.prototype.zoomOut = function()
 {
-	this.setZoom(this.renderer.zoom / 1.5);
+	this.setZoom(this.getZoom() / 1.5);
 }
 
 Editor.prototype.addObject = function(object)
@@ -134,21 +135,27 @@ Editor.prototype.addObject = function(object)
 
 Editor.prototype.updateCursorPosition = function(x, y)
 {
-	var offset = $(this.renderer.canvas).offset();
+	if (arguments.length === 0)
+	{
+		x = this.cursor.absX;
+		y = this.cursor.absY;
+	}
 
-	this.cursorPosition.x = x;
-	this.cursorPosition.y = y;
+	var offset = $(this.getCanvas()).offset();
+
+	this.cursor.absX = x;
+	this.cursor.absY = y;
 
 	var vx = this.renderer.position.x;
 	var vy = this.renderer.position.y;
 	var vz = this.renderer.zoom;
-	var cw = this.renderer.canvas.width;
-	var ch = this.renderer.canvas.height;
+	var cw = this.getCanvas().width;
+	var ch = this.getCanvas().height;
 	var cx = offset.left;
 	var cy = offset.top;
 
-	this.cursorMapPosition.x = (x - cx - cw / 2) * (1 / vz) - vx;
-	this.cursorMapPosition.y = (y - cy - ch / 2) * (1 / vz) - vy;
+	this.cursor.mapX = (x - cx - cw / 2) * (1 / vz) - vx;
+	this.cursor.mapY = (y - cy - ch / 2) * (1 / vz) - vy;
 }
 
 Editor.prototype.invalidate = function()
@@ -162,79 +169,46 @@ Editor.prototype.invalidate = function()
 
 Editor.prototype.event = function(event)
 {
-	if (event.type in this)
-		this[event.type].call(this, event);
+	if (event.type in this.on)
+		this.on[event.type].call(this, event);
 
-	if (this.currentTool !== null && event.type in this.currentTool)
-		this.currentTool[event.type].call(this.currentTool, this, event);
-}
-
-Editor.prototype.resize = function()
-{
-	this.renderer.onResize();
-}
-
-Editor.prototype.mouseenter = function(event)
-{
-	this.cursorActive = true;
-	this.updateCursorPosition(event.pageX, event.pageY);
-}
-
-Editor.prototype.mouseleave = function(event)
-{
-	if (!ui.hasCapture(this.renderer.canvas))
-		this.cursorActive = false;
-
-	this.updateCursorPosition(event.pageX, event.pageY);
-}
-
-Editor.prototype.mousemove = function(event)
-{
-	this.updateCursorPosition(event.pageX, event.pageY);
-
-	if (this.pan.active)
+	for (var i = 0; i < this.listeners.length; i++)
 	{
-		var x = (this.cursorPosition.x - this.pan.hook.x) * (1 / this.renderer.zoom);
-		var y = (this.cursorPosition.y - this.pan.hook.y) * (1 / this.renderer.zoom);
-
-		this.renderer.position.x = this.pan.position.x + x;
-		this.renderer.position.y = this.pan.position.y + y;
-
-		this.updateCursorPosition(event.pageX, event.pageY);
-		this.renderer.invalidate();
+		if (event.type in this.listeners[i].on)
+			this.listeners[i].on[event.type].call(this.listeners[i], this, event);
 	}
+
+	if (this.tools.current !== null && event.type in this.tools.current.on)
+		this.tools.current.on[event.type].call(this.tools.current, this, event);
 }
 
-Editor.prototype.mousedown = function(event)
+Editor.prototype.on = {};
+
+Editor.prototype.on["mouseenter"] = function(event)
+{
+	this.cursor.active = true;
+	this.updateCursorPosition(event.pageX, event.pageY);
+}
+
+Editor.prototype.on["mouseleave"] = function(event)
+{
+	if (!ui.hasCapture(this.getCanvas()))
+		this.cursor.active = false;
+
+	this.updateCursorPosition(event.pageX, event.pageY);
+}
+
+Editor.prototype.on["mousemove"] = function(event)
 {
 	this.updateCursorPosition(event.pageX, event.pageY);
-
-	if (event.which === 2)
-	{
-		this.pan.active = true;
-		this.pan.cursor = this.cursor;
-		this.pan.hook.x = this.cursorPosition.x;
-		this.pan.hook.y = this.cursorPosition.y;
-		this.pan.position.x = this.renderer.position.x;
-		this.pan.position.y = this.renderer.position.y;
-		this.setCursor("res/pan.cur");
-
-		ui.capture(this.renderer.canvas);
-	}
 }
 
-Editor.prototype.mouseup = function(event)
+Editor.prototype.on["mousedown"] = function(event)
 {
-	if (event.which === 2 && this.pan.active)
-	{
-		ui.capture(null);
-
-		this.pan.active = false;
-		this.setCursor(this.pan.cursor);
-	}
+	this.updateCursorPosition(event.pageX, event.pageY);
 }
 
-Editor.prototype.keydown = function(event)
+Editor.prototype.on["keydown"] = function(event)
 {
 	if (event.ctrlKey)
 	{

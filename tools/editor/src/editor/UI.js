@@ -27,8 +27,8 @@ function UI(editor)
 	cmd["copy"]    = null;
 	cmd["cut"]     = null;
 	cmd["paste"]   = null;
-	cmd["select"]  = function() { editor.setCurrentTool("selection"); };
-	cmd["soldier"] = function() { editor.setCurrentTool("soldier"); };
+	cmd["select"]  = function() { editor.setTool("selection"); };
+	cmd["soldier"] = function() { editor.setTool("soldier"); };
 	cmd["zoomin"]  = function() { editor.zoomIn(); };
 	cmd["zoomout"] = function() { editor.zoomOut(); };
 
@@ -122,28 +122,37 @@ function UI(editor)
 
 	this.statusbar = ui.StatusBar("<label>&nbsp;</label>");
 
+	// panels
+
+	this.panelTop = $("#panel-top")[0];
+	this.panelLeft = $("#panel-left")[0];
+	this.panelBottom = $("#panel-bottom")[0];
+	this.panelView = $("#panel-view")[0];
+
 	// add ui to DOM
 
 	$(disabled).addClass("disabled");
 
-	$("#panel-top").append(
+	$(this.panelTop).append(
 		this.menubar,
 		ui.Separator(),
 		this.toolbar_top,
 		ui.Separator()
 	);
 
-	$("#panel-left").append(
+	$(this.panelLeft).append(
 		this.toolbar_left,
 		ui.Separator(true)
 	);
 
-	$("#panel-bottom").append(
+	$(this.panelBottom).append(
 		ui.Separator(),
 		this.statusbar
 	);
 
-	// disable some default stuff
+	$(this.panelView).append(editor.getCanvas());
+
+	// events
 
 	$(document).on("contextmenu", function() { return false; });
 
@@ -151,9 +160,20 @@ function UI(editor)
 		if (e.ctrlKey && (e.which === 107 || e.which === 109 || e.which === 83 || e.which === 96))
 			return false;
 	});
+
+	function fwd(event)
+	{
+		editor.event(event);
+	}
+
+	$(window).on("resize", fwd);
+	$(document).on("keydown keyup", fwd);
+	$(editor.getCanvas()).on("mousemove mousedown mouseup mouseenter mouseleave", fwd);
 }
 
-UI.prototype.onNewMap = function()
+UI.prototype.on = {};
+
+UI.prototype.on["newmap"] = function()
 {
 	var enable = [
 		this.file_save,

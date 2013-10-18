@@ -120,31 +120,53 @@ function initialize(canvas, params)
 
 function initialize_enums()
 {
-	gfx.Stream = gl.STREAM_DRAW;
-	gfx.Static = gl.STATIC_DRAW;
+	gfx.Default = {};
+
+	gfx.Stream  = gl.STREAM_DRAW;
+	gfx.Static  = gl.STATIC_DRAW;
 	gfx.Dynamic = gl.DYNAMIC_DRAW;
 
-	gfx.Points = gl.POINTS;
-	gfx.LineStrip = gl.LINE_STRIP;
-	gfx.LineLoop = gl.LINE_LOOP;
-	gfx.Lines = gl.LINES;
+	gfx.Points        = gl.POINTS;
+	gfx.LineStrip     = gl.LINE_STRIP;
+	gfx.LineLoop      = gl.LINE_LOOP;
+	gfx.Lines         = gl.LINES;
 	gfx.TriangleStrip = gl.TRIANGLE_STRIP;
-	gfx.TriangleFan = gl.TRIANGLE_FAN;
-	gfx.Triangles = gl.TRIANGLES;
+	gfx.TriangleFan   = gl.TRIANGLE_FAN;
+	gfx.Triangles     = gl.TRIANGLES;
 
-	gfx.RGBA = gl.RGBA;
-	gfx.RGB = gl.RGB;
+	gfx.RGBA  = gl.RGBA;
+	gfx.RGB   = gl.RGB;
 	gfx.ALPHA = gl.ALPHA;
 
-	gfx.Clamp = gl.CLAMP_TO_EDGE;
+	gfx.Clamp  = gl.CLAMP_TO_EDGE;
 	gfx.Repeat = gl.REPEAT;
 
-	gfx.Linear = gl.LINEAR;
-	gfx.Nearest = gl.NEAREST;
+	gfx.Linear               = gl.LINEAR;
+	gfx.Nearest              = gl.NEAREST;
 	gfx.NearestMipmapNearest = gl.NEAREST_MIPMAP_NEAREST;
-	gfx.LinearMipmapNearest = gl.LINEAR_MIPMAP_NEAREST;
-	gfx.NearestMipmapLinear = gl.NEAREST_MIPMAP_LINEAR;
-	gfx.LinearMipmapLinear = gl.LINEAR_MIPMAP_LINEAR;
+	gfx.LinearMipmapNearest  = gl.LINEAR_MIPMAP_NEAREST;
+	gfx.NearestMipmapLinear  = gl.NEAREST_MIPMAP_LINEAR;
+	gfx.LinearMipmapLinear   = gl.LINEAR_MIPMAP_LINEAR;
+
+	gfx.Zero                  = gl.ZERO;
+	gfx.One                   = gl.ONE;
+	gfx.SrcColor              = gl.SRC_COLOR;
+	gfx.OneMinusSrcColor      = gl.ONE_MINUS_SRC_COLOR;
+	gfx.SrcAlpha              = gl.SRC_ALPHA;
+	gfx.OneMinusSrcAlpha      = gl.ONE_MINUS_SRC_ALPHA;
+	gfx.DstAlpha              = gl.DST_ALPHA;
+	gfx.OneMinusDstAlpha      = gl.ONE_MINUS_DST_ALPHA;
+	gfx.DstColor              = gl.DST_COLOR;
+	gfx.OneMinusDstColor      = gl.ONE_MINUS_DST_COLOR;
+	gfx.SrcAlphaSaturate      = gl.SRC_ALPHA_SATURATE;
+	gfx.ConstantColor         = gl.CONSTANT_COLOR;
+	gfx.OneMinusConstantColor = gl.ONE_MINUS_CONSTANT_COLOR;
+	gfx.ConstantAlpha         = gl.CONSTANT_ALPHA;
+	gfx.OneMinusConstantAlpha = gl.ONE_MINUS_CONSTANT_ALPHA;
+
+	gfx.FuncAdd             = gl.FUNC_ADD;
+	gfx.FuncSubtract        = gl.FUNC_SUBTRACT;
+	gfx.FuncReverseSubtract = gl.FUNC_REVERSE_SUBTRACT;
 }
 
 function viewport(width, height)
@@ -163,6 +185,31 @@ function bgcolor(r, g, b, a)
 function clear()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+function blend(src, dst, srca, dsta)
+{
+	switch (arguments.length)
+	{
+		case 1: gl.blendFunc(gfx.SrcAlpha, gfx.OneMinusSrcAlpha); break;
+		case 2: gl.blendFunc(src, dst);                           break;
+		case 4: gl.blendFuncSeparate(src, dst, srca, dsta);       break;
+	}
+}
+
+function blendEquation(mode, modea)
+{
+	if (mode === gfx.Default)
+		gl.blendEquation(gfx.FuncAdd);
+	else if (arguments.length === 1)
+		gl.blendEquation(mode);
+	else
+		gl.blendEquation(mode, modea);
+}
+
+function blendColor(r, g, b, a)
+{
+	gl.blendColor(r / 255, g / 255, b / 255, a);
 }
 
 function lineWidth(width)
@@ -1220,6 +1267,9 @@ gfx.initialize = initialize;
 gfx.viewport = viewport;
 gfx.bgcolor = bgcolor;
 gfx.clear = clear;
+gfx.blend = blend;
+gfx.blendEquation = blendEquation;
+gfx.blendColor = blendColor;
 gfx.lineWidth = lineWidth;
 gfx.pointSize = pointSize;
 gfx.bind = bind;
