@@ -21,6 +21,7 @@ function Editor()
 	this.tools = {
 		current: null,
 		"selection": new g13.tools.Selection(),
+		"polygon": new g13.tools.Polygon(),
 		"soldier": new g13.tools.Soldier(),
 		"pan": new g13.tools.Pan()
 	};
@@ -39,12 +40,13 @@ function Editor()
 
 Editor.prototype.newMap = function(width, height)
 {
-	// replace this with new g13.Map()
+	// TODO: replace this with new g13.Map()
 	this.map = {
 		width: width,
 		height: height,
 		objects: [],
-		selection: new g13.Selection()
+		selection: new g13.Selection(),
+		view: {x: 0, y: 0, zoom: 1}
 	};
 
 	this.setTool("selection");
@@ -56,9 +58,19 @@ Editor.prototype.getCanvas = function()
 	return this.renderer.canvas;
 }
 
+Editor.prototype.getTexture = function(id)
+{
+	return this.renderer.textures[id];
+}
+
 Editor.prototype.getSelection = function()
 {
 	return this.map.selection;
+}
+
+Editor.prototype.getView = function()
+{
+	return this.map.view;
 }
 
 Editor.prototype.getObjects = function()
@@ -108,13 +120,16 @@ Editor.prototype.isCursorActive = function()
 
 Editor.prototype.setZoom = function(zoom)
 {
-	if (zoom !== this.renderer.zoom)
+	if (zoom !== this.map.view.zoom)
+	{
+		this.map.view.zoom = zoom;
 		this.event({type: "zoomchange", zoom: zoom});
+	}
 }
 
 Editor.prototype.getZoom = function()
 {
-	return this.renderer.zoom;
+	return this.map.view.zoom;
 }
 
 Editor.prototype.zoomIn = function()
@@ -146,9 +161,9 @@ Editor.prototype.updateCursorPosition = function(x, y)
 	this.cursor.absX = x;
 	this.cursor.absY = y;
 
-	var vx = this.renderer.position.x;
-	var vy = this.renderer.position.y;
-	var vz = this.renderer.zoom;
+	var vx = this.map.view.x;
+	var vy = this.map.view.y;
+	var vz = this.map.view.zoom;
 	var cw = this.getCanvas().width;
 	var ch = this.getCanvas().height;
 	var cx = offset.left;

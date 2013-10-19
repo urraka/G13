@@ -15,7 +15,8 @@ function UI(editor)
 		"select":  { font: "icomoon", ch: "\ue000" },
 		"soldier": { font: "icomoon", ch: "\uf183" },
 		"zoomin":  { font: "icomoon", ch: "\uf00e" },
-		"zoomout": { font: "icomoon", ch: "\uf010" }
+		"zoomout": { font: "icomoon", ch: "\uf010" },
+		"polygon": { font: "icomoon", ch: "\ue600" }
 	};
 
 	var disabled = [];
@@ -27,10 +28,11 @@ function UI(editor)
 	cmd["copy"]    = null;
 	cmd["cut"]     = null;
 	cmd["paste"]   = null;
-	cmd["select"]  = function() { editor.setTool("selection"); };
-	cmd["soldier"] = function() { editor.setTool("soldier"); };
 	cmd["zoomin"]  = function() { editor.zoomIn(); };
 	cmd["zoomout"] = function() { editor.zoomOut(); };
+	cmd["select"]  = function() { editor.setTool("selection"); };
+	cmd["polygon"] = function() { editor.setTool("polygon"); };
+	cmd["soldier"] = function() { editor.setTool("soldier"); };
 
 	// main menu
 
@@ -105,17 +107,20 @@ function UI(editor)
 	// left toolbar
 
 	this.tb_select  = ui.IconButton({icon: ico["select"],  tooltip: "Select",  handler: cmd["select"]});
+	this.tb_polygon = ui.IconButton({icon: ico["polygon"], tooltip: "Polygon", handler: cmd["polygon"]});
 	this.tb_soldier = ui.IconButton({icon: ico["soldier"], tooltip: "Soldier", handler: cmd["soldier"]});
 
 	this.toolbar_left = ui.Toolbar({
 		layout: "vertical",
 		items: [
 			this.tb_select,
+			this.tb_polygon,
 			this.tb_soldier
 		]
 	});
 
 	disabled.push(this.tb_select);
+	disabled.push(this.tb_polygon);
 	disabled.push(this.tb_soldier);
 
 	// statusbar
@@ -179,6 +184,7 @@ UI.prototype.on["newmap"] = function()
 		this.file_save,
 		this.tb_save,
 		this.tb_select,
+		this.tb_polygon,
 		this.tb_soldier
 	];
 

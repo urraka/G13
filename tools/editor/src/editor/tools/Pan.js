@@ -22,8 +22,8 @@ Pan.prototype.on["mousedown"] = function(editor, event)
 		this.prevCursor = editor.cursor.current;
 		this.hook.x = editor.cursor.absX;
 		this.hook.y = editor.cursor.absY;
-		this.position.x = editor.renderer.position.x;
-		this.position.y = editor.renderer.position.y;
+		this.position.x = editor.getView().x;
+		this.position.y = editor.getView().y;
 		editor.setCursor("res/pan.cur");
 
 		ui.capture(editor.getCanvas());
@@ -48,8 +48,8 @@ Pan.prototype.on["mousemove"] = function(editor, event)
 		var x = (editor.cursor.absX - this.hook.x) * (1 / editor.getZoom());
 		var y = (editor.cursor.absY - this.hook.y) * (1 / editor.getZoom());
 
-		editor.renderer.position.x = this.position.x + x;
-		editor.renderer.position.y = this.position.y + y;
+		editor.getView().x = this.position.x + x;
+		editor.getView().y = this.position.y + y;
 
 		editor.updateCursorPosition();
 		editor.invalidate();
@@ -62,8 +62,8 @@ Pan.prototype.on["zoomchange"] = function(editor, event)
 	{
 		this.hook.x = editor.cursor.absX;
 		this.hook.y = editor.cursor.absY;
-		this.position.x = editor.renderer.position.x;
-		this.position.y = editor.renderer.position.y;
+		this.position.x = editor.getView().x;
+		this.position.y = editor.getView().y;
 	}
 }
 

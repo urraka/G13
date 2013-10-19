@@ -11,6 +11,7 @@ var matrix1 = mat3();
 var matrix2 = mat3();
 
 var lineTexture = null;
+var spriteBatch = null;
 
 var shader = {
 	id: 0,
@@ -22,6 +23,8 @@ var shader = {
 		mvp: -1,
 		sampler: -1,
 		pointSize: -1,
+		viewWidth: -1,
+		viewHeight: -1,
 		position: -1,
 		texcoords: -1,
 		color: -1
@@ -31,6 +34,9 @@ var shader = {
 		"attribute vec4 vcolor;\n" +
 		"uniform mat3 mvp;\n" +
 		"uniform float pointSize;\n" +
+		"uniform float viewWidth;\n" +
+		"uniform float viewHeight;\n" +
+		"uniform bool pixelAlign;\n" +
 		"varying vec2 texcoords;\n" +
 		"varying vec4 color;\n" +
 		"void main(void)\n" +
@@ -38,6 +44,15 @@ var shader = {
 		"	color = vcolor;\n" +
 		"	texcoords = vtexcoords;\n" +
 		"	gl_Position = vec4(mvp * vec3(vposition, 1.0), 1.0);\n" +
+		"\n" +
+		"	if (pixelAlign)\n" +
+		"	{\n" +
+		"		vec2 p = gl_Position.xy;\n" +
+		"		vec2 v = vec2(viewWidth, viewHeight);\n" +
+		"		p = ((floor((p + vec2(1.0)) * v / 2.0) + vec2(0.5)) * 2.0) / v - vec2(1.0);\n" +
+		"		gl_Position.xy = p;\n" +
+		"	}\n" +
+		"\n" +
 		"	gl_PointSize = pointSize;\n" +
 		"}\n",
 	fs: "precision mediump float;\n" +
@@ -73,6 +88,10 @@ function initialize(canvas, params)
 	shader.loc.mvp = gl.getUniformLocation(shader.id, "mvp");
 	shader.loc.sampler = gl.getUniformLocation(shader.id, "sampler");
 	shader.loc.pointSize = gl.getUniformLocation(shader.id, "pointSize");
+	shader.loc.viewWidth = gl.getUniformLocation(shader.id, "viewWidth");
+	shader.loc.viewHeight = gl.getUniformLocation(shader.id, "viewHeight");
+	shader.loc.pixelAlign = gl.getUniformLocation(shader.id, "pixelAlign");
+
 	shader.loc.position = gl.getAttribLocation(shader.id, "vposition");
 	shader.loc.texcoords = gl.getAttribLocation(shader.id, "vtexcoords");
 	shader.loc.color = gl.getAttribLocation(shader.id, "vcolor");
@@ -116,6 +135,10 @@ function initialize(canvas, params)
 	});
 
 	gfx.White.filter(gfx.Nearest, gfx.Nearest);
+
+	// other stuff
+
+	spriteBatch = new SpriteBatch(1, gfx.Dynamic);
 }
 
 function initialize_enums()
@@ -174,6 +197,9 @@ function viewport(width, height)
 	shader.update = true;
 	mat3ortho(0, width, height, 0, shader.proj);
 
+	gl.uniform1f(shader.loc.viewWidth, width);
+	gl.uniform1f(shader.loc.viewHeight, height);
+
 	gl.viewport(0, 0, width, height);
 }
 
@@ -220,6 +246,14 @@ function lineWidth(width)
 function pointSize(size)
 {
 	gl.uniform1f(shader.loc.pointSize, size);
+}
+
+function pixelAlign(enable)
+{
+	if (enable)
+		gl.uniform1i(shader.loc.pixelAlign, 1);
+	else
+		gl.uniform1i(shader.loc.pixelAlign, 0);
 }
 
 function bind(texture)
@@ -652,6 +686,14 @@ function Sprite(properties)
 	}
 }
 
+Sprite.prototype.draw = function()
+{
+	spriteBatch.clear();
+	spriteBatch.add(this);
+	spriteBatch.upload();
+	spriteBatch.draw();
+}
+
 // -----------------------------------------------------------------------------
 // SpriteBatch
 // -----------------------------------------------------------------------------
@@ -771,7 +813,7 @@ function LineBatch()
 	this.size = 0;
 	this.strips = [];
 	this.lineWidth = 1;
-	this.color = { r: 0, g: 0, b: 0, a: 1 };
+	this.currentColor = { r: 0, g: 0, b: 0, a: 1 };
 	this.startPoint = { x: 0, y: 0, r: 0, g: 0, b: 0, a: 1, w: 1 };
 	this.startNew = true;
 }
@@ -794,10 +836,10 @@ LineBatch.prototype.clear = function()
 
 LineBatch.prototype.color = function(r, g, b, a)
 {
-	this.color.r = r;
-	this.color.g = g;
-	this.color.b = b;
-	this.color.a = a;
+	this.currentColor.r = r;
+	this.currentColor.g = g;
+	this.currentColor.b = b;
+	this.currentColor.a = a;
 }
 
 LineBatch.prototype.width = function(lineWidth)
@@ -810,10 +852,10 @@ LineBatch.prototype.moveTo = function(x, y)
 	this.startNew = true;
 	this.startPoint.x = x;
 	this.startPoint.y = y;
-	this.startPoint.r = this.color.r;
-	this.startPoint.g = this.color.g;
-	this.startPoint.b = this.color.b;
-	this.startPoint.a = this.color.a;
+	this.startPoint.r = this.currentColor.r;
+	this.startPoint.g = this.currentColor.g;
+	this.startPoint.b = this.currentColor.b;
+	this.startPoint.a = this.currentColor.a;
 	this.startPoint.w = this.lineWidth;
 }
 
@@ -845,10 +887,10 @@ LineBatch.prototype.lineTo = function(x, y)
 	strip.push({
 		x: x,
 		y: y,
-		r: this.color.r,
-		g: this.color.g,
-		b: this.color.b,
-		a: this.color.a,
+		r: this.currentColor.r,
+		g: this.currentColor.g,
+		b: this.currentColor.b,
+		a: this.currentColor.a,
 		w: this.lineWidth
 	});
 }
@@ -1263,29 +1305,30 @@ function mat3transform(x, y, rot, sx, sy, cx, cy, kx, ky, out)
 // exports
 // -----------------------------------------------------------------------------
 
-gfx.initialize = initialize;
-gfx.viewport = viewport;
-gfx.bgcolor = bgcolor;
-gfx.clear = clear;
-gfx.blend = blend;
+gfx.initialize    = initialize;
+gfx.viewport      = viewport;
+gfx.bgcolor       = bgcolor;
+gfx.clear         = clear;
+gfx.blend         = blend;
 gfx.blendEquation = blendEquation;
-gfx.blendColor = blendColor;
-gfx.lineWidth = lineWidth;
-gfx.pointSize = pointSize;
-gfx.bind = bind;
-gfx.draw = draw;
-gfx.transform = transform;
-gfx.identity = identity;
-gfx.translate = translate;
-gfx.rotate = rotate;
-gfx.scale = scale;
-gfx.skew = skew;
+gfx.blendColor    = blendColor;
+gfx.lineWidth     = lineWidth;
+gfx.pointSize     = pointSize;
+gfx.pixelAlign    = pixelAlign;
+gfx.bind          = bind;
+gfx.draw          = draw;
+gfx.transform     = transform;
+gfx.identity      = identity;
+gfx.translate     = translate;
+gfx.rotate        = rotate;
+gfx.scale         = scale;
+gfx.skew          = skew;
 
-gfx.VBO = VBO;
-gfx.IBO = IBO;
-gfx.Texture = Texture;
-gfx.LineBatch = LineBatch;
-gfx.Sprite = Sprite;
+gfx.VBO         = VBO;
+gfx.IBO         = IBO;
+gfx.Texture     = Texture;
+gfx.LineBatch   = LineBatch;
+gfx.Sprite      = Sprite;
 gfx.SpriteBatch = SpriteBatch;
 
 window.gfx = gfx;

@@ -67,6 +67,18 @@ Selection.prototype.on = {};
 Selection.prototype.on["toolactivate"] = function(editor)
 {
 	editor.setCursor("res/select.cur");
+	$(editor.ui.tb_select).addClass("enabled");
+
+	if (!editor.getSelection().isEmpty())
+		editor.invalidate();
+}
+
+Selection.prototype.on["tooldeactivate"] = function(editor)
+{
+	$(editor.ui.tb_select).removeClass("enabled");
+
+	if (!editor.getSelection().isEmpty())
+		editor.invalidate();
 }
 
 Selection.prototype.on["mousedown"] = function(editor, event)

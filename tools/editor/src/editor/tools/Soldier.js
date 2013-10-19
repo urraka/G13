@@ -6,9 +6,8 @@ g13["tools"]["Soldier"] = Soldier;
 
 function Soldier()
 {
-	this.vbo = new gfx.VBO(4, gfx.Dynamic);
-	this.vbo.mode = gfx.TriangleFan;
-	this.prevTool = null;
+	this.sprite = new gfx.Sprite();
+	this.soldier = new g13.Soldier(0, 0);
 }
 
 Soldier.prototype.on = {};
@@ -16,13 +15,13 @@ Soldier.prototype.on = {};
 Soldier.prototype.on["toolactivate"] = function(editor, event)
 {
 	editor.setCursor(null);
+	$(editor.ui.tb_soldier).addClass("enabled");
 	editor.invalidate();
-
-	this.prevTool = event.prevTool;
 }
 
 Soldier.prototype.on["tooldeactivate"] = function(editor)
 {
+	$(editor.ui.tb_soldier).removeClass("enabled");
 	editor.invalidate();
 }
 
@@ -35,9 +34,9 @@ Soldier.prototype.on["mousedown"] = function(editor, event)
 
 		editor.addObject(new g13.Soldier(x, y));
 	}
-	else if (event.which === 3 && this.prevTool !== null)
+	else if (event.which === 3)
 	{
-		editor.setTool(this.prevTool);
+		editor.setTool("selection");
 	}
 }
 
@@ -57,25 +56,12 @@ Soldier.prototype.on["draw"] = function(editor)
 	if (!editor.isCursorActive())
 		return;
 
-	var texture = editor.renderer.textures["soldier"];
+	this.soldier.setPosition(editor.cursor.mapX, editor.cursor.mapY);
+	this.soldier.sprite(this.sprite);
+	this.sprite.a = 0.8;
 
-	var w = 1.00390625 * 0.15 * texture.width;
-	var h = 1.00390625 * 0.15 * texture.height;
-
-	var x = editor.cursor.mapX;
-	var y = editor.cursor.mapY;
-
-	var alpha = 0.8;
-
-	this.vbo.set(0, -w/2 + x, -w/2 + y, 0, 0, 255, 255, 255, alpha);
-	this.vbo.set(1,  w/2 + x, -w/2 + y, 1, 0, 255, 255, 255, alpha);
-	this.vbo.set(2,  w/2 + x,  w/2 + y, 1, 1, 255, 255, 255, alpha);
-	this.vbo.set(3, -w/2 + x,  w/2 + y, 0, 1, 255, 255, 255, alpha);
-
-	this.vbo.upload();
-
-	gfx.bind(texture);
-	gfx.draw(this.vbo);
+	gfx.bind(editor.getTexture("soldier"));
+	this.sprite.draw();
 }
 
 })();

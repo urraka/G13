@@ -54,13 +54,13 @@ CanvasBackground.prototype.draw = function()
 	gfx.draw(this.vbo, 4);
 }
 
-CanvasBackground.prototype.update = function(width, height, zoom)
+CanvasBackground.prototype.update = function(map)
 {
-	var w = width;
-	var h = height;
+	var w = map.width;
+	var h = map.height;
 
-	var u = zoom * w / this.texture.width;
-	var v = zoom * h / this.texture.height;
+	var u = map.view.zoom * w / this.texture.width;
+	var v = map.view.zoom * h / this.texture.height;
 
 	var x0 = -w/2;
 	var y0 = -h/2;
@@ -76,7 +76,7 @@ CanvasBackground.prototype.update = function(width, height, zoom)
 	vbo.set(i++, x1, y1, u, v, 255, 255, 255, 1);
 	vbo.set(i++, x0, y1, 0, v, 255, 255, 255, 1);
 
-	var R = 4 / zoom;
+	var R = 4 / map.view.zoom;
 	var A = 0.8;
 
 	vbo.set(i++, x0 - R, y0 - R, 1, 0, 0, 0, 0, A);

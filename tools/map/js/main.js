@@ -33,7 +33,7 @@ function main()
 	zoomOutButton.addEventListener("click", zoomOut);
 	exportButton.addEventListener("click", exportMap);
 
-	gfx.initialize(canvas, { antialias: true, alpha: false, preserveDrawingBuffer: true });
+	gfx.initialize(canvas, { antialias: true, alpha: false/*, preserveDrawingBuffer: true*/ });
 	gfx.bgcolor(255, 255, 255, 1);
 	gfx.clear();
 
@@ -155,7 +155,6 @@ function resize()
 	canvas.height = h;
 
 	gfx.viewport(w, h);
-	gfx.clear();
 
 	draw(false);
 }
@@ -174,8 +173,8 @@ function draw(update)
 
 	if (true)
 	{
-		// gfx.bgcolor(255, 255, 255, 1);
-		// gfx.clear();
+		gfx.bgcolor(255, 255, 255, 1);
+		gfx.clear();
 
 		gfx.identity();
 		gfx.translate(canvas.width / 2, canvas.height / 2);

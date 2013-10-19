@@ -92,8 +92,8 @@ function initialize(map)
 		lineBatch = new gfx.LineBatch();
 
 	lineBatch.clear();
-	lineBatch.width(1);
-	lineBatch.color(0, 0, 0, 0.5);
+	lineBatch.width(1.5);
+	lineBatch.color(0, 0, 0, 1);
 
 	var edges = map.diagram.edges;
 
