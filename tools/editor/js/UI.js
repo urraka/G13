@@ -6,17 +6,17 @@ g13["UI"] = UI;
 function UI(editor)
 {
 	var ico = {
-		"new":     { font: "icomoon", ch: "\uf016" },
-		"open":    { font: "icomoon", ch: "\uf07c" },
-		"save":    { font: "icomoon", ch: "\uf0c7" },
-		"copy":    { font: "icomoon", ch: "\uf0c5" },
-		"cut":     { font: "icomoon", ch: "\uf0c4" },
-		"paste":   { font: "icomoon", ch: "\uf0ea" },
-		"select":  { font: "icomoon", ch: "\ue000" },
-		"soldier": { font: "icomoon", ch: "\uf183" },
-		"zoomin":  { font: "icomoon", ch: "\uf00e" },
-		"zoomout": { font: "icomoon", ch: "\uf010" },
-		"polygon": { font: "icomoon", ch: "\ue600" }
+		"new":     "icon-file",
+		"open":    "icon-folder-open-alt",
+		"save":    "icon-save",
+		"copy":    "icon-copy",
+		"cut":     "icon-cut",
+		"paste":   "icon-paste",
+		"select":  "icon-pointer",
+		"soldier": "icon-male",
+		"zoomin":  "icon-zoom-in",
+		"zoomout": "icon-zoom-out",
+		"polygon": "icon-polygon"
 	};
 
 	var disabled = [];
@@ -58,7 +58,14 @@ function UI(editor)
 		submenu: ui.Menu([
 			this.edit_copy,
 			this.edit_cut,
-			this.edit_paste
+			this.edit_paste,
+			ui.MenuItem({
+				caption: "Submenu",
+				submenu: ui.Menu([
+					ui.MenuItem({caption: "Something"}),
+					ui.MenuItem({caption: "Something"})
+				])
+			})
 		])
 	});
 

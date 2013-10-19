@@ -37,7 +37,7 @@ function MenuItem(params)
 
 	if (params.submenu)
 	{
-		item.addClass("has-submenu");
+		item.addClass("has-submenu icon-caret-right");
 		item.data("submenu", params.submenu);
 	}
 	else if (params.handler)
@@ -82,15 +82,13 @@ function IconButton(params)
 	var button = $(document.createElement("div"));
 
 	button.addClass("ui-icon-button");
-	button.css("font-family", params.icon.font);
+	button.addClass(params.icon);
 
 	if (params.tooltip)
 		button.attr("title", params.tooltip);
 
 	if (params.handler)
 		button.data("handler", params.handler);
-
-	button.text(params.icon.ch);
 
 	return button[0];
 }

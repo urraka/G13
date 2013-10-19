@@ -104,9 +104,7 @@
 	position: relative;
 }
 
-.ui-menu .ui-menu-item.has-submenu:after {
-	content: "\f0da";
-	font-family: "icomoon";
+.ui-menu .ui-menu-item.has-submenu:before {
 	font-size: 13px;
 	line-height: 1.5em;
 	display: block;
@@ -114,11 +112,6 @@
 	right: 6px;
 	top: 0;
 	bottom: 0;
-}
-
-.ui-menu .ui-menu-item.hover.has-submenu:after,
-.ui-menu .ui-menu-item.active.has-submenu:after {
-	background-position: -4px;
 }
 
 .ui-menu .ui-menu-item.hover,
@@ -171,8 +164,7 @@
 
 /* toolbar button icon */
 
-.ui-htoolbar .ui-icon-button,
-.ui-vtoolbar .ui-icon-button {
+.ui-icon-button {
 	display: inline-block;
 	border: 1px outset;
 	border-color: transparent;
@@ -185,13 +177,11 @@
 	vertical-align: top;
 }
 
-.ui-htoolbar .ui-icon-button:hover,
-.ui-vtoolbar .ui-icon-button:hover {
+.ui-icon-button:hover {
 	border-color: #FFF;
 }
 
-.ui-htoolbar .ui-icon-button:active,
-.ui-vtoolbar .ui-icon-button:active {
+.ui-icon-button:active {
 	border-color: #FFF;
 	border-style: inset;
 	padding-top: 1px;
@@ -200,27 +190,23 @@
 	height: 20px;
 }
 
-.ui-htoolbar .ui-icon-button.disabled,
-.ui-vtoolbar .ui-icon-button.disabled {
+.ui-icon-button.disabled {
 	color: #808080;
 	text-shadow: 1px 1px #FFF;
 }
 
-.ui-htoolbar .ui-icon-button.disabled:hover,
-.ui-vtoolbar .ui-icon-button.disabled:hover {
+.ui-icon-button.disabled:hover {
 	border-color: transparent;
 }
 
-.ui-htoolbar .ui-icon-button.disabled:active,
-.ui-vtoolbar .ui-icon-button.disabled:active {
+.ui-icon-button.disabled:active {
 	border-color: transparent;
 	padding: 0;
 	width: 21px;
 	height: 21px;
 }
 
-.ui-htoolbar .ui-icon-button.enabled,
-.ui-vtoolbar .ui-icon-button.enabled {
+.ui-icon-button.enabled {
 	border-color: #FFF;
 	border-style: inset;
 	padding-top: 1px;
