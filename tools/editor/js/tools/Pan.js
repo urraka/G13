@@ -24,8 +24,8 @@ Pan.prototype.on["mousedown"] = function(editor, event)
 		this.hook.y = editor.cursor.absY;
 		this.position.x = editor.getView().x;
 		this.position.y = editor.getView().y;
-		editor.setCursor("res/pan.cur");
 
+		editor.setCursor("pan");
 		ui.capture(editor.getCanvas());
 	}
 }

@@ -3,10 +3,33 @@
 g13 = window.g13 || {};
 g13["Editor"] = Editor;
 
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame;
+
 function Editor()
 {
+	var self = this;
+
 	this.map = null;
-	this.renderer = new g13.Renderer();
+
+	this.canvas = document.createElement("canvas");
+	this.update = function() { self.event({type: "draw"}); self.invalidated = false; };
+	this.invalidated = false;
+
+	gfx.initialize(this.canvas, {alpha: false, antialias: false});
+	gfx.bgcolor(0xC0, 0xC0, 0xC0, 1);
+	gfx.pointSize(7);
+
+	this.textures = {
+		"soldier": (function() {
+			var tx = new gfx.Texture("res/soldier.png");
+			tx.filter(gfx.LinearMipmapLinear, gfx.Linear);
+			tx.generateMipmap();
+			return tx;
+		})()
+	};
+
+	this.background = new g13.CanvasBackground();
+
 	this.ui = new g13.UI(this);
 
 	this.cursor = {
@@ -21,13 +44,12 @@ function Editor()
 	this.tools = {
 		current: null,
 		"selection": new g13.tools.Selection(),
-		"polygon": new g13.tools.Polygon(),
-		"soldier": new g13.tools.Soldier(),
-		"pan": new g13.tools.Pan()
+		"polygon":   new g13.tools.Polygon(),
+		"soldier":   new g13.tools.Soldier(),
+		"pan":       new g13.tools.Pan()
 	};
 
 	this.listeners = [
-		this.renderer,
 		this.ui,
 		this.tools["pan"]
 	];
@@ -40,27 +62,20 @@ function Editor()
 
 Editor.prototype.newMap = function(width, height)
 {
-	// TODO: replace this with new g13.Map()
-	this.map = {
-		width: width,
-		height: height,
-		objects: [],
-		selection: new g13.Selection(),
-		view: {x: 0, y: 0, zoom: 1}
-	};
+	this.map = new g13.Map();
+	this.map.resize(width, height);
 
-	this.setTool("selection");
 	this.event({type: "newmap", map: this.map});
 }
 
 Editor.prototype.getCanvas = function()
 {
-	return this.renderer.canvas;
+	return this.canvas;
 }
 
 Editor.prototype.getTexture = function(id)
 {
-	return this.renderer.textures[id];
+	return this.textures[id];
 }
 
 Editor.prototype.getSelection = function()
@@ -71,11 +86,6 @@ Editor.prototype.getSelection = function()
 Editor.prototype.getView = function()
 {
 	return this.map.view;
-}
-
-Editor.prototype.getObjects = function()
-{
-	return this.map.objects;
 }
 
 Editor.prototype.setTool = function(tool)
@@ -103,14 +113,11 @@ Editor.prototype.setTool = function(tool)
 
 Editor.prototype.setCursor = function(cursor)
 {
-	var css = "none";
-
-	if (cursor)
-		css = "url(" + cursor + "), default";
-
-	$(this.getCanvas()).css("cursor", css);
-
-	this.cursor.current = cursor;
+	if (this.cursor.current !== cursor)
+	{
+		this.cursor.current = cursor;
+		$(this.getCanvas()).css("cursor", this.ui.cursors[cursor].css);
+	}
 }
 
 Editor.prototype.isCursorActive = function()
@@ -142,12 +149,6 @@ Editor.prototype.zoomOut = function()
 	this.setZoom(this.getZoom() / 1.5);
 }
 
-Editor.prototype.addObject = function(object)
-{
-	this.map.objects.push(object);
-	this.renderer.invalidate();
-}
-
 Editor.prototype.updateCursorPosition = function(x, y)
 {
 	if (arguments.length === 0)
@@ -175,7 +176,16 @@ Editor.prototype.updateCursorPosition = function(x, y)
 
 Editor.prototype.invalidate = function()
 {
-	this.renderer.invalidate();
+	if (!this.invalidated)
+	{
+		this.invalidated = true;
+		requestAnimationFrame(this.update);
+	}
+}
+
+Editor.prototype.cancel = function()
+{
+	this.event({type: "cancel"});
 }
 
 // -----------------------------------------------------------------------------
@@ -223,25 +233,51 @@ Editor.prototype.on["mousedown"] = function(event)
 	this.updateCursorPosition(event.pageX, event.pageY);
 }
 
-Editor.prototype.on["keydown"] = function(event)
+Editor.prototype.on["draw"] = function()
 {
-	if (event.ctrlKey)
-	{
-		switch (event.which)
-		{
-			case 107:
-				this.zoomIn();
-				break;
+	var view = this.getView();
 
-			case 109:
-				this.zoomOut();
-				break;
+	gfx.clear();
+	gfx.identity();
+	gfx.translate(this.getCanvas().width / 2, this.getCanvas().height / 2);
+	gfx.scale(view.zoom, view.zoom);
+	gfx.translate(view.x, view.y);
 
-			case 96:
-				this.setZoom(1);
-				break;
-		}
-	}
+	this.background.draw();
+
+	if (this.map !== null)
+		this.map.draw(this);
+}
+
+Editor.prototype.on["resize"] = function()
+{
+	this.canvas.width = 0;
+	this.canvas.height = 0;
+
+	var w = $(this.ui.panels["view"]).width();
+	var h = $(this.ui.panels["view"]).height();
+
+	this.canvas.width = w;
+	this.canvas.height = h;
+
+	gfx.viewport(w, h);
+
+	this.invalidate();
+}
+
+Editor.prototype.on["newmap"] = function(event)
+{
+	this.setTool("selection");
+	this.background.update(event.map);
+	this.updateCursorPosition();
+	this.invalidate();
+}
+
+Editor.prototype.on["zoomchange"] = function(event)
+{
+	this.background.update(this.map);
+	this.updateCursorPosition();
+	this.invalidate();
 }
 
 })();

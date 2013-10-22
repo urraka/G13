@@ -1,6 +1,112 @@
 (function() {
 
 // -----------------------------------------------------------------------------
+// Commands & key bindings
+// -----------------------------------------------------------------------------
+
+var commands = {};
+var key_bindings = new Array(2*2*2*256);
+
+function command(name, handler)
+{
+	if (name in commands)
+	{
+		commands[name].handler = handler;
+	}
+	else
+	{
+		commands[name] = {
+			handler: handler,
+			elements: [],
+			bindings: [],
+			disabled: false
+		};
+	}
+}
+
+function enable(command)
+{
+	commands[command].disabled = false;
+	$(commands[command].elements).removeClass("disabled");
+}
+
+function disable(command)
+{
+	commands[command].disabled = true;
+	$(commands[command].elements).addClass("disabled");
+}
+
+function bind(keys, cmd)
+{
+	keys = keys.split('+');
+
+	if (keys.length === 0)
+		return;
+
+	for (var i = 0; i < keys.length; i++)
+	{
+		keys[i] = keys[i].toLowerCase().trim();
+
+		if (keys[i].length === 0)
+		{
+			keys[i] = "+";
+			keys.splice(i + 1, 1);
+		}
+
+		if (!(keys[i] in Key))
+		{
+			console.warn("Invalid key binding.", cmd);
+			return;
+		}
+	}
+
+	var key = keys[keys.length - 1];
+
+	keys = keys.slice(0, keys.length - 1);
+
+	var ALT = 1;
+	var CTRL = 2;
+	var SHIFT = 4;
+
+	var mode = 0;
+
+	mode |= keys.indexOf("alt") !== -1 ? ALT : 0;
+	mode |= keys.indexOf("ctrl") !== -1 ? CTRL : 0;
+	mode |= keys.indexOf("shift") !== -1 ? SHIFT : 0;
+
+	key_bindings[mode * 256 + Key[key]] = cmd;
+
+	if (!(cmd in commands))
+		command(cmd, null);
+
+	keys = [];
+
+	if (mode & CTRL)  keys.push("Ctrl");
+	if (mode & ALT)   keys.push("Alt");
+	if (mode & SHIFT) keys.push("Shift");
+
+	keys.push(key.toUpperCase());
+
+	commands[cmd].bindings.push(keys.join("+"));
+}
+
+$(function() {
+	$(document).on("keydown", function(event)
+	{
+		var mode = 0;
+
+		mode |= event.altKey ? 1 : 0;
+		mode |= event.ctrlKey ? 2 : 0;
+		mode |= event.shiftKey ? 4 : 0;
+
+		var command = key_bindings[mode * 256 + event.which];
+
+		if (command in commands && !commands[command].disabled)
+			commands[command].handler.call(window, event);
+	});
+});
+
+// -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
 
@@ -35,14 +141,18 @@ function MenuItem(params)
 {
 	var item = $(document.createElement("div"));
 
+	if (params.id)
+		item.attr("id", params.id);
+
 	if (params.submenu)
 	{
 		item.addClass("has-submenu icon-caret-right");
 		item.data("submenu", params.submenu);
 	}
-	else if (params.handler)
+	else if (params.command)
 	{
-		item.data("handler", params.handler);
+		item.data("command", params.command);
+		commands[params.command].elements.push(item[0]);
 	}
 
 	item.addClass("ui-menu-item");
@@ -84,11 +194,25 @@ function IconButton(params)
 	button.addClass("ui-icon-button");
 	button.addClass(params.icon);
 
-	if (params.tooltip)
-		button.attr("title", params.tooltip);
+	if (params.id)
+		button.attr("id", params.id);
 
-	if (params.handler)
-		button.data("handler", params.handler);
+	var tooltip = params.tooltip;
+
+	if (params.command)
+	{
+		button.data("command", params.command);
+		commands[params.command].elements.push(button[0]);
+
+		if (commands[params.command].bindings.length > 0)
+		{
+			tooltip = tooltip ? tooltip + " " : "";
+			tooltip += "(" + commands[params.command].bindings[0] + ")";
+		}
+	}
+
+	if (tooltip)
+		button.attr("title", tooltip);
 
 	return button[0];
 }
@@ -142,7 +266,7 @@ function capture(element)
 
 	var capturer = $(document.createElement("div"));
 	capturer.addClass("ui-capture");
-	capturer.css("cursor", $(element).css("cursor"));
+	capturer.css("cursor", element.style.cursor);
 
 	$(window).on("mouseup", captureHandler);
 	capturer.on("mousemove mousedown mouseup", captureHandler);
@@ -233,17 +357,17 @@ function close_menu(parentItem)
 
 	function on_item_mouseup(evt)
 	{
-		var handler = $(this).data("handler");
+		var command = $(this).data("command");
 
 		if ($(this).data("submenu"))
 		{
 			show_submenu(this);
 		}
-		else if (handler && !$(this).hasClass("disabled"))
+		else if (command && !$(this).hasClass("disabled"))
 		{
 			$(this).removeClass("hover");
 			$(".ui-menu-bar").trigger("close");
-			handler.call(this);
+			commands[command].handler.call(this);
 		}
 
 		evt.stopPropagation();
@@ -439,10 +563,10 @@ function close_menu(parentItem)
 		if (event.which !== 1)
 			return;
 
-		var handler = $(this).data("handler");
+		var command = $(this).data("command");
 
-		if (handler && pressedButton === this && !$(this).hasClass("disabled"))
-			handler.call(this);
+		if (command && pressedButton === this && !$(this).hasClass("disabled"))
+			commands[command].handler.call(this);
 
 		pressedButton = null;
 	}
@@ -482,6 +606,10 @@ ui["IconButton"] = IconButton;
 ui["Separator"]  = Separator;
 ui["StatusBar"]  = StatusBar;
 ui["capture"]    = capture;
-ui["hasCapture"]    = hasCapture;
+ui["hasCapture"] = hasCapture;
+ui["command"]    = command;
+ui["bind"]       = bind;
+ui["enable"]     = enable;
+ui["disable"]    = disable;
 
 })();

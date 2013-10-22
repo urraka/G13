@@ -3,33 +3,7 @@
 g13 = window.g13 || {};
 g13["Selection"] = Selection;
 
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-
-function expand(a, b)
-{
-	var R = a.x + a.w;
-	var B = a.y + a.h;
-
-	a.x = Math.min(a.x, b.x);
-	a.y = Math.min(a.y, b.y);
-	a.w = Math.max(R, b.x + b.w) - a.x;
-	a.h = Math.max(B, b.y + b.h) - a.y;
-}
-
-function assign(a, b)
-{
-	a.x = b.x;
-	a.y = b.y;
-	a.w = b.w;
-	a.h = b.h;
-}
-
-function compare(a, b)
-{
-	return b - a;
-}
+function compare(a, b) { return b - a; }
 
 // -----------------------------------------------------------------------------
 // Selection
@@ -47,10 +21,10 @@ Selection.prototype.computeBounds = function()
 
 	if (N > 0)
 	{
-		assign(this.bounds, this.objects[0].bounds);
+		rect_assign(this.bounds, this.objects[0].bounds);
 
 		for (var i = 1; i < N; i++)
-			expand(this.bounds, this.objects[i].bounds);
+			rect_expand(this.bounds, this.objects[i].bounds);
 	}
 }
 
@@ -67,7 +41,7 @@ Selection.prototype.add = function(object)
 
 		if (this.objects.length === 0)
 		{
-			assign(this.bounds, objects[0].bounds);
+			rect_assign(this.bounds, objects[0].bounds);
 			add = objects;
 		}
 		else
@@ -83,7 +57,7 @@ Selection.prototype.add = function(object)
 
 		for (var i = 0; i < add.length; i++)
 		{
-			expand(this.bounds, add[i].bounds);
+			rect_expand(this.bounds, add[i].bounds);
 			this.objects.push(add[i]);
 		}
 	}
@@ -91,12 +65,12 @@ Selection.prototype.add = function(object)
 	{
 		if (this.objects.length === 0)
 		{
-			assign(this.bounds, object.bounds);
+			rect_assign(this.bounds, object.bounds);
 			this.objects.push(object);
 		}
 		else if (!this.contains(object))
 		{
-			expand(this.bounds, object.bounds);
+			rect_expand(this.bounds, object.bounds);
 			this.objects.push(object);
 		}
 	}
@@ -134,7 +108,7 @@ Selection.prototype.toggle = function(object)
 		{
 			for (var i = 0; i < add.length; i++)
 			{
-				expand(this.bounds, add[i].bounds);
+				rect_expand(this.bounds, add[i].bounds);
 				this.objects.push(add[i]);
 			}
 		}
@@ -162,7 +136,7 @@ Selection.prototype.toggle = function(object)
 		}
 		else
 		{
-			expand(this.bounds, object.bounds);
+			rect_expand(this.bounds, object.bounds);
 			this.objects.push(object);
 		}
 	}

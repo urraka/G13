@@ -1,0 +1,146 @@
+(function() {
+
+g13["Polygon"] = Polygon;
+
+inherit(Polygon, g13.Object);
+
+var cache = {
+	matrix: mat3.create()
+};
+
+function Polygon(points)
+{
+	this.base.call(this);
+	this.points = points.slice(0);
+
+	// set bounds
+
+	this.bounds.x = points[0].x;
+	this.bounds.y = points[0].y;
+	this.bounds.w = 0;
+	this.bounds.h = 0;
+
+	var b = {x: 0, y: 0, w: 0, h: 0};
+
+	for (var i = 1; i < points.length; i++)
+	{
+		b.x = points[i].x;
+		b.y = points[i].y;
+
+		rect_expand(this.bounds, b);
+	}
+
+	// triangulate
+
+	var contour = [];
+
+	for (var i = 0; i < points.length; i++)
+		contour.push(new poly2tri.Point(points[i].x, points[i].y));
+
+	var sweepContext = new poly2tri.SweepContext(contour);
+	sweepContext.triangulate();
+
+	var triangles = sweepContext.getTriangles() || [];
+	this.triangles = triangles;
+
+	// create vbo
+
+	this.vbo = new gfx.VBO(points.length, gfx.Static);
+	this.ibo = new gfx.IBO(triangles.length * 3, gfx.Static);
+
+	for (var i = 0; i < sweepContext.pointCount(); i++)
+	{
+		var p = sweepContext.getPoint(i);
+
+		p.index = i;
+		this.vbo.set(i, p.x, p.y, 0, 0, 0, 0, 0, 1);
+	}
+
+	for (var i = 0, j = 0; i < triangles.length; i++)
+	{
+		this.ibo.set(j++, triangles[i].getPoint(0).index);
+		this.ibo.set(j++, triangles[i].getPoint(1).index);
+		this.ibo.set(j++, triangles[i].getPoint(2).index);
+	}
+
+	this.vbo.upload();
+	this.ibo.upload();
+	this.vbo.mode = gfx.Triangles;
+
+}
+
+Polygon.prototype.move = function(dx, dy)
+{
+	this.x += dx;
+	this.y += dy;
+	this.bounds.x += dx;
+	this.bounds.y += dy;
+}
+
+Polygon.prototype.hittest = function(x, y)
+{
+	var p = this.points;
+	var N = p.length;
+	var c = false;
+
+	for (var i = 0, j = N - 1; i < N; j = i++)
+	{
+		var x0 = p[j].x + this.x;
+		var y0 = p[j].y + this.y;
+		var x1 = p[i].x + this.x;
+		var y1 = p[i].y + this.y;
+
+		if ((y1 >= y) != (y0 >= y) && (x <= (x0 - x1) * (y - y1) / (y0 - y1) + x1))
+			c = !c;
+	}
+
+	return c;
+}
+
+Polygon.prototype.intersects = function(x, y, w, h)
+{
+	var a = this.bounds;
+
+	if (!rects_intersect(a.x, a.y, a.w, a.h, x, y, w, h))
+		return false;
+
+	var triangles = this.triangles;
+	var N = triangles.length;
+
+	var dx = this.x;
+	var dy = this.y;
+
+	for (var i = 0; i < N; i++)
+	{
+		var a = triangles[i].getPoint(0);
+		var b = triangles[i].getPoint(1);
+		var c = triangles[i].getPoint(2);
+
+		if (rect_intersects_triangle(x, y, w, h, a.x + dx, a.y + dy, b.x + dx, b.y + dy, c.x + dx, c.y + dy))
+			return true;
+	}
+
+	return false;
+}
+
+Polygon.prototype.contained = function(x, y, w, h)
+{
+	var X = this.bounds.x;
+	var Y = this.bounds.y;
+	var W = this.bounds.w;
+	var H = this.bounds.h;
+
+	return X > x && X + W < x + w && Y > y && Y + H < y + h;
+}
+
+Polygon.prototype.draw = function()
+{
+	var m = mat3.copy(gfx.transform(), cache.matrix);
+
+	gfx.translate(this.x, this.y);
+	gfx.bind(gfx.White);
+	gfx.draw(this.vbo, this.ibo);
+	gfx.transform(m);
+}
+
+})();

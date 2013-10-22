@@ -1,27 +1,29 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["Soldier"] = Soldier;
+
+inherit(Soldier, g13.Object);
 
 function Soldier(x, y)
 {
-	this.x = 0;
-	this.y = 0;
-	this.bounds = {x: 0, y: 0, w: 0, h: 0};
+	this.base.call(this);
 
-	this.setPosition(x, y);
+	var size = 512 * 1.00390625 * 0.15;
+
+	this.bounds.x = -size / 2;
+	this.bounds.y = -size / 2;
+	this.bounds.w = size;
+	this.bounds.h = size;
+
+	this.move(x, y);
 }
 
-Soldier.prototype.setPosition = function(x, y)
+Soldier.prototype.move = function(dx, dy)
 {
-	this.x = x;
-	this.y = y;
-
-	var size = 1.00390625 * 0.15 * 512;
-	var L = this.x - size / 2;
-	var T = this.y - size / 2;
-
-	this.bounds = {x: L, y: T, w: size, h: size};
+	this.x += dx;
+	this.y += dy;
+	this.bounds.x += dx;
+	this.bounds.y += dy;
 }
 
 Soldier.prototype.sprite = function(sprite)
@@ -48,32 +50,23 @@ Soldier.prototype.sprite = function(sprite)
 
 Soldier.prototype.contained = function(x, y, w, h)
 {
-	var X = this.bounds.x;
-	var Y = this.bounds.y;
-	var W = this.bounds.w;
-	var H = this.bounds.h;
+	var a = this.bounds;
 
-	return X > x && X + W < x + w && Y > y && Y + H < y + h;
+	return rect_contained(a.x, a.y, a.w, a.h, x, y, w, h);
 }
 
 Soldier.prototype.intersects = function(x, y, w, h)
 {
-	var X = this.bounds.x;
-	var Y = this.bounds.y;
-	var W = this.bounds.w;
-	var H = this.bounds.h;
+	var a = this.bounds;
 
-	return X < x + w && X + W > x && Y < y + h && Y + H > y;
+	return rects_intersect(a.x, a.y, a.w, a.h, x, y, w, h);
 }
 
 Soldier.prototype.hittest = function(x, y)
 {
-	var L = this.bounds.x;
-	var R = this.bounds.x + this.bounds.w;
-	var T = this.bounds.y;
-	var B = this.bounds.y + this.bounds.h;
+	var a = this.bounds;
 
-	return x > L && x < R && y > T && y < B;
+	return rect_contains(a.x, a.y, a.w, a.h, x, y);
 }
 
 })();

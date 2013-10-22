@@ -5,6 +5,13 @@ g13["UI"] = UI;
 
 function UI(editor)
 {
+	var panels = {
+		"top":    $("#panel-top")[0],
+		"left":   $("#panel-left")[0],
+		"bottom": $("#panel-bottom")[0],
+		"view":   $("#panel-view")[0]
+	};
+
 	var ico = {
 		"new":     "icon-file",
 		"open":    "icon-folder-open-alt",
@@ -19,157 +26,125 @@ function UI(editor)
 		"polygon": "icon-polygon"
 	};
 
-	var disabled = [];
+	ui.command("new"      , function() { editor.newMap(3000/2, 1600/2); });
+	ui.command("open"     , function() {                                });
+	ui.command("save"     , function() {                                });
+	ui.command("copy"     , function() {                                });
+	ui.command("cut"      , function() {                                });
+	ui.command("paste"    , function() {                                });
+	ui.command("zoomin"   , function() { editor.zoomIn();               });
+	ui.command("zoomout"  , function() { editor.zoomOut();              });
+	ui.command("resetzoom", function() { editor.setZoom(1);             });
+	ui.command("select"   , function() { editor.setTool("selection");   });
+	ui.command("polygon"  , function() { editor.setTool("polygon");     });
+	ui.command("soldier"  , function() { editor.setTool("soldier");     });
+	ui.command("cancel"   , function() { editor.cancel();               });
 
-	var cmd = {};
-	cmd["new"]     = function() { editor.newMap(3000/2, 1600/2); }
-	cmd["open"]    = null;
-	cmd["save"]    = null;
-	cmd["copy"]    = null;
-	cmd["cut"]     = null;
-	cmd["paste"]   = null;
-	cmd["zoomin"]  = function() { editor.zoomIn(); };
-	cmd["zoomout"] = function() { editor.zoomOut(); };
-	cmd["select"]  = function() { editor.setTool("selection"); };
-	cmd["polygon"] = function() { editor.setTool("polygon"); };
-	cmd["soldier"] = function() { editor.setTool("soldier"); };
+	ui.bind("ctrl+n"      , "new");
+	ui.bind("ctrl+o"      , "open");
+	ui.bind("ctrl+s"      , "save");
+	ui.bind("ctrl+c"      , "copy");
+	ui.bind("ctrl+x"      , "cut");
+	ui.bind("ctrl+v"      , "paste");
+	ui.bind("+"           , "zoomin");
+	ui.bind("-"           , "zoomout");
+	ui.bind("ctrl+numpad0", "resetzoom");
+	ui.bind("q"           , "select");
+	ui.bind("p"           , "polygon");
+	ui.bind("s"           , "soldier");
+	ui.bind("escape"      , "cancel");
 
-	// main menu
-
-	this.file_new = ui.MenuItem({caption: "New...", handler: cmd["new"]});
-	this.file_open = ui.MenuItem({caption: "Open...", handler: cmd["open"]});
-	this.file_save = ui.MenuItem({caption: "Save", handler: cmd["save"]});
-
-	this.edit_copy = ui.MenuItem({caption: "Copy", handler: cmd["copy"]});
-	this.edit_cut = ui.MenuItem({caption: "Cut", handler: cmd["cut"]});
-	this.edit_paste = ui.MenuItem({caption: "Paste", handler: cmd["paste"]});
-
-	this.file = ui.MenuItem({
-		caption: "File",
-		submenu: ui.Menu([
-			this.file_new,
-			this.file_open,
-			this.file_save
-		])
-	});
-
-	this.edit = ui.MenuItem({
-		caption: "Edit",
-		submenu: ui.Menu([
-			this.edit_copy,
-			this.edit_cut,
-			this.edit_paste,
+	$(panels["top"]).append(
+		ui.MenuBar([
 			ui.MenuItem({
-				caption: "Submenu",
+				caption: "File",
 				submenu: ui.Menu([
-					ui.MenuItem({caption: "Something"}),
-					ui.MenuItem({caption: "Something"})
+					ui.MenuItem({caption: "New...",  command: "new"}),
+					ui.MenuItem({caption: "Open...", command: "open"}),
+					ui.MenuItem({caption: "Save",    command: "save"})
+				])
+			}),
+			ui.MenuItem({
+				caption: "Edit",
+				submenu: ui.Menu([
+					ui.MenuItem({caption: "Copy",  command: "copy"}),
+					ui.MenuItem({caption: "Cut",   command: "cut"}),
+					ui.MenuItem({caption: "Paste", command: "paste"})
 				])
 			})
-		])
-	});
-
-	this.menubar = ui.MenuBar([
-		this.file,
-		this.edit
-	]);
-
-	disabled.push(this.file_save);
-	disabled.push(this.edit_copy);
-	disabled.push(this.edit_cut);
-	disabled.push(this.edit_paste);
-
-	// top toolbar
-
-	this.tb_new     = ui.IconButton({icon: ico["new"],     tooltip: "New...",   handler: cmd["new"]});
-	this.tb_open    = ui.IconButton({icon: ico["open"],    tooltip: "Open...",  handler: cmd["open"]});
-	this.tb_save    = ui.IconButton({icon: ico["save"],    tooltip: "Save",     handler: cmd["save"]});
-	this.tb_copy    = ui.IconButton({icon: ico["copy"],    tooltip: "Copy",     handler: cmd["copy"]});
-	this.tb_cut     = ui.IconButton({icon: ico["cut"],     tooltip: "Cut",      handler: cmd["cut"]});
-	this.tb_paste   = ui.IconButton({icon: ico["paste"],   tooltip: "Paste",    handler: cmd["paste"]});
-	this.tb_zoomin  = ui.IconButton({icon: ico["zoomin"],  tooltip: "Zoom In",  handler: cmd["zoomin"]});
-	this.tb_zoomout = ui.IconButton({icon: ico["zoomout"], tooltip: "Zoom Out", handler: cmd["zoomout"]});
-
-	this.toolbar_top = ui.Toolbar({
-		layout: "horizontal",
-		items: [
-			this.tb_new,
-			this.tb_open,
-			this.tb_save,
-			ui.Separator(),
-			this.tb_copy,
-			this.tb_cut,
-			this.tb_paste,
-			ui.Separator(),
-			this.tb_zoomin,
-			this.tb_zoomout
-		]
-	});
-
-	disabled.push(this.tb_save);
-	disabled.push(this.tb_copy);
-	disabled.push(this.tb_cut);
-	disabled.push(this.tb_paste);
-
-	// left toolbar
-
-	this.tb_select  = ui.IconButton({icon: ico["select"],  tooltip: "Select",  handler: cmd["select"]});
-	this.tb_polygon = ui.IconButton({icon: ico["polygon"], tooltip: "Polygon", handler: cmd["polygon"]});
-	this.tb_soldier = ui.IconButton({icon: ico["soldier"], tooltip: "Soldier", handler: cmd["soldier"]});
-
-	this.toolbar_left = ui.Toolbar({
-		layout: "vertical",
-		items: [
-			this.tb_select,
-			this.tb_polygon,
-			this.tb_soldier
-		]
-	});
-
-	disabled.push(this.tb_select);
-	disabled.push(this.tb_polygon);
-	disabled.push(this.tb_soldier);
-
-	// statusbar
-
-	this.statusbar = ui.StatusBar("<label>&nbsp;</label>");
-
-	// panels
-
-	this.panelTop = $("#panel-top")[0];
-	this.panelLeft = $("#panel-left")[0];
-	this.panelBottom = $("#panel-bottom")[0];
-	this.panelView = $("#panel-view")[0];
-
-	// add ui to DOM
-
-	$(disabled).addClass("disabled");
-
-	$(this.panelTop).append(
-		this.menubar,
+		]),
 		ui.Separator(),
-		this.toolbar_top,
+		ui.Toolbar({
+			layout: "horizontal",
+			items: [
+				ui.IconButton({icon: ico["new"],     tooltip: "New...",   command: "new"}),
+				ui.IconButton({icon: ico["open"],    tooltip: "Open...",  command: "open"}),
+				ui.IconButton({icon: ico["save"],    tooltip: "Save",     command: "save"}),
+				ui.Separator(),
+				ui.IconButton({icon: ico["copy"],    tooltip: "Copy",     command: "copy"}),
+				ui.IconButton({icon: ico["cut"],     tooltip: "Cut",      command: "cut"}),
+				ui.IconButton({icon: ico["paste"],   tooltip: "Paste",    command: "paste"}),
+				ui.Separator(),
+				ui.IconButton({icon: ico["zoomin"],  tooltip: "Zoom In",  command: "zoomin"}),
+				ui.IconButton({icon: ico["zoomout"], tooltip: "Zoom Out", command: "zoomout"})
+			]
+		}),
 		ui.Separator()
 	);
 
-	$(this.panelLeft).append(
-		this.toolbar_left,
+	$(panels["left"]).append(
+		ui.Toolbar({
+			layout: "vertical",
+			items: [
+				ui.IconButton({id: "tb-select",  icon: ico["select"],  tooltip: "Select",  command: "select"}),
+				ui.IconButton({id: "tb-polygon", icon: ico["polygon"], tooltip: "Polygon", command: "polygon"}),
+				ui.IconButton({id: "tb-soldier", icon: ico["soldier"], tooltip: "Soldier", command: "soldier"})
+			]
+		}),
 		ui.Separator(true)
 	);
 
-	$(this.panelBottom).append(
+	$(panels["bottom"]).append(
 		ui.Separator(),
-		this.statusbar
+		ui.StatusBar("<label>Some status...</label>")
 	);
 
-	$(this.panelView).append(editor.getCanvas());
+	$(panels["view"]).append(editor.getCanvas());
+
+	ui.disable("save");
+	ui.disable("copy");
+	ui.disable("cut");
+	ui.disable("paste");
+	ui.disable("select");
+	ui.disable("polygon");
+	ui.disable("soldier");
+
+	this.panels = panels;
+
+	this.tools = {
+		"select":  $("#tb-select")[0],
+		"polygon": $("#tb-polygon")[0],
+		"soldier": $("#tb-soldier")[0]
+	};
 
 	// events
 
-	$(document).on("contextmenu", function() { return false; });
+	$(document).on("contextmenu", function()
+	{
+		return false;
+	});
 
-	$(document).on("keydown", function(e) {
-		if (e.ctrlKey && (e.which === 107 || e.which === 109 || e.which === 83 || e.which === 96))
+	$(document).on("keydown", function(e)
+	{
+		var prevent = e.ctrlKey && (
+			e.which === Key["+"] ||
+			e.which === Key["-"] ||
+			e.which === Key["s"] ||
+			e.which === Key["n"] ||
+			e.which === Key["numpad0"]
+		);
+
+		if (prevent)
 			return false;
 	});
 
@@ -181,21 +156,43 @@ function UI(editor)
 	$(window).on("resize", fwd);
 	$(document).on("keydown keyup", fwd);
 	$(editor.getCanvas()).on("mousemove mousedown mouseup mouseenter mouseleave", fwd);
+
+	// cursors
+
+	var cursors = {};
+
+	cursors["pointer"]   = {file: "left_ptr.png",  x:  7, y:  4};
+	cursors["pan"]       = {file: "grabbing.png",  x: 13, y: 11};
+	cursors["cross"]     = {file: "tcross.png",    x: 11, y: 11};
+	cursors["crosshair"] = {file: "crosshair.png", x: 11, y: 11};
+	cursors["move"]      = {file: "move.cur"};
+
+	for (var i in cursors)
+	{
+		cursors[i].image = new Image();
+		cursors[i].image.src = "res/cursors/" + cursors[i].file;
+
+		var coords = "";
+
+		if ("x" in cursors[i])
+			coords = " " + cursors[i].x + " " + cursors[i].y;
+
+		cursors[i].css = "url('res/cursors/" + cursors[i].file + "')" + coords + ", default";
+	}
+
+	cursors["none"] = {css: "none"};
+
+	this.cursors = cursors;
 }
 
 UI.prototype.on = {};
 
 UI.prototype.on["newmap"] = function()
 {
-	var enable = [
-		this.file_save,
-		this.tb_save,
-		this.tb_select,
-		this.tb_polygon,
-		this.tb_soldier
-	];
-
-	$(enable).removeClass("disabled");
+	ui.enable("save");
+	ui.enable("select");
+	ui.enable("polygon");
+	ui.enable("soldier");
 }
 
 })();

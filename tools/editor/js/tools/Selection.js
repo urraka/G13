@@ -50,7 +50,7 @@ Selection.prototype.performDragging = function(editor)
 	for (var i = 0; i < selection.objects.length; i++)
 	{
 		var object = selection.objects[i];
-		object.setPosition(object.x + dx, object.y + dy);
+		object.move(dx, dy);
 	}
 
 	selection.bounds.x += dx;
@@ -66,8 +66,8 @@ Selection.prototype.on = {};
 
 Selection.prototype.on["toolactivate"] = function(editor)
 {
-	editor.setCursor("res/select.cur");
-	$(editor.ui.tb_select).addClass("enabled");
+	editor.setCursor("pointer");
+	$(editor.ui.tools["select"]).addClass("enabled");
 
 	if (!editor.getSelection().isEmpty())
 		editor.invalidate();
@@ -75,7 +75,7 @@ Selection.prototype.on["toolactivate"] = function(editor)
 
 Selection.prototype.on["tooldeactivate"] = function(editor)
 {
-	$(editor.ui.tb_select).removeClass("enabled");
+	$(editor.ui.tools["select"]).removeClass("enabled");
 
 	if (!editor.getSelection().isEmpty())
 		editor.invalidate();
@@ -88,15 +88,15 @@ Selection.prototype.on["mousedown"] = function(editor, event)
 
 	var selchange = false;
 
-	var objects = editor.getObjects();
 	var selection = editor.getSelection();
 
 	if (event.which === 1)
 	{
-		var object = this.hittest(objects, x, y);
+		var objects = editor.map.retrieve(x, y);
 
-		if (object !== null)
+		if (objects.length > 0)
 		{
+			var object = objects[0];
 			var selIndex = selection.find(object);
 
 			if (selIndex === -1)
@@ -118,7 +118,7 @@ Selection.prototype.on["mousedown"] = function(editor, event)
 				this.hook.x = x;
 				this.hook.y = y;
 
-				editor.setCursor("res/move.cur");
+				editor.setCursor("move");
 				ui.capture(editor.getCanvas());
 			}
 		}
@@ -160,13 +160,14 @@ Selection.prototype.on["mousemove"] = function(editor, event)
 	{
 		editor.invalidate();
 	}
-	else if (this.hittest(selection.objects, editor.cursor.mapX, editor.cursor.mapY))
-	{
-		editor.setCursor("res/move.cur");
-	}
 	else
 	{
-		editor.setCursor("res/select.cur");
+		var objects = editor.map.retrieve(editor.cursor.mapX, editor.cursor.mapY);
+
+		if (objects.length > 0 && selection.contains(objects[0]))
+			editor.setCursor("move");
+		else
+			editor.setCursor("pointer");
 	}
 }
 
@@ -180,7 +181,7 @@ Selection.prototype.on["mouseup"] = function(editor, event)
 			ui.capture(null);
 
 			if (!this.hittest(editor.getSelection().objects, editor.cursor.mapX, editor.cursor.mapY))
-				editor.setCursor("res/select.cur");
+				editor.setCursor("pointer");
 		}
 		else if (this.selecting)
 		{
@@ -209,7 +210,7 @@ Selection.prototype.on["mouseup"] = function(editor, event)
 			}
 
 			var selection = editor.getSelection();
-			var objects = editor.getObjects();
+			var objects = editor.map.retrieve(x, y, w, h);
 
 			if (!event.shiftKey && !selection.isEmpty())
 				selection.clear();

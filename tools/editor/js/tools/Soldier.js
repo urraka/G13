@@ -14,14 +14,14 @@ Soldier.prototype.on = {};
 
 Soldier.prototype.on["toolactivate"] = function(editor, event)
 {
-	editor.setCursor(null);
-	$(editor.ui.tb_soldier).addClass("enabled");
+	editor.setCursor("none");
+	$(editor.ui.tools["soldier"]).addClass("enabled");
 	editor.invalidate();
 }
 
 Soldier.prototype.on["tooldeactivate"] = function(editor)
 {
-	$(editor.ui.tb_soldier).removeClass("enabled");
+	$(editor.ui.tools["soldier"]).removeClass("enabled");
 	editor.invalidate();
 }
 
@@ -32,7 +32,7 @@ Soldier.prototype.on["mousedown"] = function(editor, event)
 		var x = editor.cursor.mapX;
 		var y = editor.cursor.mapY;
 
-		editor.addObject(new g13.Soldier(x, y));
+		editor.map.add(new g13.Soldier(x, y));
 	}
 	else if (event.which === 3)
 	{
@@ -56,7 +56,7 @@ Soldier.prototype.on["draw"] = function(editor)
 	if (!editor.isCursorActive())
 		return;
 
-	this.soldier.setPosition(editor.cursor.mapX, editor.cursor.mapY);
+	this.soldier.moveTo(editor.cursor.mapX, editor.cursor.mapY);
 	this.soldier.sprite(this.sprite);
 	this.sprite.a = 0.8;
 
