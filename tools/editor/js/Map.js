@@ -1,6 +1,5 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["Map"] = Map;
 
 var cache = {
@@ -15,6 +14,7 @@ function Map()
 	this.polygons = [];
 	this.selection = new g13.Selection();
 	this.view = {x: 0, y: 0, zoom: 1};
+	this.history = { index: -1, actions: [] };
 
 	this.spriteBatch = new gfx.SpriteBatch(5, gfx.Dynamic);
 }
@@ -62,6 +62,15 @@ Map.prototype.add = function(object)
 	{
 		case g13.Soldier: this.soldiers.push(object); break;
 		case g13.Polygon: this.polygons.push(object); break;
+	}
+}
+
+Map.prototype.remove = function(object)
+{
+	switch (object.constructor)
+	{
+		case g13.Soldier: array_remove(this.soldiers, object); break;
+		case g13.Polygon: array_remove(this.polygons, object); break;
 	}
 }
 

@@ -1,6 +1,5 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["tools"] = g13["tools"] || {};
 g13["tools"]["Selection"] = Selection;
 
@@ -13,6 +12,7 @@ function Selection()
 	this.dragging = false;
 	this.selecting = false;
 	this.hook = {x: 0, y: 0};
+	this.undoAction = null;
 	this.vbo = new gfx.VBO(8, gfx.Dynamic);
 
 	this.texture = new gfx.Texture(8, 8, gfx.RGBA, function(x, y, color) {
@@ -120,6 +120,19 @@ Selection.prototype.on["mousedown"] = function(editor, event)
 
 				editor.setCursor("move");
 				ui.capture(editor.getCanvas());
+
+				var undoData = {
+					objects: selection.objects.slice(0),
+					positions: []
+				};
+
+				for (var i = 0; i < undoData.objects.length; i++)
+					undoData.positions.push({x: undoData.objects[i].x, y: undoData.objects[i].y});
+
+				this.undoAction = {
+					func: "move_objects",
+					data: undoData
+				};
 			}
 		}
 		else
@@ -179,6 +192,23 @@ Selection.prototype.on["mouseup"] = function(editor, event)
 		{
 			this.dragging = false;
 			ui.capture(null);
+
+			var redoData = {
+				objects: this.undoAction.data.objects,
+				positions: []
+			};
+
+			for (var i = 0; i < redoData.objects.length; i++)
+				redoData.positions.push({x: redoData.objects[i].x, y: redoData.objects[i].y});
+
+			var redoAction = {
+				func: "move_objects",
+				data: redoData
+			};
+
+			editor.pushHistory({undo: this.undoAction, redo: redoAction});
+
+			this.undoAction = null;
 
 			if (!this.hittest(editor.getSelection().objects, editor.cursor.mapX, editor.cursor.mapY))
 				editor.setCursor("pointer");

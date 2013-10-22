@@ -1,6 +1,5 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["Selection"] = Selection;
 
 function compare(a, b) { return b - a; }

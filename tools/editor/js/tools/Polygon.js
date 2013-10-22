@@ -1,6 +1,5 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["tools"] = g13["tools"] || {};
 g13["tools"]["Polygon"] = Polygon;
 
@@ -33,7 +32,15 @@ Polygon.prototype.addPoint = function(x, y)
 
 Polygon.prototype.close = function(editor)
 {
-	editor.map.add(new g13.Polygon(this.polygon));
+	var polygon = new g13.Polygon(this.polygon);
+
+	var objects = [polygon];
+
+	editor.execute({
+		undo: {func: "remove_objects", data: {objects: objects}},
+		redo: {func: "add_objects", data: {objects: objects, select: false}}
+	});
+
 	this.polygon = null;
 }
 

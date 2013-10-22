@@ -188,6 +188,79 @@ Editor.prototype.cancel = function()
 	this.event({type: "cancel"});
 }
 
+Editor.prototype.delete = function()
+{
+	var selection = this.getSelection();
+
+	if (!selection.isEmpty())
+	{
+		var objects = selection.objects.slice(0);
+
+		this.execute({
+			undo: {func: "add_objects", data: {objects: objects, select: true}},
+			redo: {func: "remove_objects", data: {objects: objects}}
+		});
+	}
+}
+
+Editor.prototype.execute = function(action)
+{
+	g13.actions[action.redo.func](this, action.redo.data);
+
+	this.pushHistory(action);
+	this.invalidate();
+}
+
+Editor.prototype.pushHistory = function(action)
+{
+	var history = this.map.history;
+
+	if (history.index < history.actions.length - 1)
+		history.actions.splice(history.index + 1, history.actions.length);
+
+	history.actions.push(action);
+	history.index++;
+
+	// TODO: set some limits
+
+	ui.enable("undo");
+	ui.disable("redo");
+}
+
+Editor.prototype.undo = function()
+{
+	var history = this.map.history;
+
+	if (history.index >= 0)
+	{
+		var action = history.actions[history.index--].undo;
+		g13.actions[action.func](this, action.data);
+		this.invalidate();
+
+		ui.enable("redo");
+
+		if (history.index < 0)
+			ui.disable("undo");
+	}
+}
+
+Editor.prototype.redo = function()
+{
+	var history = this.map.history;
+
+	if (history.index < history.actions.length - 1)
+	{
+		var action = history.actions[++history.index].redo;
+		g13.actions[action.func](this, action.data);
+		this.invalidate();
+
+		ui.enable("undo");
+
+		if (history.index === history.actions.length - 1)
+			ui.disable("redo");
+	}
+}
+
 // -----------------------------------------------------------------------------
 // events
 // -----------------------------------------------------------------------------

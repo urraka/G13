@@ -1,6 +1,5 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["UI"] = UI;
 
 function UI(editor)
@@ -19,6 +18,8 @@ function UI(editor)
 		"copy":    "icon-copy",
 		"cut":     "icon-cut",
 		"paste":   "icon-paste",
+		"undo":    "icon-undo",
+		"redo":    "icon-repeat",
 		"select":  "icon-pointer",
 		"soldier": "icon-male",
 		"zoomin":  "icon-zoom-in",
@@ -39,20 +40,27 @@ function UI(editor)
 	ui.command("polygon"  , function() { editor.setTool("polygon");     });
 	ui.command("soldier"  , function() { editor.setTool("soldier");     });
 	ui.command("cancel"   , function() { editor.cancel();               });
+	ui.command("undo"     , function() { editor.undo();                 });
+	ui.command("redo"     , function() { editor.redo();                 });
+	ui.command("delete"   , function() { editor.delete();               });
 
-	ui.bind("ctrl+n"      , "new");
-	ui.bind("ctrl+o"      , "open");
-	ui.bind("ctrl+s"      , "save");
-	ui.bind("ctrl+c"      , "copy");
-	ui.bind("ctrl+x"      , "cut");
-	ui.bind("ctrl+v"      , "paste");
-	ui.bind("+"           , "zoomin");
-	ui.bind("-"           , "zoomout");
-	ui.bind("ctrl+numpad0", "resetzoom");
-	ui.bind("q"           , "select");
-	ui.bind("p"           , "polygon");
-	ui.bind("s"           , "soldier");
-	ui.bind("escape"      , "cancel");
+	ui.bind("ctrl+n"       , "new");
+	ui.bind("ctrl+o"       , "open");
+	ui.bind("ctrl+s"       , "save");
+	ui.bind("ctrl+c"       , "copy");
+	ui.bind("ctrl+x"       , "cut");
+	ui.bind("ctrl+v"       , "paste");
+	ui.bind("+"            , "zoomin");
+	ui.bind("-"            , "zoomout");
+	ui.bind("ctrl+numpad0" , "resetzoom");
+	ui.bind("q"            , "select");
+	ui.bind("p"            , "polygon");
+	ui.bind("s"            , "soldier");
+	ui.bind("escape"       , "cancel");
+	ui.bind("ctrl+z"       , "undo");
+	ui.bind("ctrl+shift+z" , "redo");
+	ui.bind("ctrl+y"       , "redo");
+	ui.bind("delete"       , "delete");
 
 	$(panels["top"]).append(
 		ui.MenuBar([
@@ -85,6 +93,9 @@ function UI(editor)
 				ui.IconButton({icon: ico["cut"],     tooltip: "Cut",      command: "cut"}),
 				ui.IconButton({icon: ico["paste"],   tooltip: "Paste",    command: "paste"}),
 				ui.Separator(),
+				ui.IconButton({icon: ico["undo"],    tooltip: "Undo",     command: "undo"}),
+				ui.IconButton({icon: ico["redo"],    tooltip: "Redo",     command: "redo"}),
+				ui.Separator(),
 				ui.IconButton({icon: ico["zoomin"],  tooltip: "Zoom In",  command: "zoomin"}),
 				ui.IconButton({icon: ico["zoomout"], tooltip: "Zoom Out", command: "zoomout"})
 			]
@@ -115,6 +126,8 @@ function UI(editor)
 	ui.disable("copy");
 	ui.disable("cut");
 	ui.disable("paste");
+	ui.disable("undo");
+	ui.disable("redo");
 	ui.disable("select");
 	ui.disable("polygon");
 	ui.disable("soldier");

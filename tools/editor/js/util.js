@@ -7,6 +7,14 @@ function inherit(sub, base)
 	sub.prototype.base = base;
 }
 
+function array_remove(array, item)
+{
+	var index = array.indexOf(item);
+
+	if (index !== -1)
+		array.splice(index, 1);
+}
+
 function sqr(x)
 {
 	return x * x;

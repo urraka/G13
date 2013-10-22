@@ -7,23 +7,19 @@ inherit(Soldier, g13.Object);
 function Soldier(x, y)
 {
 	this.base.call(this);
-
-	var size = 512 * 1.00390625 * 0.15;
-
-	this.bounds.x = -size / 2;
-	this.bounds.y = -size / 2;
-	this.bounds.w = size;
-	this.bounds.h = size;
-
+	this.updateLocalBounds();
+	this.updateBounds();
 	this.move(x, y);
 }
 
-Soldier.prototype.move = function(dx, dy)
+Soldier.prototype.updateLocalBounds = function()
 {
-	this.x += dx;
-	this.y += dy;
-	this.bounds.x += dx;
-	this.bounds.y += dy;
+	var size = 512 * 1.00390625 * 0.15;
+
+	this.localBounds.x = -size / 2;
+	this.localBounds.y = -size / 2;
+	this.localBounds.w = size;
+	this.localBounds.h = size;
 }
 
 Soldier.prototype.sprite = function(sprite)

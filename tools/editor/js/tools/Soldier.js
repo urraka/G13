@@ -1,6 +1,5 @@
 (function() {
 
-g13 = window.g13 || {};
 g13["tools"] = g13["tools"] || {};
 g13["tools"]["Soldier"] = Soldier;
 
@@ -32,7 +31,12 @@ Soldier.prototype.on["mousedown"] = function(editor, event)
 		var x = editor.cursor.mapX;
 		var y = editor.cursor.mapY;
 
-		editor.map.add(new g13.Soldier(x, y));
+		var objects = [new g13.Soldier(x, y)];
+
+		editor.execute({
+			undo: {func: "remove_objects", data: {objects: objects}},
+			redo: {func: "add_objects", data: {objects: objects, select: false}}
+		});
 	}
 	else if (event.which === 3)
 	{

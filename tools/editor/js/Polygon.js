@@ -13,24 +13,28 @@ function Polygon(points)
 	this.base.call(this);
 	this.points = points.slice(0);
 
-	// set bounds
+	// move points so origin is at center of local bounds, just because
 
-	this.bounds.x = points[0].x;
-	this.bounds.y = points[0].y;
-	this.bounds.w = 0;
-	this.bounds.h = 0;
+	this.updateLocalBounds();
 
-	var b = {x: 0, y: 0, w: 0, h: 0};
+	var cx = this.localBounds.x + this.localBounds.w / 2;
+	var cy = this.localBounds.y + this.localBounds.h / 2;
 
-	for (var i = 1; i < points.length; i++)
+	for (var i = 0; i < this.points.length; i++)
 	{
-		b.x = points[i].x;
-		b.y = points[i].y;
-
-		rect_expand(this.bounds, b);
+		this.points[i].x -= cx;
+		this.points[i].y -= cy;
 	}
 
+	this.x += cx;
+	this.y += cy;
+
+	this.updateLocalBounds();
+	this.updateBounds();
+
 	// triangulate
+
+	points = this.points;
 
 	var contour = [];
 
@@ -69,12 +73,30 @@ function Polygon(points)
 
 }
 
-Polygon.prototype.move = function(dx, dy)
+Polygon.prototype.updateLocalBounds = function()
 {
-	this.x += dx;
-	this.y += dy;
-	this.bounds.x += dx;
-	this.bounds.y += dy;
+	this.localBounds.x = 0;
+	this.localBounds.y = 0;
+	this.localBounds.w = 0;
+	this.localBounds.h = 0;
+
+	var points = this.points;
+
+	if (points.length > 0)
+	{
+		this.localBounds.x = points[0].x;
+		this.localBounds.y = points[0].y;
+
+		var b = {x: 0, y: 0, w: 0, h: 0};
+
+		for (var i = 1; i < points.length; i++)
+		{
+			b.x = points[i].x;
+			b.y = points[i].y;
+
+			rect_expand(this.localBounds, b);
+		}
+	}
 }
 
 Polygon.prototype.hittest = function(x, y)
@@ -112,11 +134,14 @@ Polygon.prototype.intersects = function(x, y, w, h)
 
 	for (var i = 0; i < N; i++)
 	{
-		var a = triangles[i].getPoint(0);
-		var b = triangles[i].getPoint(1);
-		var c = triangles[i].getPoint(2);
+		var ax = triangles[i].getPoint(0).x + dx;
+		var ay = triangles[i].getPoint(0).y + dy;
+		var bx = triangles[i].getPoint(1).x + dx;
+		var by = triangles[i].getPoint(1).y + dy;
+		var cx = triangles[i].getPoint(2).x + dx;
+		var cy = triangles[i].getPoint(2).y + dy;
 
-		if (rect_intersects_triangle(x, y, w, h, a.x + dx, a.y + dy, b.x + dx, b.y + dy, c.x + dx, c.y + dy))
+		if (rect_intersects_triangle(x, y, w, h, ax, ay, bx, by, cx, cy))
 			return true;
 	}
 
@@ -125,12 +150,9 @@ Polygon.prototype.intersects = function(x, y, w, h)
 
 Polygon.prototype.contained = function(x, y, w, h)
 {
-	var X = this.bounds.x;
-	var Y = this.bounds.y;
-	var W = this.bounds.w;
-	var H = this.bounds.h;
+	var a = this.bounds;
 
-	return X > x && X + W < x + w && Y > y && Y + H < y + h;
+	return rect_contained(a.x, a.y, a.w, a.h, x, y, w, h);
 }
 
 Polygon.prototype.draw = function()
