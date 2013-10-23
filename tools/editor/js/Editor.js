@@ -25,6 +25,13 @@ function Editor()
 			tx.filter(gfx.LinearMipmapLinear, gfx.Linear);
 			tx.generateMipmap();
 			return tx;
+		})(),
+		"rock": (function() {
+			var tx = new gfx.Texture("res/rock.png");
+			tx.filter(gfx.LinearMipmapLinear, gfx.Linear);
+			tx.wrap(gfx.Repeat, gfx.Repeat);
+			tx.generateMipmap();
+			return tx;
 		})()
 	};
 
@@ -200,6 +207,8 @@ Editor.prototype.delete = function()
 			undo: {func: "add_objects", data: {objects: objects, select: true}},
 			redo: {func: "remove_objects", data: {objects: objects}}
 		});
+
+		this.event({type: "objectschange"});
 	}
 }
 
@@ -241,6 +250,8 @@ Editor.prototype.undo = function()
 
 		if (history.index < 0)
 			ui.disable("undo");
+
+		this.event({type: "objectschange"});
 	}
 }
 
@@ -258,6 +269,8 @@ Editor.prototype.redo = function()
 
 		if (history.index === history.actions.length - 1)
 			ui.disable("redo");
+
+		this.event({type: "objectschange"});
 	}
 }
 

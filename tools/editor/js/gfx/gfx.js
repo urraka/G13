@@ -7,8 +7,10 @@ var szvertex = (2 + 2 + 1) * szfloat;
 var gfx = {};
 var gl = null;
 
-var matrix1 = mat3();
-var matrix2 = mat3();
+var cache = {
+	matrix1: mat3(),
+	matrix2: mat3()
+};
 
 var lineTexture = null;
 var spriteBatch = null;
@@ -18,13 +20,19 @@ var shader = {
 	mvp: mat3(),
 	proj: mat3(),
 	view: mat3(),
-	update: true,
+	mtx: mat3(),
+	updateMvp: true,
+	updateMtx: false,
 	loc: {
 		mvp: -1,
+		mtx: -1,
 		sampler: -1,
 		pointSize: -1,
 		viewWidth: -1,
 		viewHeight: -1,
+		pixelAlign: -1,
+		patternFill: -1,
+		patternSize: -1,
 		position: -1,
 		texcoords: -1,
 		color: -1
@@ -33,27 +41,26 @@ var shader = {
 		"attribute vec2 vtexcoords;\n" +
 		"attribute vec4 vcolor;\n" +
 		"uniform mat3 mvp;\n" +
+		"uniform mat3 mtx;\n" +
 		"uniform float pointSize;\n" +
-		"uniform float viewWidth;\n" +
-		"uniform float viewHeight;\n" +
+		"uniform vec2 viewSize;\n" +
 		"uniform bool pixelAlign;\n" +
 		"varying vec2 texcoords;\n" +
 		"varying vec4 color;\n" +
 		"void main(void)\n" +
 		"{\n" +
+		"	gl_PointSize = pointSize;\n" +
 		"	color = vcolor;\n" +
-		"	texcoords = vtexcoords;\n" +
+		"	texcoords = vec2(mtx * vec3(vtexcoords, 1.0));\n" +
 		"	gl_Position = vec4(mvp * vec3(vposition, 1.0), 1.0);\n" +
 		"\n" +
 		"	if (pixelAlign)\n" +
 		"	{\n" +
 		"		vec2 p = gl_Position.xy;\n" +
-		"		vec2 v = vec2(viewWidth, viewHeight);\n" +
+		"		vec2 v = viewSize;\n" +
 		"		p = ((floor((p + vec2(1.0)) * v / 2.0) + vec2(0.5)) * 2.0) / v - vec2(1.0);\n" +
 		"		gl_Position.xy = p;\n" +
 		"	}\n" +
-		"\n" +
-		"	gl_PointSize = pointSize;\n" +
 		"}\n",
 	fs: "precision mediump float;\n" +
 		"varying mediump vec2 texcoords;\n" +
@@ -82,21 +89,29 @@ function initialize(canvas, params)
 
 	// initialize shader
 
+	shader.currentMatrix = shader.view;
+
 	mat3identity(shader.view);
+	mat3identity(shader.mtx);
 
 	shader.id = shader_create(shader.vs, shader.fs);
+
+	// uniforms
 	shader.loc.mvp = gl.getUniformLocation(shader.id, "mvp");
+	shader.loc.mtx = gl.getUniformLocation(shader.id, "mtx");
 	shader.loc.sampler = gl.getUniformLocation(shader.id, "sampler");
 	shader.loc.pointSize = gl.getUniformLocation(shader.id, "pointSize");
-	shader.loc.viewWidth = gl.getUniformLocation(shader.id, "viewWidth");
-	shader.loc.viewHeight = gl.getUniformLocation(shader.id, "viewHeight");
+	shader.loc.viewSize = gl.getUniformLocation(shader.id, "viewSize");
 	shader.loc.pixelAlign = gl.getUniformLocation(shader.id, "pixelAlign");
 
+	gl.uniform1i(shader.loc.sampler, 0);
+	gl.uniform1i(shader.loc.pixelAlign, 0);
+	gl.uniformMatrix3fv(shader.loc.mtx, false, shader.mtx);
+
+	// attributes
 	shader.loc.position = gl.getAttribLocation(shader.id, "vposition");
 	shader.loc.texcoords = gl.getAttribLocation(shader.id, "vtexcoords");
 	shader.loc.color = gl.getAttribLocation(shader.id, "vcolor");
-
-	gl.uniform1i(shader.loc.sampler, 0);
 
 	gl.enableVertexAttribArray(shader.loc.position);
 	gl.enableVertexAttribArray(shader.loc.texcoords);
@@ -144,6 +159,7 @@ function initialize(canvas, params)
 function initialize_enums()
 {
 	gfx.Default = {};
+	gfx.View = {};
 
 	gfx.Stream  = gl.STREAM_DRAW;
 	gfx.Static  = gl.STATIC_DRAW;
@@ -194,12 +210,11 @@ function initialize_enums()
 
 function viewport(width, height)
 {
-	shader.update = true;
+	shader.updateMvp = true;
+
 	mat3ortho(0, width, height, 0, shader.proj);
 
-	gl.uniform1f(shader.loc.viewWidth, width);
-	gl.uniform1f(shader.loc.viewHeight, height);
-
+	gl.uniform2f(shader.loc.viewSize, width, height);
 	gl.viewport(0, 0, width, height);
 }
 
@@ -306,11 +321,17 @@ function draw(vbo, ibo, offset, count)
 		break;
 	}
 
-	if (shader.update)
+	if (shader.updateMvp)
 	{
 		mat3mul(shader.proj, shader.view, shader.mvp);
 		gl.uniformMatrix3fv(shader.loc.mvp, false, shader.mvp);
-		shader.update = false;
+		shader.updateMvp = false;
+	}
+
+	if (shader.updateMtx)
+	{
+		gl.uniformMatrix3fv(shader.loc.mtx, false, shader.mtx);
+		shader.updateMtx = false;
 	}
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, vbo.id);
@@ -336,47 +357,137 @@ function draw(vbo, ibo, offset, count)
 	}
 }
 
-function transform(m)
+function transform(type, matrix)
 {
-	if (arguments.length === 0)
-		return shader.view;
+	switch (arguments.length)
+	{
+		case 0:
+			return shader.view;
 
-	mat3copy(m, shader.view);
-	shader.update = true;
+		case 1:
+		{
+			switch (type)
+			{
+				case gfx.Texture:
+					return shader.mtx;
+
+				case gfx.View:
+					return shader.view;
+
+				default:
+					mat3copy(type, shader.view);
+					shader.updateMvp = true;
+					break;
+			}
+		}
+		break;
+
+		case 2:
+		{
+			switch (type)
+			{
+				case gfx.Texture:
+					mat3copy(matrix, shader.mtx);
+					shader.updateMtx = true;
+					break;
+
+				case gfx.View:
+					mat3copy(matrix, shader.view);
+					shader.updateMvp = true;
+					break;
+			}
+		}
+		break;
+	}
 }
 
-function identity()
+function identity(type)
 {
-	mat3identity(matrix1);
-	transform(matrix1);
+	mat3identity(cache.matrix1);
+	transform(type || gfx.View, cache.matrix1);
 }
 
-function translate(x, y)
+function translate(type, x, y)
 {
-	mat3translate(x, y, matrix1);
-	mat3mul(shader.view, matrix1, matrix2);
-	transform(matrix2);
+	switch (arguments.length)
+	{
+		case 2:
+			y = x;
+			x = type;
+			type = gfx.View;
+
+		case 3:
+		{
+			var m = (type === gfx.View ? shader.view : shader.mtx);
+
+			mat3translate(x, y, cache.matrix1);
+			mat3mul(m, cache.matrix1, cache.matrix2);
+			transform(type, cache.matrix2);
+		}
+		break;
+	}
 }
 
-function scale(x, y)
+function scale(type, x, y)
 {
-	mat3scale(x, y, matrix1);
-	mat3mul(shader.view, matrix1, matrix2);
-	transform(matrix2);
+	switch (arguments.length)
+	{
+		case 2:
+			y = x;
+			x = type;
+			type = gfx.View;
+
+		case 3:
+		{
+			var m = (type === gfx.View ? shader.view : shader.mtx);
+
+			mat3scale(x, y, cache.matrix1);
+			mat3mul(m, cache.matrix1, cache.matrix2);
+			transform(type, cache.matrix2);
+		}
+		break;
+	}
 }
 
-function rotate(angle)
+function rotate(type, angle)
 {
-	mat3rotate(angle, matrix1);
-	mat3mul(shader.view, matrix1, matrix2);
-	transform(matrix2);
+	switch (arguments.length)
+	{
+		case 1:
+			angle = type;
+			type = gfx.View;
+
+		case 2:
+		{
+			var m = (type === gfx.View ? shader.view : shader.mtx);
+
+			mat3rotate(angle, cache.matrix1);
+			mat3mul(m, cache.matrix1, cache.matrix2);
+			transform(type, cache.matrix2);
+		}
+		break;
+	}
 }
 
-function skew(x, y)
+function skew(type, x, y)
 {
-	mat3skew(x, y, matrix1);
-	mat3mul(shader.view, matrix1, matrix2);
-	transform(matrix2);
+	switch (arguments.length)
+	{
+		case 2:
+			y = x;
+			x = type;
+			type = gfx.View;
+
+		case 3:
+		{
+			var m = (type === gfx.View ? shader.view : shader.mtx);
+
+			mat3skew(x, y, cache.matrix1);
+			mat3mul(m, cache.matrix1, cache.matrix2);
+			transform(type, cache.matrix2);
+		}
+		break;
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -769,7 +880,7 @@ SpriteBatch.prototype.add = function(sprite)
 	}
 
 	var s = sprite;
-	var m = mat3transform(s.x, s.y, s.rotation, s.sx, s.sy, s.cx, s.cy, s.kx, s.ky, matrix1);
+	var m = mat3transform(s.x, s.y, s.rotation, s.sx, s.sy, s.cx, s.cy, s.kx, s.ky, cache.matrix1);
 
 	var i = this.size * 4;
 

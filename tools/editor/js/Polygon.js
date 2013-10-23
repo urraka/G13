@@ -5,7 +5,8 @@ g13["Polygon"] = Polygon;
 inherit(Polygon, g13.Object);
 
 var cache = {
-	matrix: mat3.create()
+	matrix1: mat3.create(),
+	matrix2: mat3.create()
 };
 
 function Polygon(points)
@@ -57,7 +58,7 @@ function Polygon(points)
 		var p = sweepContext.getPoint(i);
 
 		p.index = i;
-		this.vbo.set(i, p.x, p.y, 0, 0, 0, 0, 0, 1);
+		this.vbo.set(i, p.x, p.y, p.x / 512, p.y / 512, 255, 255, 255, 1);
 	}
 
 	for (var i = 0, j = 0; i < triangles.length; i++)
@@ -157,12 +158,16 @@ Polygon.prototype.contained = function(x, y, w, h)
 
 Polygon.prototype.draw = function()
 {
-	var m = mat3.copy(gfx.transform(), cache.matrix);
+	var mv = mat3.copy(gfx.transform(gfx.View), cache.matrix1);
+	var mt = mat3.copy(gfx.transform(gfx.Texture), cache.matrix2);
 
-	gfx.translate(this.x, this.y);
-	gfx.bind(gfx.White);
+	gfx.translate(gfx.View, this.x, this.y);
+	gfx.translate(gfx.Texture, this.x / 512, this.y / 512);
+
 	gfx.draw(this.vbo, this.ibo);
-	gfx.transform(m);
+
+	gfx.transform(gfx.View, mv);
+	gfx.transform(gfx.Texture, mt);
 }
 
 })();

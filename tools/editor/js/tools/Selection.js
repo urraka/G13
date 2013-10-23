@@ -62,6 +62,17 @@ Selection.prototype.performDragging = function(editor)
 	editor.invalidate();
 }
 
+Selection.prototype.updateCursor = function(editor)
+{
+	var selection = editor.getSelection();
+	var objects = editor.map.retrieve(editor.cursor.mapX, editor.cursor.mapY);
+
+	if (objects.length > 0 && selection.contains(objects[0]))
+		editor.setCursor("move");
+	else
+		editor.setCursor("pointer");
+}
+
 Selection.prototype.on = {};
 
 Selection.prototype.on["toolactivate"] = function(editor)
@@ -175,13 +186,13 @@ Selection.prototype.on["mousemove"] = function(editor, event)
 	}
 	else
 	{
-		var objects = editor.map.retrieve(editor.cursor.mapX, editor.cursor.mapY);
-
-		if (objects.length > 0 && selection.contains(objects[0]))
-			editor.setCursor("move");
-		else
-			editor.setCursor("pointer");
+		this.updateCursor(editor);
 	}
+}
+
+Selection.prototype.on["objectschange"] = function(editor)
+{
+	this.updateCursor(editor);
 }
 
 Selection.prototype.on["mouseup"] = function(editor, event)

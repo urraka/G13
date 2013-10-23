@@ -76,6 +76,8 @@ Map.prototype.remove = function(object)
 
 Map.prototype.draw = function(editor)
 {
+	gfx.bind(editor.getTexture("rock"));
+
 	for (var i = 0; i < this.polygons.length; i++)
 		this.polygons[i].draw();
 
@@ -92,7 +94,7 @@ Map.prototype.draw = function(editor)
 			spriteBatch.add(this.soldiers[i].sprite(cache.sprite));
 
 		spriteBatch.upload();
-		spriteBatch.texture = editor.textures["soldier"];
+		spriteBatch.texture = editor.getTexture("soldier");
 		spriteBatch.draw();
 	}
 }
