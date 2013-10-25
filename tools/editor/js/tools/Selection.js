@@ -281,7 +281,7 @@ Selection.prototype.on["mouseup"] = function(editor, event)
 	}
 }
 
-Selection.prototype.on["draw"] = function(editor)
+Selection.prototype.on["postdraw"] = function(editor)
 {
 	var selection = editor.getSelection();
 

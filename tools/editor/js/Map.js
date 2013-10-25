@@ -76,10 +76,8 @@ Map.prototype.remove = function(object)
 
 Map.prototype.draw = function(editor)
 {
-	gfx.bind(editor.getTexture("rock"));
-
 	for (var i = 0; i < this.polygons.length; i++)
-		this.polygons[i].draw();
+		this.polygons[i].draw(editor);
 
 	var spriteBatch = this.spriteBatch;
 

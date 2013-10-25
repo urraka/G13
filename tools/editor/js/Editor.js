@@ -12,12 +12,15 @@ function Editor()
 	this.map = null;
 
 	this.canvas = document.createElement("canvas");
-	this.update = function() { self.event({type: "draw"}); self.invalidated = false; };
+	this.update = function() { self.draw(); self.invalidated = false; };
 	this.invalidated = false;
 
 	gfx.initialize(this.canvas, {alpha: false, antialias: false});
 	gfx.bgcolor(0xC0, 0xC0, 0xC0, 1);
 	gfx.pointSize(7);
+
+	this.framebuffer = null;
+	this.screenQuad = new gfx.Sprite();
 
 	this.textures = {
 		"soldier": (function() {
@@ -122,8 +125,12 @@ Editor.prototype.setCursor = function(cursor)
 {
 	if (this.cursor.current !== cursor)
 	{
+		if (this.cursor.current !== null)
+			$(this.getCanvas()).removeClass("cursor-" + this.cursor.current);
+
+		$(this.getCanvas()).addClass("cursor-" + cursor);
+
 		this.cursor.current = cursor;
-		$(this.getCanvas()).css("cursor", this.ui.cursors[cursor].css);
 	}
 }
 
@@ -319,20 +326,62 @@ Editor.prototype.on["mousedown"] = function(event)
 	this.updateCursorPosition(event.pageX, event.pageY);
 }
 
-Editor.prototype.on["draw"] = function()
+Editor.prototype.draw = function()
 {
 	var view = this.getView();
 
+	gfx.target(this.framebuffer);
+
+	gfx.bgcolor(0, 0, 0, 0);
 	gfx.clear();
 	gfx.identity();
 	gfx.translate(this.getCanvas().width / 2, this.getCanvas().height / 2);
 	gfx.scale(view.zoom, view.zoom);
 	gfx.translate(view.x, view.y);
 
-	this.background.draw();
+	// this.background.draw();
 
 	if (this.map !== null)
 		this.map.draw(this);
+
+	this.event({type: "draw"});
+
+	gfx.target(null);
+	gfx.bgcolor(0xC0, 0xC0, 0xC0, 1);
+	gfx.clear();
+	gfx.identity();
+	gfx.bind(this.framebuffer.texture);
+
+	this.screenQuad.a = 0.2;
+	this.screenQuad.draw();
+
+	gfx.translate(this.getCanvas().width / 2, this.getCanvas().height / 2);
+	gfx.scale(view.zoom, view.zoom);
+	gfx.translate(view.x, view.y);
+
+	this.background.draw();
+
+	var m = gfx.transform();
+
+	var x0 = mat3.mulx(m, -this.map.width / 2, -this.map.height / 2);
+	var y0 = mat3.muly(m, -this.map.width / 2, -this.map.height / 2);
+	var x1 = mat3.mulx(m,  this.map.width / 2,  this.map.height / 2);
+	var y1 = mat3.muly(m,  this.map.width / 2,  this.map.height / 2);
+
+	gfx.identity();
+	gfx.bind(this.framebuffer.texture);
+	gfx.scissor(Math.floor(x0), Math.floor(y0), Math.ceil(x1 - x0) + 1, Math.ceil(y1 - y0) + 1);
+
+	this.screenQuad.a = 1;
+	this.screenQuad.draw();
+
+	gfx.scissor(false);
+
+	gfx.translate(this.getCanvas().width / 2, this.getCanvas().height / 2);
+	gfx.scale(view.zoom, view.zoom);
+	gfx.translate(view.x, view.y);
+
+	this.event({type: "postdraw"});
 }
 
 Editor.prototype.on["resize"] = function()
@@ -347,6 +396,15 @@ Editor.prototype.on["resize"] = function()
 	this.canvas.height = h;
 
 	gfx.viewport(w, h);
+
+	if (this.framebuffer === null)
+		this.framebuffer = new gfx.Framebuffer(w, h, true);
+	else
+		this.framebuffer.resize(w, h);
+
+	this.screenQuad.w = w;
+	this.screenQuad.h = -h;
+	this.screenQuad.y = h;
 
 	this.invalidate();
 }
@@ -364,6 +422,14 @@ Editor.prototype.on["zoomchange"] = function(event)
 	this.background.update(this.map);
 	this.updateCursorPosition();
 	this.invalidate();
+}
+
+Editor.prototype.on["wheel"] = function(event)
+{
+	if (event.delta === 1)
+		this.zoomIn();
+	else if (event.delta === -1)
+		this.zoomOut();
 }
 
 })();

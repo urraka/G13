@@ -266,7 +266,7 @@ function capture(element)
 
 	var capturer = $(document.createElement("div"));
 	capturer.addClass("ui-capture");
-	capturer.css("cursor", element.style.cursor);
+	capturer.addClass($(element).attr("class"));
 
 	$(window).on("mouseup", captureHandler);
 	capturer.on("mousemove mousedown mouseup", captureHandler);

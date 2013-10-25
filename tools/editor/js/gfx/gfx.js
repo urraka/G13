@@ -23,6 +23,8 @@ var shader = {
 	mtx: mat3(),
 	updateMvp: true,
 	updateMtx: false,
+	viewWidth: 0,
+	viewHeight: 0,
 	loc: {
 		mvp: -1,
 		mtx: -1,
@@ -83,7 +85,8 @@ function initialize(canvas, params)
 	initialize_enums();
 
 	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	blend(gfx.Default);
+	blendEquation(gfx.Default);
 
 	bgcolor(0, 0, 0, 1);
 
@@ -211,6 +214,8 @@ function initialize_enums()
 function viewport(width, height)
 {
 	shader.updateMvp = true;
+	shader.viewWidth = width;
+	shader.viewHeight = height;
 
 	mat3ortho(0, width, height, 0, shader.proj);
 
@@ -232,9 +237,9 @@ function blend(src, dst, srca, dsta)
 {
 	switch (arguments.length)
 	{
-		case 1: gl.blendFunc(gfx.SrcAlpha, gfx.OneMinusSrcAlpha); break;
-		case 2: gl.blendFunc(src, dst);                           break;
-		case 4: gl.blendFuncSeparate(src, dst, srca, dsta);       break;
+		case 1: gl.blendFuncSeparate(gfx.SrcAlpha, gfx.OneMinusSrcAlpha, gfx.One, gfx.One); break;
+		case 2: gl.blendFunc(src, dst);                                                     break;
+		case 4: gl.blendFuncSeparate(src, dst, srca, dsta);                                 break;
 	}
 }
 
@@ -245,7 +250,7 @@ function blendEquation(mode, modea)
 	else if (arguments.length === 1)
 		gl.blendEquation(mode);
 	else
-		gl.blendEquation(mode, modea);
+		gl.blendEquationSeparate(mode, modea);
 }
 
 function blendColor(r, g, b, a)
@@ -274,6 +279,24 @@ function pixelAlign(enable)
 function bind(texture)
 {
 	gl.bindTexture(gl.TEXTURE_2D, texture.id);
+}
+
+function target(framebuffer)
+{
+	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer !== null ? framebuffer.id : null);
+}
+
+function scissor(x, y, width, height)
+{
+	if (arguments.length === 1)
+	{
+		gl.disable(gl.SCISSOR_TEST);
+	}
+	else
+	{
+		gl.enable(gl.SCISSOR_TEST);
+		gl.scissor(x, shader.viewHeight - (y + height), width, height);
+	}
 }
 
 function draw(vbo, ibo, offset, count)
@@ -647,6 +670,7 @@ function Texture(image)
 	this.height = 0;
 
 	this.id = gl.createTexture();
+	this.format = gl.RGBA;
 	this.loading = false;
 	this.mipmap = false;
 
@@ -672,7 +696,7 @@ function Texture(image)
 				self.height = image.height;
 
 				gl.bindTexture(gl.TEXTURE_2D, self.id);
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+				gl.texImage2D(gl.TEXTURE_2D, 0, self.format, self.format, gl.UNSIGNED_BYTE, image);
 
 				self.loading = false;
 
@@ -687,7 +711,7 @@ function Texture(image)
 			this.width = image.width;
 			this.height = image.height;
 
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+			gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.format, gl.UNSIGNED_BYTE, image);
 		}
 	}
 	else
@@ -696,37 +720,44 @@ function Texture(image)
 		this.height = arguments[1];
 
 		var type = arguments[2];
-		var procedure = arguments[3];
+		var procedure = (arguments.length > 3 ? arguments[3] : null);
 		var channels = (type === gfx.ALPHA ? 1 : type === gfx.RGB ? 3 : 4);
-		var data = new Uint8Array(this.width * this.height * channels);
+		var data = null;
 
-		var color = { r: 0, g: 0, b: 0, a: 0 };
+		this.format = type;
 
-		for (var y = 0; y < this.height; y++)
+		if (procedure)
 		{
-			for (var x = 0; x < this.width; x++)
+			data = new Uint8Array(this.width * this.height * channels);
+
+			var color = { r: 0, g: 0, b: 0, a: 0 };
+
+			for (var y = 0; y < this.height; y++)
 			{
-				var index = (y * this.width + x) * channels;
-
-				procedure(x, y, color);
-
-				color.r = Math.max(Math.min(1, color.r), 0);
-				color.g = Math.max(Math.min(1, color.g), 0);
-				color.b = Math.max(Math.min(1, color.b), 0);
-				color.a = Math.max(Math.min(1, color.a), 0);
-
-				if (channels > 1)
+				for (var x = 0; x < this.width; x++)
 				{
-					data[index + 0] = color.r * 255;
-					data[index + 1] = color.g * 255;
-					data[index + 2] = color.b * 255;
+					var index = (y * this.width + x) * channels;
 
-					if (channels === 4)
-						data[index + 3] = color.a * 255;
-				}
-				else
-				{
-					data[index] = color.a * 255;
+					procedure(x, y, color);
+
+					color.r = Math.max(Math.min(1, color.r), 0);
+					color.g = Math.max(Math.min(1, color.g), 0);
+					color.b = Math.max(Math.min(1, color.b), 0);
+					color.a = Math.max(Math.min(1, color.a), 0);
+
+					if (channels > 1)
+					{
+						data[index + 0] = color.r * 255;
+						data[index + 1] = color.g * 255;
+						data[index + 2] = color.b * 255;
+
+						if (channels === 4)
+							data[index + 3] = color.a * 255;
+					}
+					else
+					{
+						data[index] = color.a * 255;
+					}
 				}
 			}
 		}
@@ -759,6 +790,47 @@ Texture.prototype.wrap = function(u, v)
 	gl.bindTexture(gl.TEXTURE_2D, this.id);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, u);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, v);
+}
+
+Texture.prototype.resize = function(width, height)
+{
+	this.width = width;
+	this.height = height;
+
+	gl.bindTexture(gl.TEXTURE_2D, this.id);
+	gl.texImage2D(gl.TEXTURE_2D, 0, this.format, width, height, 0, this.format, gl.UNSIGNED_BYTE, null);
+}
+
+// -----------------------------------------------------------------------------
+// Framebuffer
+// -----------------------------------------------------------------------------
+
+function Framebuffer(width, height, alpha)
+{
+	this.alpha = (arguments.length === 3 ? alpha : false);
+
+	var format = this.alpha ? gl.RGBA : gl.RGB;
+
+	this.id = gl.createFramebuffer();
+	this.texture = new Texture(width, height, format);
+	this.depth = gl.createRenderbuffer();
+
+	this.texture.filter(gfx.Nearest, gfx.Nearest);
+
+	gl.bindRenderbuffer(gl.RENDERBUFFER, this.depth);
+	gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+
+	gl.bindFramebuffer(gl.FRAMEBUFFER, this.id);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture.id, 0);
+	gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depth);
+}
+
+Framebuffer.prototype.resize = function(width, height)
+{
+	this.texture.resize(width, height);
+
+	gl.bindRenderbuffer(gl.RENDERBUFFER, this.depth);
+	gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
 }
 
 // -----------------------------------------------------------------------------
@@ -1427,6 +1499,8 @@ gfx.lineWidth     = lineWidth;
 gfx.pointSize     = pointSize;
 gfx.pixelAlign    = pixelAlign;
 gfx.bind          = bind;
+gfx.target        = target;
+gfx.scissor       = scissor;
 gfx.draw          = draw;
 gfx.transform     = transform;
 gfx.identity      = identity;
@@ -1441,6 +1515,7 @@ gfx.Texture     = Texture;
 gfx.LineBatch   = LineBatch;
 gfx.Sprite      = Sprite;
 gfx.SpriteBatch = SpriteBatch;
+gfx.Framebuffer = Framebuffer;
 
 window.gfx = gfx;
 

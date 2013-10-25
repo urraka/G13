@@ -156,18 +156,30 @@ Polygon.prototype.contained = function(x, y, w, h)
 	return rect_contained(a.x, a.y, a.w, a.h, x, y, w, h);
 }
 
-Polygon.prototype.draw = function()
+Polygon.prototype.draw = function(editor)
 {
 	var mv = mat3.copy(gfx.transform(gfx.View), cache.matrix1);
 	var mt = mat3.copy(gfx.transform(gfx.Texture), cache.matrix2);
 
 	gfx.translate(gfx.View, this.x, this.y);
+	gfx.scale(gfx.Texture, 2, 2);
 	gfx.translate(gfx.Texture, this.x / 512, this.y / 512);
 
+	gfx.bind(editor.getTexture("rock"));
 	gfx.draw(this.vbo, this.ibo);
 
-	gfx.transform(gfx.View, mv);
 	gfx.transform(gfx.Texture, mt);
+
+	// this.vbo.mode = gfx.Points;
+	// gfx.pixelAlign(true);
+	// gfx.bind(gfx.White);
+	// gfx.blend(gfx.Zero, gfx.Zero, gfx.One, gfx.One);
+	// gfx.draw(this.vbo);
+	// gfx.blend(gfx.Default);
+	// gfx.pixelAlign(false);
+	// this.vbo.mode = gfx.Triangles;
+
+	gfx.transform(gfx.View, mv);
 }
 
 })();

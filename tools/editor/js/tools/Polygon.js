@@ -30,9 +30,41 @@ Polygon.prototype.addPoint = function(x, y)
 	this.vbo.set(index, x, y, 0, 0, 0, 0, 0, 1);
 }
 
+Polygon.prototype.intersects = function(x, y)
+{
+	var P = this.polygon;
+	var N = P.length;
+
+	var ax = P[N - 1].x;
+	var ay = P[N - 1].y;
+	var bx = x;
+	var by = y;
+
+	for (var i = 0; i < N - 2; i++)
+	{
+		var cx = P[i + 0].x;
+		var cy = P[i + 0].y;
+		var dx = P[i + 1].x;
+		var dy = P[i + 1].y;
+
+		if ((bx !== cx || by !== cy) && segments_intersect(ax, ay, bx, by, cx, cy, dx, dy))
+			return true;
+	}
+
+	return false;
+}
+
 Polygon.prototype.close = function(editor)
 {
-	var polygon = new g13.Polygon(this.polygon);
+	var points = this.polygon;
+
+	if (points.length < 3)
+		return;
+
+	if (this.intersects(points[0].x, points[0].y))
+		return;
+
+	var polygon = new g13.Polygon(points);
 
 	var objects = [polygon];
 
@@ -70,7 +102,8 @@ Polygon.prototype.on["mousedown"] = function(editor, event)
 			else
 				x = poly[i].x;
 
-			this.addPoint(x, y);
+			if (!this.intersects(x, y))
+				this.addPoint(x, y);
 		}
 		else if (poly.length > 2 && distance2(x, y, poly[0].x, poly[0].y) < SNAP)
 		{
@@ -78,7 +111,8 @@ Polygon.prototype.on["mousedown"] = function(editor, event)
 		}
 		else
 		{
-			this.addPoint(x, y);
+			if (!this.intersects(x, y))
+				this.addPoint(x, y);
 		}
 
 		editor.invalidate();
@@ -87,7 +121,11 @@ Polygon.prototype.on["mousedown"] = function(editor, event)
 	{
 		if (poly !== null)
 		{
-			this.close(editor);
+			if (poly.length < 3)
+				this.polygon = null;
+			else
+				this.close(editor);
+
 			editor.invalidate();
 		}
 		else

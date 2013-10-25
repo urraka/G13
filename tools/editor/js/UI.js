@@ -27,7 +27,7 @@ function UI(editor)
 		"polygon": "icon-polygon"
 	};
 
-	ui.command("new"      , function() { editor.newMap(3000/2, 1600/2); });
+	ui.command("new"      , function() { editor.newMap(3000*2, 1600*2); });
 	ui.command("open"     , function() {                                });
 	ui.command("save"     , function() {                                });
 	ui.command("copy"     , function() {                                });
@@ -117,7 +117,7 @@ function UI(editor)
 
 	$(panels["bottom"]).append(
 		ui.Separator(),
-		ui.StatusBar("<label>Some status...</label>")
+		ui.StatusBar("<label>This text shall be replaced with something more useful.</label>")
 	);
 
 	$(panels["view"]).append(editor.getCanvas());
@@ -170,32 +170,13 @@ function UI(editor)
 	$(document).on("keydown keyup", fwd);
 	$(editor.getCanvas()).on("mousemove mousedown mouseup mouseenter mouseleave", fwd);
 
-	// cursors
-
-	var cursors = {};
-
-	cursors["pointer"]   = {file: "left_ptr.png",  x:  7, y:  4};
-	cursors["pan"]       = {file: "grabbing.png",  x: 13, y: 11};
-	cursors["cross"]     = {file: "tcross.png",    x: 11, y: 11};
-	cursors["crosshair"] = {file: "crosshair.png", x: 11, y: 11};
-	cursors["move"]      = {file: "move.cur"};
-
-	for (var i in cursors)
+	$(editor.getCanvas()).on('DOMMouseScroll mousewheel', function (e)
 	{
-		cursors[i].image = new Image();
-		cursors[i].image.src = "res/cursors/" + cursors[i].file;
-
-		var coords = "";
-
-		if ("x" in cursors[i])
-			coords = " " + cursors[i].x + " " + cursors[i].y;
-
-		cursors[i].css = "url('res/cursors/" + cursors[i].file + "')" + coords + ", default";
-	}
-
-	cursors["none"] = {css: "none"};
-
-	this.cursors = cursors;
+		if (e.originalEvent.detail > 0 || e.originalEvent.wheelDelta < 0)
+			fwd(new $.Event("wheel", {delta: -1}));
+		else
+			fwd(new $.Event("wheel", {delta: 1}));
+	});
 }
 
 UI.prototype.on = {};
