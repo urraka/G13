@@ -29,6 +29,11 @@ Object.prototype.hittest    = function(x, y)       { warn(this, "hittest"); }
 Object.prototype.intersects = function(x, y, w, h) { warn(this, "intersects"); }
 Object.prototype.contained  = function(x, y, w, h) { warn(this, "contained"); }
 
+Object.prototype.snaptest = function(x, y, r, p)
+{
+	return false;
+}
+
 Object.prototype.moveTo = function(x, y)
 {
 	this.x = x;

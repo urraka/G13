@@ -15,6 +15,16 @@ function array_remove(array, item)
 		array.splice(index, 1);
 }
 
+function object_copy(object)
+{
+	var result = {};
+
+	for (var i in object)
+		result[i] = object[i];
+
+	return result;
+}
+
 function rand(min, max)
 {
 	return Math.floor(Math.random() * (max - min + 1)) + min;

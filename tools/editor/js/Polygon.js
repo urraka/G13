@@ -100,6 +100,30 @@ Polygon.prototype.updateLocalBounds = function()
 	}
 }
 
+Polygon.prototype.snaptest = function(x, y, r, p)
+{
+	var points = this.points;
+	var N = points.length;
+
+	r *= r;
+
+	for (var i = 0; i < N; i++)
+	{
+		var px = points[i].x + this.x;
+		var py = points[i].y + this.y;
+
+		if (distance2(x, y, px, py) < r)
+		{
+			p.x = px;
+			p.y = py;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 Polygon.prototype.hittest = function(x, y)
 {
 	var p = this.points;

@@ -63,7 +63,9 @@ function Editor()
 		absX: 0,
 		absY: 0,
 		mapX: 0,
-		mapY: 0
+		mapY: 0,
+		snapX: 0,
+		snapY: 0
 	};
 
 	this.tools = {
@@ -74,6 +76,12 @@ function Editor()
 		"soldier":   new g13.tools.Soldier(),
 		"pan":       new g13.tools.Pan()
 	};
+
+	for (var i in this.tools)
+	{
+		if (this.tools[i] !== null)
+			this.tools[i].toolType = i;
+	}
 
 	this.listeners = [
 		this.ui,
@@ -202,6 +210,42 @@ Editor.prototype.updateCursorPosition = function(x, y)
 
 	this.cursor.mapX = (x - cx - cw / 2) * (1 / vz) - vx;
 	this.cursor.mapY = (y - cy - ch / 2) * (1 / vz) - vy;
+
+	this.cursor.snapX = this.cursor.mapX;
+	this.cursor.snapY = this.cursor.mapY;
+
+	var radius = this.getSnapRadius();
+	var x = this.cursor.snapX;
+	var y = this.cursor.snapY;
+
+	var objects = this.map.retrieve(x - radius, y - radius, 2 * radius, 2 * radius);
+	var p = {x: 0, y: 0};
+
+	if ("snaptest" in this.tools.current && this.tools.current.snaptest(x, y, radius, p))
+	{
+		this.cursor.snapX = p.x;
+		this.cursor.snapY = p.y;
+	}
+	else
+	{
+		var sel = this.getSelection();
+		var dragging = this.tools.current === this.tools["selection"] && this.tools.current.dragging;
+
+		for (var i = 0; i < objects.length; i++)
+		{
+			if (objects[i].snaptest(x, y, radius, p) && !(dragging && sel.contains(objects[i])))
+			{
+				this.cursor.snapX = p.x;
+				this.cursor.snapY = p.y;
+				break;
+			}
+		}
+	}
+}
+
+Editor.prototype.getSnapRadius = function()
+{
+	return 8;
 }
 
 Editor.prototype.invalidate = function()

@@ -29,7 +29,7 @@ Map.prototype.resize = function(width, height)
 Map.prototype.retrieve = function(x, y, w, h)
 {
 	var objects = [];
-	var collections = [this.soldiers, this.polygons, this.surfaces];
+	var collections = [this.soldiers, this.surfaces, this.polygons];
 
 	if (arguments.length === 2)
 	{
