@@ -12,6 +12,7 @@ function Map()
 	this.height = 0;
 	this.soldiers = [];
 	this.polygons = [];
+	this.surfaces = [];
 	this.selection = new g13.Selection();
 	this.view = {x: 0, y: 0, zoom: 1};
 	this.history = { index: -1, actions: [] };
@@ -28,7 +29,7 @@ Map.prototype.resize = function(width, height)
 Map.prototype.retrieve = function(x, y, w, h)
 {
 	var objects = [];
-	var collections = [this.soldiers, this.polygons];
+	var collections = [this.soldiers, this.polygons, this.surfaces];
 
 	if (arguments.length === 2)
 	{
@@ -62,6 +63,7 @@ Map.prototype.add = function(object)
 	{
 		case g13.Soldier: this.soldiers.push(object); break;
 		case g13.Polygon: this.polygons.push(object); break;
+		case g13.Surface: this.surfaces.push(object); break;
 	}
 }
 
@@ -71,6 +73,7 @@ Map.prototype.remove = function(object)
 	{
 		case g13.Soldier: array_remove(this.soldiers, object); break;
 		case g13.Polygon: array_remove(this.polygons, object); break;
+		case g13.Surface: array_remove(this.surfaces, object); break;
 	}
 }
 
@@ -78,6 +81,9 @@ Map.prototype.draw = function(editor)
 {
 	for (var i = 0; i < this.polygons.length; i++)
 		this.polygons[i].draw(editor);
+
+	for (var i = 0; i < this.surfaces.length; i++)
+		this.surfaces[i].draw(editor);
 
 	var spriteBatch = this.spriteBatch;
 
@@ -92,7 +98,7 @@ Map.prototype.draw = function(editor)
 			spriteBatch.add(this.soldiers[i].sprite(cache.sprite));
 
 		spriteBatch.upload();
-		spriteBatch.texture = editor.getTexture("soldier");
+		spriteBatch.texture = editor.getResource("soldier");
 		spriteBatch.draw();
 	}
 }

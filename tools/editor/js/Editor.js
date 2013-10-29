@@ -22,7 +22,7 @@ function Editor()
 	this.framebuffer = null;
 	this.screenQuad = new gfx.Sprite();
 
-	this.textures = {
+	this.resources = {
 		"soldier": (function() {
 			var tx = new gfx.Texture("res/soldier.png");
 			tx.filter(gfx.LinearMipmapLinear, gfx.Linear);
@@ -35,6 +35,21 @@ function Editor()
 			tx.wrap(gfx.Repeat, gfx.Repeat);
 			tx.generateMipmap();
 			return tx;
+		})(),
+		"grass": (function() {
+			var spritesheet = {};
+
+			spritesheet.texture = new gfx.Texture("res/grass.png");
+			spritesheet.texture.filter(gfx.LinearMipmapLinear, gfx.Linear);
+			spritesheet.texture.generateMipmap();
+
+			$.get("res/grass.json", function(data) {
+				spritesheet.width = data.width;
+				spritesheet.height = data.height;
+				spritesheet.sprites = data.sprites;
+			});
+
+			return spritesheet;
 		})()
 	};
 
@@ -55,6 +70,7 @@ function Editor()
 		current: null,
 		"selection": new g13.tools.Selection(),
 		"polygon":   new g13.tools.Polygon(),
+		"surface":   new g13.tools.Surface(),
 		"soldier":   new g13.tools.Soldier(),
 		"pan":       new g13.tools.Pan()
 	};
@@ -83,9 +99,9 @@ Editor.prototype.getCanvas = function()
 	return this.canvas;
 }
 
-Editor.prototype.getTexture = function(id)
+Editor.prototype.getResource = function(id)
 {
-	return this.textures[id];
+	return this.resources[id];
 }
 
 Editor.prototype.getSelection = function()

@@ -64,7 +64,7 @@ Soldier.prototype.on["draw"] = function(editor)
 	this.soldier.sprite(this.sprite);
 	this.sprite.a = 0.8;
 
-	gfx.bind(editor.getTexture("soldier"));
+	gfx.bind(editor.getResource("soldier"));
 	this.sprite.draw();
 }
 

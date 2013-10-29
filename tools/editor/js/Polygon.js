@@ -165,7 +165,7 @@ Polygon.prototype.draw = function(editor)
 	gfx.scale(gfx.Texture, 2, 2);
 	gfx.translate(gfx.Texture, this.x / 512, this.y / 512);
 
-	gfx.bind(editor.getTexture("rock"));
+	gfx.bind(editor.getResource("rock"));
 	gfx.draw(this.vbo, this.ibo);
 
 	gfx.transform(gfx.Texture, mt);

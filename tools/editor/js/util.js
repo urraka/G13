@@ -15,6 +15,16 @@ function array_remove(array, item)
 		array.splice(index, 1);
 }
 
+function rand(min, max)
+{
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function lerp(a, b, amount)
+{
+	return a + (b - a) * amount;
+}
+
 function sqr(x)
 {
 	return x * x;
@@ -28,6 +38,26 @@ function distance(ax, ay, bx, by)
 function distance2(ax, ay, bx, by)
 {
 	return sqr(bx - ax) + sqr(by - ay);
+}
+
+function distance_to_segment2(x, y, ax, ay, bx, by)
+{
+	var l2 = distance2(ax, ay, bx, by);
+
+	if (l2 === 0)
+		return distance2(x, y, ax, ay);
+
+	var t = ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / l2;
+
+	if (t < 0) return distance2(x, y, ax, ay);
+	if (t > 1) return distance2(x, y, bx, by);
+
+	return distance2(x, y, ax + t * (bx - ax), ay + t * (by - ay));
+}
+
+function distance_to_segment(x, y, ax, ay, bx, by)
+{
+	return Math.sqrt(distance_to_segment2(x, y, ax, ay, bx, by));
 }
 
 function rect_expand(a, b)
@@ -59,7 +89,7 @@ function rects_intersect(ax, ay, aw, ah, bx, by, bw, bh)
 	return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 }
 
-(function() {
+(function /*segments_intersect*/() {
     function ccw(ax, ay, bx, by, cx, cy)
     {
         return (cy - ay) * (bx - ax) > (by - ay) * (cx - ax);
@@ -77,6 +107,48 @@ function rects_intersect(ax, ay, aw, ah, bx, by, bw, bh)
 function rect_contains(x, y, w, h, px, py)
 {
 	return px > x && px < x + w && py > y && py < y + h;
+}
+
+function rect_intersects_segment(x, y, w, h, ax, ay, bx, by)
+{
+    var minX = ax;
+    var maxX = bx;
+
+    if (ax > bx)
+    {
+        minX = bx;
+        maxX = ax;
+    }
+
+    if (maxX > x + w) maxX = x + w;
+    if (minX < x)     minX = x;
+    if (minX > maxX)  return false;
+
+    var minY = ay;
+    var maxY = by;
+
+    var dx = bx - ax;
+
+    if (Math.abs(dx) > 0.00001)
+    {
+        var a = (by - ay) / dx;
+        var b = ay - a * ax;
+        minY = a * minX + b;
+        maxY = a * maxX + b;
+    }
+
+    if (minY > maxY)
+    {
+        var tmp = maxY;
+        maxY = minY;
+        minY = tmp;
+    }
+
+    if (maxY > y + h) maxY = y + h;
+    if (minY < y)     minY = y;
+    if (minY > maxY)  return false;
+
+    return true;
 }
 
 function rect_intersects_triangle(x, y, w, h, ax, ay, bx, by, cx, cy)

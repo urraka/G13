@@ -65,7 +65,6 @@ Polygon.prototype.close = function(editor)
 		return;
 
 	var polygon = new g13.Polygon(points);
-
 	var objects = [polygon];
 
 	editor.execute({

@@ -24,7 +24,8 @@ function UI(editor)
 		"soldier": "icon-male",
 		"zoomin":  "icon-zoom-in",
 		"zoomout": "icon-zoom-out",
-		"polygon": "icon-polygon"
+		"polygon": "icon-polygon",
+		"surface": "icon-question-sign"
 	};
 
 	ui.command("new"      , function() { editor.newMap(3000*2, 1600*2); });
@@ -38,6 +39,7 @@ function UI(editor)
 	ui.command("resetzoom", function() { editor.setZoom(1);             });
 	ui.command("select"   , function() { editor.setTool("selection");   });
 	ui.command("polygon"  , function() { editor.setTool("polygon");     });
+	ui.command("surface"  , function() { editor.setTool("surface");     });
 	ui.command("soldier"  , function() { editor.setTool("soldier");     });
 	ui.command("cancel"   , function() { editor.cancel();               });
 	ui.command("undo"     , function() { editor.undo();                 });
@@ -55,12 +57,14 @@ function UI(editor)
 	ui.bind("ctrl+numpad0" , "resetzoom");
 	ui.bind("q"            , "select");
 	ui.bind("p"            , "polygon");
-	ui.bind("s"            , "soldier");
+	ui.bind("s"            , "surface");
 	ui.bind("escape"       , "cancel");
 	ui.bind("ctrl+z"       , "undo");
 	ui.bind("ctrl+shift+z" , "redo");
 	ui.bind("ctrl+y"       , "redo");
 	ui.bind("delete"       , "delete");
+
+	var btn = ui.IconButton;
 
 	$(panels["top"]).append(
 		ui.MenuBar([
@@ -85,19 +89,19 @@ function UI(editor)
 		ui.Toolbar({
 			layout: "horizontal",
 			items: [
-				ui.IconButton({icon: ico["new"],     tooltip: "New...",   command: "new"}),
-				ui.IconButton({icon: ico["open"],    tooltip: "Open...",  command: "open"}),
-				ui.IconButton({icon: ico["save"],    tooltip: "Save",     command: "save"}),
+				btn({icon: ico["new"],     tooltip: "New...",   command: "new"}),
+				btn({icon: ico["open"],    tooltip: "Open...",  command: "open"}),
+				btn({icon: ico["save"],    tooltip: "Save",     command: "save"}),
 				ui.Separator(),
-				ui.IconButton({icon: ico["copy"],    tooltip: "Copy",     command: "copy"}),
-				ui.IconButton({icon: ico["cut"],     tooltip: "Cut",      command: "cut"}),
-				ui.IconButton({icon: ico["paste"],   tooltip: "Paste",    command: "paste"}),
+				btn({icon: ico["copy"],    tooltip: "Copy",     command: "copy"}),
+				btn({icon: ico["cut"],     tooltip: "Cut",      command: "cut"}),
+				btn({icon: ico["paste"],   tooltip: "Paste",    command: "paste"}),
 				ui.Separator(),
-				ui.IconButton({icon: ico["undo"],    tooltip: "Undo",     command: "undo"}),
-				ui.IconButton({icon: ico["redo"],    tooltip: "Redo",     command: "redo"}),
+				btn({icon: ico["undo"],    tooltip: "Undo",     command: "undo"}),
+				btn({icon: ico["redo"],    tooltip: "Redo",     command: "redo"}),
 				ui.Separator(),
-				ui.IconButton({icon: ico["zoomin"],  tooltip: "Zoom In",  command: "zoomin"}),
-				ui.IconButton({icon: ico["zoomout"], tooltip: "Zoom Out", command: "zoomout"})
+				btn({icon: ico["zoomin"],  tooltip: "Zoom In",  command: "zoomin"}),
+				btn({icon: ico["zoomout"], tooltip: "Zoom Out", command: "zoomout"})
 			]
 		}),
 		ui.Separator()
@@ -107,9 +111,10 @@ function UI(editor)
 		ui.Toolbar({
 			layout: "vertical",
 			items: [
-				ui.IconButton({id: "tb-select",  icon: ico["select"],  tooltip: "Select",  command: "select"}),
-				ui.IconButton({id: "tb-polygon", icon: ico["polygon"], tooltip: "Polygon", command: "polygon"}),
-				ui.IconButton({id: "tb-soldier", icon: ico["soldier"], tooltip: "Soldier", command: "soldier"})
+				btn({id: "tb-select",  icon: ico["select"],  tooltip: "Select",  command: "select"}),
+				btn({id: "tb-polygon", icon: ico["polygon"], tooltip: "Polygon", command: "polygon"}),
+				btn({id: "tb-surface", icon: ico["surface"], tooltip: "Surface", command: "surface"}),
+				btn({id: "tb-soldier", icon: ico["soldier"], tooltip: "Soldier", command: "soldier"})
 			]
 		}),
 		ui.Separator(true)
