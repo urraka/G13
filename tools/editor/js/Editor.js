@@ -47,7 +47,7 @@ function Editor()
 				spritesheet.width = data.width;
 				spritesheet.height = data.height;
 				spritesheet.sprites = data.sprites;
-			});
+			}, "json");
 
 			return spritesheet;
 		})()

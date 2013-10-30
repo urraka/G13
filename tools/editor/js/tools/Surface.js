@@ -15,7 +15,7 @@ function Surface()
 Surface.prototype.on["finish"] = function(editor)
 {
 	if (this.points.length < 2)
-		return;
+		return true;
 
 	var surface = new g13.Surface(this.points, editor.getResource("grass"));
 	var objects = [surface];
@@ -24,6 +24,8 @@ Surface.prototype.on["finish"] = function(editor)
 		undo: {func: "remove_objects", data: {objects: objects}},
 		redo: {func: "add_objects", data: {objects: objects, select: false}}
 	});
+
+	return true;
 }
 
 Surface.prototype.on["addpoint"] = function(editor, event)

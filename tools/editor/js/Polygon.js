@@ -102,6 +102,14 @@ Polygon.prototype.updateLocalBounds = function()
 
 Polygon.prototype.snaptest = function(x, y, r, p)
 {
+	var bx = this.bounds.x - r;
+	var by = this.bounds.y - r;
+	var bw = this.bounds.w + r * 2;
+	var bh = this.bounds.h + r * 2;
+
+	if (!rect_contains(bx, by, bw, bh, x, y))
+		return false;
+
 	var points = this.points;
 	var N = points.length;
 

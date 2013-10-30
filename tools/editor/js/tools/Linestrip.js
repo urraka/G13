@@ -120,8 +120,8 @@ Linestrip.prototype.on["mousedown"] = function(editor, event)
 	{
 		if (points !== null)
 		{
-			this.on["finish"].call(this, editor);
-			this.points = null;
+			if (this.on["finish"].call(this, editor))
+				this.points = null;
 		}
 		else
 		{

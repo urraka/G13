@@ -1,0 +1,2 @@
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+rsync -av --exclude=editor.sublime-workspace --exclude=editor.sublime-project --exclude=drop ./ /c/urraka/Dropbox/Public/G13/editor

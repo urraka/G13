@@ -858,6 +858,7 @@ function Sprite(properties)
 	this.g = 255;
 	this.b = 255;
 	this.a = 1;
+	this.uvrot = false;
 
 	if (properties)
 	{
@@ -956,10 +957,23 @@ SpriteBatch.prototype.add = function(sprite)
 
 	var i = this.size * 4;
 
-	this.vbo.set(i + 0, mat3mulx(m,   0,   0), mat3muly(m,   0,   0), s.u0, s.v0, s.r, s.g, s.b, s.a);
-	this.vbo.set(i + 1, mat3mulx(m, s.w,   0), mat3muly(m, s.w,   0), s.u1, s.v0, s.r, s.g, s.b, s.a);
-	this.vbo.set(i + 2, mat3mulx(m, s.w, s.h), mat3muly(m, s.w, s.h), s.u1, s.v1, s.r, s.g, s.b, s.a);
-	this.vbo.set(i + 3, mat3mulx(m,   0, s.h), mat3muly(m,   0, s.h), s.u0, s.v1, s.r, s.g, s.b, s.a);
+	var u0 = s.u0, v0 = s.v0;
+	var u1 = s.u1, v1 = s.v0;
+	var u2 = s.u1, v2 = s.v1;
+	var u3 = s.u0, v3 = s.v1;
+
+	if (s.uvrot && (s.u1 - s.u0 < 0 || s.v1 - s.v0 < 0))
+	{
+		u0 = s.u0, v0 = s.v0;
+		u1 = s.u0, v1 = s.v1;
+		u2 = s.u1, v2 = s.v1;
+		u3 = s.u1, v3 = s.v0;
+	}
+
+	this.vbo.set(i + 0, mat3mulx(m,   0,   0), mat3muly(m,   0,   0), u0, v0, s.r, s.g, s.b, s.a);
+	this.vbo.set(i + 1, mat3mulx(m, s.w,   0), mat3muly(m, s.w,   0), u1, v1, s.r, s.g, s.b, s.a);
+	this.vbo.set(i + 2, mat3mulx(m, s.w, s.h), mat3muly(m, s.w, s.h), u2, v2, s.r, s.g, s.b, s.a);
+	this.vbo.set(i + 3, mat3mulx(m,   0, s.h), mat3muly(m,   0, s.h), u3, v3, s.r, s.g, s.b, s.a);
 
 	this.size++;
 }

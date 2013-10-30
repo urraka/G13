@@ -300,6 +300,14 @@ Selection.prototype.on["postdraw"] = function(editor)
 		var x1a = selection.bounds.w + x0a;
 		var y1a = selection.bounds.h + y0a;
 
+		var cx = (x0a + x1a) / 2;
+		var cy = (y0a + y1a) / 2;
+
+		x0a = Math.min(x0a, cx - 10);
+		y0a = Math.min(y0a, cy - 10);
+		x1a = Math.max(x1a, cx + 10);
+		y1a = Math.max(y1a, cy + 10);
+
 		var x0 = Math.floor(mat3.mulx(m, x0a, y0a)) + 0.5;
 		var y0 = Math.floor(mat3.muly(m, x0a, y0a)) + 0.5;
 		var x1 = Math.floor(mat3.mulx(m, x1a, y1a)) + 0.5;
