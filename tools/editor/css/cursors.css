@@ -1,6 +1,0 @@
-.cursor-none      { cursor: none; }
-.cursor-pointer   { cursor: url('../res/cursors/left_ptr.png')   7  4, default; }
-.cursor-pan       { cursor: url('../res/cursors/grabbing.png')  13 11, default; }
-.cursor-cross     { cursor: url('../res/cursors/tcross.png')    11 11, default; }
-.cursor-crosshair { cursor: url('../res/cursors/crosshair.png') 11 11, default; }
-.cursor-move      { cursor: url('../res/cursors/move.cur')           , default; }
