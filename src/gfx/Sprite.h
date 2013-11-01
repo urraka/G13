@@ -27,6 +27,8 @@ public:
 	glm::vec2 scale;
 	mat2d transform;
 
+	bool textureRotated;
+
 	void vertices(SpriteVertex (&vertex)[4]) const;
 };
 

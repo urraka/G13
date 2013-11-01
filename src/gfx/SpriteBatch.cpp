@@ -133,6 +133,9 @@ void SpriteBatch::draw(size_t offset, size_t count)
 {
 	assert(offset + count <= size_);
 
+	if (count == 0)
+		return;
+
 	gfx::bind(texture_);
 	gfx::draw(vbo_, 6 * offset, 6 * count);
 }

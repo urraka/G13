@@ -13,7 +13,9 @@ public:
 	Map();
 	~Map();
 	void load();
+	void load_old();
 	void draw(const ent::Camera *camera);
+	void draw_old(const ent::Camera *camera);
 
 	coll::World *world() { return world_; }
 	const coll::World *world() const { return world_; }
@@ -30,8 +32,13 @@ protected:
 	gfx::Texture *textures_[2];
 	gfx::SpriteBatch *parallax_;
 	gfx::VBO *sky_;
+	gfx::Texture *groundTexture_;
+	gfx::Texture *grassTexture_;
+	gfx::SpriteBatch *grass_;
 
 	GLint colorLocation_;
+
+	void destroy();
 };
 
 } // g13

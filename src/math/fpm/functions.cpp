@@ -186,33 +186,36 @@ bool intersects(const rect &rc1, const rect &rc2)
 
 bool intersects(const rect &rc, const line &line)
 {
-	fixed xmin = line.p1.x;
-	fixed xmax = line.p2.x;
+	const fpm::rect RC = rc - line.p1;
+	const fpm::line L(vec2(0, 0), line.p2 - line.p1);
 
-	if (line.p1.x > line.p2.x)
+	fixed xmin = L.p1.x;
+	fixed xmax = L.p2.x;
+
+	if (L.p1.x > L.p2.x)
 	{
-		xmin = line.p2.x;
-		xmax = line.p1.x;
+		xmin = L.p2.x;
+		xmax = L.p1.x;
 	}
 
-	if (xmax > rc.br.x)
-		xmax = rc.br.x;
+	if (xmax > RC.br.x)
+		xmax = RC.br.x;
 
-	if (xmin < rc.tl.x)
-		xmin = rc.tl.x;
+	if (xmin < RC.tl.x)
+		xmin = RC.tl.x;
 
 	if (xmin > xmax)
 		return false;
 
-	fixed ymin = line.p1.y;
-	fixed ymax = line.p2.y;
+	fixed ymin = L.p1.y;
+	fixed ymax = L.p2.y;
 
-	fixed dx = line.p2.x - line.p1.x;
+	fixed dx = L.p2.x - L.p1.x;
 
 	if (dx != 0)
 	{
-		fixed a = (line.p2.y - line.p1.y) / dx;
-		fixed b = line.p1.y - a * line.p1.x;
+		fixed a = (L.p2.y - L.p1.y) / dx;
+		fixed b = L.p1.y - a * L.p1.x;
 
 		ymin = a * xmin + b;
 		ymax = a * xmax + b;
@@ -225,11 +228,11 @@ bool intersects(const rect &rc, const line &line)
 		ymin = tmp;
 	}
 
-	if (ymax > rc.br.y)
-		ymax = rc.br.y;
+	if (ymax > RC.br.y)
+		ymax = RC.br.y;
 
-	if (ymin < rc.tl.y)
-		ymin = rc.tl.y;
+	if (ymin < RC.tl.y)
+		ymin = RC.tl.y;
 
 	if (ymin > ymax)
 		return false;

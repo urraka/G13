@@ -18,7 +18,7 @@ public:
 
 	typedef std::vector<fixvec2> Linestrip;
 
-	void create(const std::vector<Linestrip> &linestrip);
+	void create(const std::vector<Linestrip> &linestrips);
 
 	void add(const Entity &entity);
 	void clear();
