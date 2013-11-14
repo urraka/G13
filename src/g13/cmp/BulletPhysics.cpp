@@ -18,7 +18,7 @@ bool BulletPhysics::update(Time dt, const coll::World *world)
 
 	position = collision.position;
 
-	return collision.segment != 0;
+	return collision.collided();
 }
 
 }} // g13::cmp

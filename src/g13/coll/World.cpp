@@ -184,6 +184,12 @@ Result World::collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox,
 			{
 				check_collision(segments[j], path, bbox, result);
 
+				if (result.segment == &segments[j])
+				{
+					result.segment = 0;
+					result.entity = entities[i];
+				}
+
 				if (result.percent == 0)
 					return result;
 			}

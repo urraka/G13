@@ -12,7 +12,7 @@
 			"variants": [
 				{
 					"name": "Run",
-					"cmd": ["bin\\win32-d\\G13.exe"],
+					"cmd": ["start", "bin\\win32-d\\G13.exe"],
 					"shell": true,
 					"working_dir": "${project_path}"
 				}

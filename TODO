@@ -2,12 +2,12 @@ Map editor
   - Pixel based generic terrain (is this actually useful or should terrain always follow a pattern?).
   - Polygon based terrain for specific cases that follow a pattern (like rocks).
   - Terrain pattern editor.
-  - Vegetation generator (grass, etc -- places sprites over linestrips with some rules).
+  / Vegetation generator (grass, etc -- places sprites over linestrips with some rules).
   - Some way to add arbitrary sprites.
   - Some way to add arbitrary sprites that have collision outlines.
   - Animated sprites.
   - Difference between objects/library/gallery (changes in library are reflected in objects).
-  - Soldier for size reference.
+  x Soldier for size reference.
   - Parallax backgrounds.
   - Spawn points (different types? players, weapons, etc).
   - Triggers?
@@ -15,17 +15,17 @@ Map editor
   - Water level.
   - Layers, send to front/back.
   - Stuff behind/on front of player.
-  - Save/load.
-  - Undo/redo history.
+  / Save/load.
+  x Undo/redo history.
   - Git commit on every save.
   - Easy way to test in game (ie. g13://map-server/mapname, and game loads map from url).
   - Copy/cut/paste.
-  - Exporting.
+  x Exporting.
   - Groups.
   - Global parameters (gravity, etc).
 
 Game
-  - Entity collision can return invalid segment pointers.
+  x Entity collision can return invalid segment pointers.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.
