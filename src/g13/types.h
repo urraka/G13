@@ -64,4 +64,9 @@ namespace g13
 		class Result;
 		class World;
 	}
+
+	namespace cbk
+	{
+		class Callback;
+	}
 }

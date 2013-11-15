@@ -1,5 +1,6 @@
 #include "BulletPhysics.h"
 #include <g13/coll/collision.h>
+#include <g13/callback.h>
 
 namespace g13 {
 namespace cmp {
@@ -17,6 +18,11 @@ bool BulletPhysics::update(Time dt, const coll::World *world)
 	coll::Result collision = world->collision(position, position + delta, bbox, coll::All);
 
 	position = collision.position;
+
+	if (collision.entity != 0)
+	{
+		collisionCallback->fire(0);
+	}
 
 	return collision.collided();
 }

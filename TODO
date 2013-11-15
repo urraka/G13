@@ -25,6 +25,8 @@ Map editor
   - Global parameters (gravity, etc).
 
 Game
+  - Due to quantum mechanics bullets go through players when shooting from a certain position.
+  - Move createBullet callback to Client/Server.
   x Entity collision can return invalid segment pointers.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.

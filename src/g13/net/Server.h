@@ -38,7 +38,8 @@ private:
 	void onPlayerInput(Player *player, msg::Input *input);
 	void onPlayerChat (Player *player, msg::Chat  *chat);
 
-	void onBulletCreated(const cmp::BulletParams &params);
+	void createBullet(void *data);
+	void playerBulletCollision(void *data);
 };
 
 }} // net

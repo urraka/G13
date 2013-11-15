@@ -72,6 +72,9 @@ private:
 	void onBullet(msg::Bullet *bullet);
 
 	void onResize(int width, int height);
+
+	void createBullet(void *data);
+	void playerBulletCollision(void *data);
 };
 
 }} // g13::net

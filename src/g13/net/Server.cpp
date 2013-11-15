@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "msg.h"
 
+#include <g13/callback.h>
 #include <hlp/countof.h>
 #include <hlp/assign.h>
 #include <assert.h>
@@ -11,7 +12,14 @@
 namespace g13 {
 namespace net {
 
-Server::Server() : state_(Stopped) {}
+Server::Server() : state_(Stopped)
+{
+	setCallback(CreateBullet, cbk::callback(this, &Server::createBullet));
+	setCallback(PlayerBulletCollision, cbk::callback(this, &Server::playerBulletCollision));
+
+	for (int i = 0; i < MaxPlayers; i++)
+		players_[i].soldier()->createBulletCallback = getCallback(CreateBullet);
+}
 
 bool Server::start(int port)
 {
@@ -314,9 +322,19 @@ void Server::onPlayerChat(Player *player, msg::Chat *chat)
 	}
 }
 
-void Server::onBulletCreated(const cmp::BulletParams &params)
+void Server::createBullet(void *data)
 {
+	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
+
+	ent::Bullet bullet(*(cmp::BulletParams*)data);
+	bullet.physics.collisionCallback = getCallback(PlayerBulletCollision);
+
+	bullets_.push_back(bullet);
 	createdBullets_.push_back(BulletParams(players_[params.playerid].tick(), params));
+}
+
+void Server::playerBulletCollision(void *data)
+{
 }
 
 }} // g13::net

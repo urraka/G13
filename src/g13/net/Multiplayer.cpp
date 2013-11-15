@@ -2,6 +2,7 @@
 #include "msg.h"
 
 #include <g13/Map.h>
+#include <g13/callback.h>
 #include <hlp/countof.h>
 
 namespace g13 {
@@ -11,7 +12,8 @@ Multiplayer::Multiplayer()
 	:	tick_(0),
 		connection_(0),
 		dataPool_(0),
-		map_(0)
+		map_(0),
+		callbacks_()
 {
 	dataPool_ = new hlp::pool<msg::Storage>();
 
@@ -19,8 +21,6 @@ Multiplayer::Multiplayer()
 	{
 		players_[i].id_ = i;
 		players_[i].soldier()->id = i;
-		players_[i].soldier()->listener = this;
-		players_[i].soldier()->createBullet = createBullet;
 	}
 }
 
@@ -32,6 +32,9 @@ Multiplayer::~Multiplayer()
 	if (map_) delete map_;
 
 	delete dataPool_;
+
+	for (int i = 0; i < CallbackCount; i++)
+		delete callbacks_[i];
 }
 
 void Multiplayer::pollEvents()
@@ -134,14 +137,6 @@ void Multiplayer::free_packet(ENetPacket *packet)
 {
 	Multiplayer *self = (Multiplayer*)packet->userData;
 	self->dataPool_->free((msg::Storage*)packet->data);
-}
-
-void Multiplayer::createBullet(void *self, const cmp::BulletParams &params)
-{
-	Multiplayer *game = (Multiplayer*)self;
-
-	game->bullets_.push_back(ent::Bullet(params));
-	game->onBulletCreated(params);
 }
 
 void Multiplayer::updateBullets(Time dt)

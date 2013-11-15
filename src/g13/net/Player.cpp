@@ -2,6 +2,7 @@
 
 #include <g13/Map.h>
 #include <g13/coll/collision.h>
+#include <g13/callback.h>
 
 #include <hlp/assign.h>
 #include <math/mix_angle.h>
@@ -151,7 +152,7 @@ void Player::updateRemote(Time dt, int tick)
 
 	while (it != bullets_.end() && it->tick <= renderedTick)
 	{
-		soldier_.createBullet(soldier_.listener, it->data);
+		soldier_.createBulletCallback->fire(&(it->data));
 
 		bullets_.pop_front();
 		it = bullets_.begin();
@@ -219,7 +220,7 @@ void Player::onDisconnect(int tick)
 
 	while (it != bullets_.end())
 	{
-		soldier_.createBullet(soldier_.listener, it->data);
+		soldier_.createBulletCallback->fire(&(it->data));
 
 		bullets_.pop_front();
 		it = bullets_.begin();
@@ -265,10 +266,12 @@ void Player::onInput(int tick, const cmp::SoldierInput &input)
 	}
 }
 
-void Player::onBulletCreated(int tick, const cmp::BulletParams &params)
+void Player::onBulletCreated(int tick, const cmp::BulletParams &prams)
 {
+	cmp::BulletParams params = prams;
+
 	if (tick <= disconnectTick_)
-		soldier_.createBullet(soldier_.listener, params); // playerid shouldn't matter on client
+		soldier_.createBulletCallback->fire(&params); // playerid shouldn't matter on client
 	else
 		bullets_.push_back(BulletParams(tick, params));
 }

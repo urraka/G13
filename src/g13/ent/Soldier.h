@@ -25,11 +25,9 @@ public:
 	cmp::SoldierPhysics physics;
 	cmp::SoldierGraphics graphics;
 
-	typedef void (*CreateBulletCallback)(void*, const cmp::BulletParams&);
-
 	uint8_t id;
-	void *listener;
-	CreateBulletCallback createBullet;
+
+	cbk::Callback *createBulletCallback;
 
 	coll::Entity collisionEntity;
 

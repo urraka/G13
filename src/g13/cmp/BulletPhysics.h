@@ -13,6 +13,8 @@ public:
 
 	fixvec2 position;
 	fixvec2 velocity;
+
+	cbk::Callback *collisionCallback;
 };
 
 }} // g13::cmp

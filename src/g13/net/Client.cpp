@@ -4,6 +4,7 @@
 #include <g13/g13.h>
 #include <g13/res.h>
 #include <g13/Map.h>
+#include <g13/callback.h>
 
 #include <gfx/gfx.h>
 #include <hlp/assign.h>
@@ -58,12 +59,17 @@ Client::Client()
 	chatText_->color(fontColor);
 	chatText_->value(caret_);
 
+	setCallback(CreateBullet, cbk::callback(this, &Client::createBullet));
+	setCallback(PlayerBulletCollision, cbk::callback(this, &Client::playerBulletCollision));
+
 	for (int i = 0; i < MaxPlayers; i++)
 	{
 		playersText_[i].text = new gfx::Text();
 		playersText_[i].text->font(font);
 		playersText_[i].text->size(fontSize);
 		playersText_[i].text->color(fontColor);
+
+		players_[i].soldier()->createBulletCallback = getCallback(CreateBullet);
 	}
 }
 
@@ -188,6 +194,18 @@ bool Client::active() const
 Client::State Client::state() const
 {
 	return state_;
+}
+
+void Client::createBullet(void *data)
+{
+	ent::Bullet bullet(*(cmp::BulletParams*)data);
+	bullet.physics.collisionCallback = getCallback(PlayerBulletCollision);
+
+	bullets_.push_back(bullet);
+}
+
+void Client::playerBulletCollision(void *data)
+{
 }
 
 void Client::onConnect(ENetPeer *peer)

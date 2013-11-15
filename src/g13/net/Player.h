@@ -23,7 +23,8 @@ public:
 		Disconnected,
 		Connecting,
 		Connected,
-		Playing
+		Playing,
+		Dead
 	};
 
 	enum
@@ -31,7 +32,8 @@ public:
 		InvalidId     = 0xFF,
 		MaxNameLength = 20,
 		MinNameLength = 1,
-		MaxTickOffset = 63
+		MaxTickOffset = 63,
+		MaxHealth     = UINT16_MAX
 	};
 
 	Player();
@@ -48,6 +50,7 @@ public:
 	void onSoldierState(int tick, const cmp::SoldierState &soldierState);
 	void onInput(int tick, const cmp::SoldierInput &input);
 	void onBulletCreated(int tick, const cmp::BulletParams &params);
+	void onDamage(int amount);
 
 	State       state    () const;
 	bool        connected() const;
@@ -76,6 +79,7 @@ private:
 	ENetPeer *peer_;
 	Time connectTimeout_;
 	std::deque<BulletParams> bullets_;
+	int health_;
 
 	friend class Multiplayer;
 
