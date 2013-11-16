@@ -103,6 +103,11 @@ fixed epsilon_check(const fixed &x, const fixed &epsilon)
 	return fabs(x) < epsilon ? fixed::zero : x;
 }
 
+fixed lerp(const fixed &a, const fixed &b, const fixed &step)
+{
+	return a + (b - a) * step;
+}
+
 // vec2 functions
 
 fixed dot(const vec2 &a, const vec2 &b)
@@ -155,6 +160,11 @@ vec2 epsilon_check(const vec2 &x, const fixed &epsilon)
 		epsilon_check(x.x, epsilon),
 		epsilon_check(x.y, epsilon)
 	);
+}
+
+vec2 lerp(const vec2 &a, const vec2 &b, const fixed &step)
+{
+	return vec2(lerp(a.x, b.x, step), lerp(a.y, b.y, step));
 }
 
 // rect functions

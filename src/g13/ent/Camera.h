@@ -48,6 +48,8 @@ private:
 	mat2d matrixinv_;
 	vec2 tlBounds_;
 	vec2 brBounds_;
+
+	void clampToBounds();
 };
 
 }} // g13::ent

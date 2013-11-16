@@ -270,7 +270,13 @@ void Server::onPlayerReady(Player *player, msg::Ready *ready)
 	msg::PlayerJoin join;
 	join.tick = tick_;
 	join.id = player->id();
-	join.position = fixvec2(0, 0);
+
+	const fixrect &bounds = map_->world()->bounds();
+
+	join.position = fixvec2(
+		fpm::lerp(bounds.tl.x, bounds.br.x, fixed(rand() / (float)RAND_MAX)),
+		fpm::lerp(bounds.tl.y, bounds.br.y, fixed(rand() / (float)RAND_MAX))
+	);
 
 	player->onJoin(tick_, map_, join.position);
 

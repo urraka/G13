@@ -37,8 +37,11 @@ void Camera::update(Time dt)
 	velocity_ = distance * kVelMultiplier;
 	position_.current += velocity_ * dts;
 
-	// calculate position/scale constraints
+	clampToBounds();
+}
 
+void Camera::clampToBounds()
+{
 	float W = brBounds_.x - tlBounds_.x;
 	float H = brBounds_.y - tlBounds_.y;
 	float w = width_;
@@ -81,7 +84,12 @@ void Camera::target(const vec2 *target)
 	target_ = target;
 
 	if (target)
+	{
 		position_.set(*target);
+		clampToBounds();
+		position_.set(position_.current);
+		zoom_.set(zoom_.current);
+	}
 }
 
 void Camera::viewport(int width, int height)

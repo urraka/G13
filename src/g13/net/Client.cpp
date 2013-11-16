@@ -274,6 +274,7 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	loadMap();
 
 	camera_.bounds(from_fixed(map_->world()->bounds().tl), from_fixed(map_->world()->bounds().br));
+	camera_.viewport(sys::framebuffer_width(), sys::framebuffer_height());
 
 	#ifdef DEBUG
 		dbg->map = map_;

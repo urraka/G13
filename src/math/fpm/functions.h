@@ -27,6 +27,7 @@ fixed min          (const fixed &x, const fixed &y);
 fixed max          (const fixed &x, const fixed &y);
 fixed fmod         (const fixed &x, const fixed &y);
 fixed epsilon_check(const fixed &x, const fixed &epsilon);
+fixed lerp         (const fixed &a, const fixed &b, const fixed &step);
 
 // vec2
 fixed dot          (const vec2 &a, const vec2 &b);
@@ -35,6 +36,7 @@ fixed length2      (const vec2 &x);
 vec2  normalize    (const vec2 &x);
 vec2  sign         (const vec2 &x);
 vec2  epsilon_check(const vec2 &x, const fixed &epsilon);
+vec2  lerp         (const vec2 &a, const vec2 &b, const fixed &step);
 
 // rect
 bool  contains  (const rect &rc, const vec2 &p);
