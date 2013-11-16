@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "msg.h"
 
+#include <g13/Map.h>
 #include <g13/callback.h>
 #include <hlp/countof.h>
 #include <hlp/assign.h>
@@ -14,11 +15,8 @@ namespace net {
 
 Server::Server() : state_(Stopped)
 {
-	setCallback(CreateBullet, cbk::callback(this, &Server::createBullet));
-	setCallback(PlayerBulletCollision, cbk::callback(this, &Server::playerBulletCollision));
-
 	for (int i = 0; i < MaxPlayers; i++)
-		players_[i].soldier()->createBulletCallback = getCallback(CreateBullet);
+		players_[i].soldier()->createBulletCallback = make_callback(this, Server, createBullet);
 }
 
 bool Server::start(int port)
@@ -76,6 +74,8 @@ void Server::update(Time dt)
 
 	int activePlayers = 0;
 
+	map_->world()->clear();
+
 	for (int i = 0; i < MaxPlayers; i++)
 	{
 		Player *player = &players_[i];
@@ -84,6 +84,8 @@ void Server::update(Time dt)
 		{
 			player->updateServer(dt, tick_);
 			activePlayers++;
+
+			map_->world()->add(player->soldier()->collisionEntity);
 		}
 	}
 
@@ -327,7 +329,7 @@ void Server::createBullet(void *data)
 	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
 
 	ent::Bullet bullet(*(cmp::BulletParams*)data);
-	bullet.physics.collisionCallback = getCallback(PlayerBulletCollision);
+	bullet.physics.collisionCallback = make_callback(this, Server, playerBulletCollision);
 
 	bullets_.push_back(bullet);
 	createdBullets_.push_back(BulletParams(players_[params.playerid].tick(), params));

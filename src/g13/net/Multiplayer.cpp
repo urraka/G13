@@ -12,8 +12,7 @@ Multiplayer::Multiplayer()
 	:	tick_(0),
 		connection_(0),
 		dataPool_(0),
-		map_(0),
-		callbacks_()
+		map_(0)
 {
 	dataPool_ = new hlp::pool<msg::Storage>();
 
@@ -32,9 +31,6 @@ Multiplayer::~Multiplayer()
 	if (map_) delete map_;
 
 	delete dataPool_;
-
-	for (int i = 0; i < CallbackCount; i++)
-		delete callbacks_[i];
 }
 
 void Multiplayer::pollEvents()

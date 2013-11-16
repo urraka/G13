@@ -59,9 +59,6 @@ Client::Client()
 	chatText_->color(fontColor);
 	chatText_->value(caret_);
 
-	setCallback(CreateBullet, cbk::callback(this, &Client::createBullet));
-	setCallback(PlayerBulletCollision, cbk::callback(this, &Client::playerBulletCollision));
-
 	for (int i = 0; i < MaxPlayers; i++)
 	{
 		playersText_[i].text = new gfx::Text();
@@ -69,7 +66,7 @@ Client::Client()
 		playersText_[i].text->size(fontSize);
 		playersText_[i].text->color(fontColor);
 
-		players_[i].soldier()->createBulletCallback = getCallback(CreateBullet);
+		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
 }
 
@@ -199,7 +196,7 @@ Client::State Client::state() const
 void Client::createBullet(void *data)
 {
 	ent::Bullet bullet(*(cmp::BulletParams*)data);
-	bullet.physics.collisionCallback = getCallback(PlayerBulletCollision);
+	bullet.physics.collisionCallback = make_callback(this, Client, playerBulletCollision);
 
 	bullets_.push_back(bullet);
 }

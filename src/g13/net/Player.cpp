@@ -152,7 +152,7 @@ void Player::updateRemote(Time dt, int tick)
 
 	while (it != bullets_.end() && it->tick <= renderedTick)
 	{
-		soldier_.createBulletCallback->fire(&(it->data));
+		soldier_.createBulletCallback.fire(&(it->data));
 
 		bullets_.pop_front();
 		it = bullets_.begin();
@@ -220,7 +220,7 @@ void Player::onDisconnect(int tick)
 
 	while (it != bullets_.end())
 	{
-		soldier_.createBulletCallback->fire(&(it->data));
+		soldier_.createBulletCallback.fire(&(it->data));
 
 		bullets_.pop_front();
 		it = bullets_.begin();
@@ -271,7 +271,7 @@ void Player::onBulletCreated(int tick, const cmp::BulletParams &prams)
 	cmp::BulletParams params = prams;
 
 	if (tick <= disconnectTick_)
-		soldier_.createBulletCallback->fire(&params); // playerid shouldn't matter on client
+		soldier_.createBulletCallback.fire(&params); // playerid shouldn't matter on client
 	else
 		bullets_.push_back(BulletParams(tick, params));
 }

@@ -36,23 +36,6 @@ protected:
 	Player players_[MaxPlayers];
 	std::vector<ent::Bullet> bullets_;
 
-	enum Callback
-	{
-		CreateBullet = 0,
-		PlayerBulletCollision,
-		CallbackCount
-	};
-
-	void setCallback(Callback id, cbk::Callback *callback)
-	{
-		callbacks_[id] = callback;
-	}
-
-	cbk::Callback *getCallback(Callback id)
-	{
-		return callbacks_[id];
-	}
-
 	void pollEvents();
 	void loadMap();
 	void send(msg::Message *msg, ENetPeer *target = 0); // target = 0 -> broadcast
@@ -64,9 +47,6 @@ protected:
 	static void free_packet(ENetPacket *packet);
 
 	void updateBullets(Time dt);
-
-private:
-	cbk::Callback *callbacks_[CallbackCount];
 };
 
 }} // g13::net

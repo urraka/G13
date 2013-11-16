@@ -1,14 +1,12 @@
 #include "Soldier.h"
 #include <g13/ent/Bullet.h>
 #include <g13/cmp/BulletParams.h>
-#include <g13/callback.h>
 
 namespace g13 {
 namespace ent {
 
 Soldier::Soldier()
-	:	createBulletCallback(0),
-		shootingTime_(0)
+	:	shootingTime_(0)
 {
 	physics.input = &input;
 
@@ -47,7 +45,7 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 			position += fixvec2(fpm::cos(angle), fpm::sin(angle)) * fixed(80);
 
 			cmp::BulletParams params(id, position, 2000, angle);
-			createBulletCallback->fire(&params);
+			createBulletCallback.fire(&params);
 		}
 
 		shootingTime_ += dt;

@@ -2,6 +2,7 @@
 
 #include <g13/g13.h>
 #include <g13/math.h>
+#include <g13/callback.h>
 #include <g13/cmp/SoldierInput.h>
 #include <g13/cmp/SoldierPhysics.h>
 #include <g13/cmp/SoldierGraphics.h>
@@ -27,7 +28,7 @@ public:
 
 	uint8_t id;
 
-	cbk::Callback *createBulletCallback;
+	Callback createBulletCallback;
 
 	coll::Entity collisionEntity;
 

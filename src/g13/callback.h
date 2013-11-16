@@ -1,35 +1,39 @@
 #pragma once
 
+#include <assert.h>
+
+#define make_callback(obj, T, M) g13::Callback(obj, g13::Callback::func<T, &T::M>)
+
 namespace g13 {
-namespace cbk {
 
 class Callback
 {
-public:
-	virtual ~Callback() {}
-	virtual void fire(void *data) = 0;
-};
+	typedef void (*callback_t)(void*, void*);
 
-template<typename T> class callback_t : public Callback
-{
 public:
-	typedef void (T::*method_t)(void*);
+	Callback() : object_(0), callback_(0) {}
 
-	callback_t(T *object, method_t method) : object_(object), method_(method) {}
+	Callback(void *object, callback_t callback)
+		:	object_(object),
+			callback_(callback)
+	{}
 
 	void fire(void *data)
 	{
-		(object_->*method_)(data);
+		assert(object_ != 0 && callback_ != 0);
+
+		callback_(object_, data);
+	}
+
+	template<typename T, void (T::*M)(void*)>
+	static void func(void *object, void *data)
+	{
+		(((T*)object)->*M)(data);
 	}
 
 private:
-	T *object_;
-	method_t method_;
+	void *object_;
+	callback_t callback_;
 };
 
-template<typename T> Callback *callback(T *object, typename callback_t<T>::method_t method)
-{
-	return new callback_t<T>(object, method);
-}
-
-}} // g13::cbk
+} // g13
