@@ -387,12 +387,6 @@ void Client::onGameState(msg::GameState *gameState)
 {
 	if (map_ == 0) return;
 
-	// if (tick_ - interpolation_ > gameState->tick)
-	// {
-	// 	interpolation_++;
-	// 	debug_log("interpolation = " << interpolation_);
-	// }
-
 	for (int i = 0; i < gameState->nSoldiers; i++)
 	{
 		Player *player = &players_[gameState->soldiers[i].playerId];
