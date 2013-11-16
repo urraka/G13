@@ -329,7 +329,7 @@ void Server::createBullet(void *data)
 	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
 
 	ent::Bullet bullet(*(cmp::BulletParams*)data);
-	bullet.physics.collisionCallback = make_callback(this, Server, playerBulletCollision);
+	bullet.collisionCallback = make_callback(this, Server, playerBulletCollision);
 
 	bullets_.push_back(bullet);
 	createdBullets_.push_back(BulletParams(players_[params.playerid].tick(), params));
@@ -337,6 +337,26 @@ void Server::createBullet(void *data)
 
 void Server::playerBulletCollision(void *data)
 {
+	struct params_t
+	{
+		uint8_t bulletOwner;
+		const coll::Entity *entity;
+	};
+
+	params_t *params = (params_t*)data;
+	Player   *victim = (Player*)params->entity->data;
+
+	uint16_t amount = Player::MaxHealth / 20;
+
+	victim->onDamage(tick_, amount);
+
+	msg::Damage damage;
+
+	damage.tick = tick_;
+	damage.playerId = victim->id();
+	damage.amount = amount;
+
+	send(&damage);
 }
 
 }} // g13::net

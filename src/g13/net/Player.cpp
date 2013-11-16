@@ -15,6 +15,8 @@ Player::Player()
 	:	peer_(0)
 {
 	hlp::assign(name_, "");
+
+	soldier_.collisionEntity.data = this;
 }
 
 void Player::initialize()
@@ -231,12 +233,15 @@ void Player::onJoin(int tick, const Map *map, const fixvec2 &position)
 {
 	state_ = Playing;
 	lastInputTick_ = tick - 1;
-	tick_ = joinTick_ = tick;
+	tick_ = tick;
+	joinTick_ = tick;
 	soldier_.reset(position);
 	soldier_.world(map->world());
 
 	inputs_.clear();
 	stateBuffer_.clear();
+
+	health_ = MaxHealth;
 }
 
 void Player::onSoldierState(int tick, const cmp::SoldierState &soldierState)
@@ -274,6 +279,17 @@ void Player::onBulletCreated(int tick, const cmp::BulletParams &prams)
 		soldier_.createBulletCallback.fire(&params); // playerid shouldn't matter on client
 	else
 		bullets_.push_back(BulletParams(tick, params));
+}
+
+void Player::onDamage(int tick, int amount)
+{
+	if (state_ == Playing && tick >= joinTick_)
+	{
+		health_ = std::max(0, health_ - amount);
+
+		if (health_ == 0)
+			state_ = Dead;
+	}
 }
 
 Player::State Player::state() const

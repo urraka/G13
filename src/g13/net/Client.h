@@ -70,6 +70,7 @@ private:
 	void onPlayerChat(msg::Chat *chat);
 	void onGameState(msg::GameState *gameState);
 	void onBullet(msg::Bullet *bullet);
+	void onDamage(msg::Damage *damage);
 
 	void onResize(int width, int height);
 

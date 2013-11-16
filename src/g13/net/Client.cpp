@@ -68,6 +68,8 @@ Client::Client()
 
 		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
+
+	onResize(sys::framebuffer_width(), sys::framebuffer_height());
 }
 
 Client::~Client()
@@ -196,7 +198,7 @@ Client::State Client::state() const
 void Client::createBullet(void *data)
 {
 	ent::Bullet bullet(*(cmp::BulletParams*)data);
-	bullet.physics.collisionCallback = make_callback(this, Client, playerBulletCollision);
+	bullet.collisionCallback = make_callback(this, Client, playerBulletCollision);
 
 	bullets_.push_back(bullet);
 }
@@ -258,6 +260,7 @@ void Client::onMessage(msg::Message *msg, ENetPeer *from)
 		case msg::Chat::Type:             onPlayerChat((msg::Chat*)msg);                   break;
 		case msg::GameState::Type:        onGameState((msg::GameState*)msg);               break;
 		case msg::Bullet::Type:           onBullet((msg::Bullet*)msg);                     break;
+		case msg::Damage::Type:           onDamage((msg::Damage*)msg);                     break;
 
 		default: break;
 	}
@@ -271,6 +274,12 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	loadMap();
 
 	camera_.bounds(from_fixed(map_->world()->bounds().tl), from_fixed(map_->world()->bounds().br));
+
+	#ifdef DEBUG
+		dbg->map = map_;
+		dbg->soldier = players_[id_].soldier();
+		dbg->loadCollisionHulls();
+	#endif
 
 	for (int i = 0; i < MaxPlayers; i++)
 		players_[i].initialize();
@@ -355,16 +364,6 @@ void Client::onPlayerJoin(msg::PlayerJoin *playerJoin)
 	if (playerJoin->id == id_)
 	{
 		camera_.target(&players_[id_].soldier()->graphics.position.current);
-
-		int w, h;
-		sys::framebuffer_size(&w, &h);
-		onResize(w, h);
-
-		#ifdef DEBUG
-			dbg->map = map_;
-			dbg->soldier = players_[id_].soldier();
-			dbg->loadCollisionHulls();
-		#endif
 	}
 
 	#ifdef DEBUG
@@ -420,9 +419,14 @@ void Client::onBullet(msg::Bullet *bullet)
 	}
 }
 
+void Client::onDamage(msg::Damage *damage)
+{
+	players_[damage->playerId].onDamage(damage->tick, damage->amount);
+}
+
 void Client::draw(const Frame &frame)
 {
-	if (active() && players_[id_].state() == Player::Playing)
+	if (active() && players_[id_].state() >= Player::Playing)
 	{
 		camera_.frame(frame);
 		target_ = camera_.matrixinv() * vec2(sys::mousex(), sys::mousey());
@@ -538,7 +542,18 @@ bool Client::event(Event *evt)
 
 		case Event::MouseButtonPressed:
 		{
-			input_.onMousePress(evt->mouseButton);
+			if (active())
+			{
+				if (players_[id_].state() == Player::Playing)
+				{
+					input_.onMousePress(evt->mouseButton);
+				}
+				else if (players_[id_].state() == Player::Dead)
+				{
+					msg::Ready ready;
+					send(&ready, peer_);
+				}
+			}
 		}
 		break;
 

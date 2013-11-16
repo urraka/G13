@@ -24,8 +24,25 @@ void Bullet::update(Time dt, const coll::World *world)
 	if (state != Alive)
 		return;
 
-	if (physics.update(dt, world))
+	physics.update(dt, world);
+
+	if (physics.collision.collided())
+	{
+		if (physics.collision.entity != 0)
+		{
+			struct params_t
+			{
+				uint8_t bulletOwner;
+				const coll::Entity *entity;
+			};
+
+			params_t params = {id, physics.collision.entity};
+
+			collisionCallback.fire(&params);
+		}
+
 		state = Impact;
+	}
 
 	if (!fpm::contains(world->bounds(), physics.position))
 		state = Dead;

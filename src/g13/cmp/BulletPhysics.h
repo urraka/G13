@@ -3,6 +3,7 @@
 #include <g13/g13.h>
 #include <g13/math.h>
 #include <g13/callback.h>
+#include <g13/coll/collision.h>
 
 namespace g13 {
 namespace cmp {
@@ -10,12 +11,11 @@ namespace cmp {
 class BulletPhysics
 {
 public:
-	bool update(Time dt, const coll::World *world);
+	void update(Time dt, const coll::World *world);
 
 	fixvec2 position;
 	fixvec2 velocity;
-
-	Callback collisionCallback;
+	coll::Result collision;
 };
 
 }} // g13::cmp

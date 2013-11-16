@@ -50,7 +50,7 @@ public:
 	void onSoldierState(int tick, const cmp::SoldierState &soldierState);
 	void onInput(int tick, const cmp::SoldierInput &input);
 	void onBulletCreated(int tick, const cmp::BulletParams &params);
-	void onDamage(int amount);
+	void onDamage(int tick, int amount);
 
 	State       state    () const;
 	bool        connected() const;

@@ -4,6 +4,7 @@ namespace g13
 {
 	class Frame;
 	class Map;
+	class Callback;
 
 	namespace stt
 	{
@@ -35,6 +36,7 @@ namespace g13
 			class PlayerJoin;
 			class GameState;
 			class Bullet;
+			class Damage;
 		}
 	}
 
@@ -63,10 +65,5 @@ namespace g13
 		class Entity;
 		class Result;
 		class World;
-	}
-
-	namespace cbk
-	{
-		class Callback;
 	}
 }

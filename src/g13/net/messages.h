@@ -150,6 +150,16 @@ BEGIN
 	List(BulletInfo, bullets, nBullets, 1)
 END
 
+MESSAGE(Damage)
+	int32_t  tick;
+	uint8_t  playerId;
+	uint16_t amount;
+BEGIN
+	Integer(tick)
+	Bits(playerId, MINBITS(Multiplayer::MaxPlayers - 1))
+	Integer(amount)
+END
+
 MESSAGES_END()
 
 }} // g13::net

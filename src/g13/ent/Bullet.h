@@ -23,6 +23,8 @@ public:
 
 	State state;
 	uint8_t id;
+
+	Callback collisionCallback;
 };
 
 }} // g13::ent
