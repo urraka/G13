@@ -110,7 +110,14 @@ void Shader::uniform(GLint location, const glm::vec4 &x)
 void Shader::uniform(GLint location, const mat2d &x)
 {
 	gfx::bind(this);
-	glUniformMatrix3x2fv(location, 1, GL_FALSE, &x[0]);
+
+	float matrix[] = {
+		x[0], x[1], 0,
+		x[2], x[3], 0,
+		x[4], x[5], 1
+	};
+
+	glUniformMatrix3fv(location, 1, GL_FALSE, matrix);
 }
 
 void Shader::uniform(const char *name, int x)

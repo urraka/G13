@@ -1,40 +1,10 @@
-Map editor
-  - Pixel based generic terrain (is this actually useful or should terrain always follow a pattern?).
-  - Polygon based terrain for specific cases that follow a pattern (like rocks).
-  - Terrain pattern editor.
-  / Vegetation generator (grass, etc -- places sprites over linestrips with some rules).
-  - Some way to add arbitrary sprites.
-  - Some way to add arbitrary sprites that have collision outlines.
-  - Animated sprites.
-  - Difference between objects/library/gallery (changes in library are reflected in objects).
-  x Soldier for size reference.
-  - Parallax backgrounds.
-  - Spawn points (different types? players, weapons, etc).
-  - Triggers?
-  - Special objects (ie. jumping thing).
-  - Water level.
-  - Layers, send to front/back.
-  - Stuff behind/on front of player.
-  / Save/load.
-  x Undo/redo history.
-  - Git commit on every save.
-  - Easy way to test in game (ie. g13://map-server/mapname, and game loads map from url).
-  - Copy/cut/paste.
-  x Exporting.
-  - Groups.
-  - Global parameters (gravity, etc).
-
 Game
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
-  x Move createBullet callback to Client/Server.
-  x Entity collision can return invalid segment pointers.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.
-  - Bullets may have to be kept by players.
-  x Implement bullet-player collisions.
   - Implement lag compensation.
-  / Add some kind of World where entities live to check collisions.
+    - Bullets may have to be kept by players.
   - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
   - Set channel on message definitions.
   - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
@@ -66,7 +36,6 @@ Game
 
 Graphics
   - Add ability to update specific sprites in SpriteBatch.
-  - Switch shaders to mat3 (mat3x2 not supported on GLES2)
   - Add text outlines.
   - Add special case in text shader for black/white color. Fix blending.
   - Add easy to draw rectangles.
@@ -81,11 +50,16 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
-  x Possible bug in fpm::rect. Check header. Perhaps it's just fine.
   - Add some overflow checks in fpm functions.
   - Consider using int64 in some functions if necessary.
 
 Archive
+  x Switch shaders to mat3 (mat3x2 not supported on GLES2)
+  x Move createBullet callback to Client/Server.
+  x Entity collision can return invalid segment pointers.
+  x Implement bullet-player collisions.
+  x Add some kind of World where entities live to check collisions.
+  x Possible bug in fpm::rect. Check header. Perhaps it's just fine.
   x Calculate min camera zoom.
   x Keep camera within map bounds.
   x Check & fix instances of for loops with i < vector.size() - 1.

@@ -276,7 +276,7 @@ void Player::onBulletCreated(int tick, const cmp::BulletParams &prams)
 	cmp::BulletParams params = prams;
 
 	if (tick <= disconnectTick_)
-		soldier_.createBulletCallback.fire(&params); // playerid shouldn't matter on client
+		soldier_.createBulletCallback.fire(&params);
 	else
 		bullets_.push_back(BulletParams(tick, params));
 }

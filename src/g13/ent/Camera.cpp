@@ -86,7 +86,9 @@ void Camera::target(const vec2 *target)
 	if (target)
 	{
 		position_.set(*target);
+
 		clampToBounds();
+
 		position_.set(position_.current);
 		zoom_.set(zoom_.current);
 	}

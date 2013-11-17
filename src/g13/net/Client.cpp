@@ -69,6 +69,13 @@ Client::Client()
 		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
 
+	// preload some glyphs
+
+	font->size(fontSize);
+
+	for (int i = 32; i < 127; i++)
+		font->glyph(i);
+
 	onResize(sys::framebuffer_width(), sys::framebuffer_height());
 }
 

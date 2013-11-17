@@ -1,8 +1,8 @@
-varying lowp vec2  texcoords;
+varying lowp  vec2 texcoords;
 varying lowp float shift;
-uniform vec2       texsize;
-uniform sampler2D  sampler;
-uniform vec4       color;
+uniform       vec2 texsize;
+uniform  sampler2D sampler;
+uniform       vec4 color;
 
 void main()
 {

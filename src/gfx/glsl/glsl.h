@@ -8,7 +8,7 @@ namespace glsl {
 // -----------------------------------------------------------------------------
 
 const char *color_vert =
-	"uniform   mat3x2 mvp;\n"
+	"uniform   mat3 mvp;\n"
 	"attribute vec2 in_position;\n"
 	"attribute vec4 in_color;\n"
 	"varying   vec4 color;\n"
@@ -16,7 +16,7 @@ const char *color_vert =
 	"void main()\n"
 	"{\n"
 	"\tcolor = in_color;\n"
-	"\tgl_Position = vec4(mvp * vec3(in_position, 1.0), 0.0, 1.0);\n"
+	"\tgl_Position = vec4(vec2(mvp * vec3(in_position, 1.0)), 0.0, 1.0);\n"
 	"}\n";
 
 // -----------------------------------------------------------------------------
@@ -24,12 +24,12 @@ const char *color_vert =
 // -----------------------------------------------------------------------------
 
 const char *simple_vert =
-	"uniform   mat3x2 mvp;\n"
+	"uniform   mat3 mvp;\n"
 	"attribute vec2 in_position;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
-	"\tgl_Position = vec4(mvp * vec3(in_position, 1.0), 0.0, 1.0);\n"
+	"\tgl_Position = vec4(vec2(mvp * vec3(in_position, 1.0)), 0.0, 1.0);\n"
 	"}\n";
 
 // -----------------------------------------------------------------------------
@@ -37,18 +37,18 @@ const char *simple_vert =
 // -----------------------------------------------------------------------------
 
 const char *sprite_vert =
-	"uniform   mat3x2  mvp;\n"
-	"attribute vec2  in_position;\n"
-	"attribute vec2  in_texcoords;\n"
-	"attribute vec4  in_color;\n"
-	"varying   vec2  texcoords;\n"
-	"varying   vec4  color;\n"
+	"uniform   mat3 mvp;\n"
+	"attribute vec2 in_position;\n"
+	"attribute vec2 in_texcoords;\n"
+	"attribute vec4 in_color;\n"
+	"varying   vec2 texcoords;\n"
+	"varying   vec4 color;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
 	"\tcolor = in_color;\n"
 	"\ttexcoords = in_texcoords;\n"
-	"\tgl_Position = vec4(mvp * vec3(in_position, 1.0), 0.0, 1.0);\n"
+	"\tgl_Position = vec4(vec2(mvp * vec3(in_position, 1.0)), 0.0, 1.0);\n"
 	"}\n";
 
 // -----------------------------------------------------------------------------
@@ -56,12 +56,12 @@ const char *sprite_vert =
 // -----------------------------------------------------------------------------
 
 const char *text_vert =
-	"uniform   mat3x2  mvp;\n"
-	"uniform   vec2  texsize;\n"
-	"attribute vec2  in_position;\n"
-	"attribute vec2  in_texcoords;\n"
-	"varying   vec2  texcoords;\n"
-	"varying   float shift;\n"
+	"uniform   mat3 mvp;\n"
+	"uniform   vec2 texsize;\n"
+	"attribute vec2 in_position;\n"
+	"attribute vec2 in_texcoords;\n"
+	"varying   vec2 texcoords;\n"
+	"varying  float shift;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
@@ -70,7 +70,7 @@ const char *text_vert =
 	"\tvec2 pos = vec2(floor(in_position.x), in_position.y);\n"
 	"\tshift = fract(in_position.x);\n"
 	"\n"
-	"\tgl_Position = vec4(mvp * vec3(pos, 1.0), 0.0, 1.0);\n"
+	"\tgl_Position = vec4(vec2(mvp * vec3(pos, 1.0)), 0.0, 1.0);\n"
 	"}\n";
 
 // -----------------------------------------------------------------------------
@@ -103,8 +103,8 @@ const char *simple_frag =
 // -----------------------------------------------------------------------------
 
 const char *sprite_frag =
-	"varying lowp vec2  texcoords;\n"
-	"varying lowp vec4  color;\n"
+	"varying lowp vec2 texcoords;\n"
+	"varying lowp vec4 color;\n"
 	"uniform sampler2D sampler;\n"
 	"\n"
 	"void main()\n"
@@ -117,11 +117,11 @@ const char *sprite_frag =
 // -----------------------------------------------------------------------------
 
 const char *text_frag =
-	"varying lowp vec2  texcoords;\n"
+	"varying lowp  vec2 texcoords;\n"
 	"varying lowp float shift;\n"
-	"uniform vec2       texsize;\n"
-	"uniform sampler2D  sampler;\n"
-	"uniform vec4       color;\n"
+	"uniform       vec2 texsize;\n"
+	"uniform  sampler2D sampler;\n"
+	"uniform       vec4 color;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
