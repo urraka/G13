@@ -24,9 +24,9 @@ void SoldierPhysics::update(Time dt)
 	fixed dts = fixed((int)dt / 1000) / fixed(1000);
 	const fixed kGravity = world->gravity();
 	const fixed kJumpVel = fixed(-550);
-	const fixed kWalkVel = fixed(250);
+	const fixed kWalkVel = fixed(500);
 	const fixed kDuckVel = fixed(150);
-	const fixed kRunVel  = fixed(350);
+	const fixed kRunVel  = fixed(1000);
 
 	if (ducked_ && !input->duck)
 	{

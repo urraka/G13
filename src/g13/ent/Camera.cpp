@@ -114,7 +114,7 @@ void Camera::bounds(const vec2 &tl, const vec2 &br)
 float Camera::defaultScale() const
 {
 	const float worldUnitsPerPixel = 1.0f;
-	const float initialWidth = 1200.0f; // in world units
+	const float initialWidth = 1500.0f; // in world units
 
 	return width_ * worldUnitsPerPixel / initialWidth;
 }
