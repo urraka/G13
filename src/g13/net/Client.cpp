@@ -194,6 +194,9 @@ void Client::update(Time dt)
 			playersText_[i].time = std::max(0, (int)(playersText_[i].time - dt));
 	}
 
+	if (connection_ != 0)
+		enet_host_flush(connection_);
+
 	tick_++;
 }
 

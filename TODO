@@ -1,4 +1,9 @@
 Game
+  - Improve player movement.
+    - Add acceleration.
+    - Better handling of wall vs floor.
+    - Friction?
+  - Fix bullet collisions with ground (dissapears before reaching ground).
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.

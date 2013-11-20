@@ -164,6 +164,9 @@ void Server::update(Time dt)
 		send(&gameState);
 	}
 
+	if (connection_ != 0)
+		enet_host_flush(connection_);
+
 	tick_++;
 }
 
