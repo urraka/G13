@@ -4,6 +4,7 @@
 
 #include <g13/g13.h>
 #include <g13/ent/Camera.h>
+#include <g13/ui/HealthBar.h>
 #include <gfx/forward.h>
 #include <string>
 
@@ -45,6 +46,8 @@ private:
 	gfx::SpriteBatch *bulletsBatch_;
 	gfx::Text *chatText_;
 	gfx::VBO *chatBackground_;
+
+	ui::HealthBar healthBar_;
 
 	bool textInputMode_;
 	string32_t chatString_;

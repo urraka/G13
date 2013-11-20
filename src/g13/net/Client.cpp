@@ -69,6 +69,11 @@ Client::Client()
 		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
 
+	healthBar_.setPosition(10.0f, 10.0f);
+	healthBar_.setSize(200.0f, 6.0f);
+	healthBar_.setOutline(1.0f, gfx::Color(0));
+	healthBar_.setOpacity(0.7f);
+
 	// preload some glyphs
 
 	font->size(fontSize);
@@ -372,6 +377,7 @@ void Client::onPlayerJoin(msg::PlayerJoin *playerJoin)
 	if (playerJoin->id == id_)
 	{
 		camera_.target(&players_[id_].soldier()->graphics.position.current);
+		healthBar_.setHealth(players_[id_].health() / (float)Player::MaxHealth);
 	}
 
 	#ifdef DEBUG
@@ -424,6 +430,9 @@ void Client::onBullet(msg::Bullet *bullet)
 void Client::onDamage(msg::Damage *damage)
 {
 	players_[damage->playerId].onDamage(damage->tick, damage->amount);
+
+	if (active() && damage->playerId == id_)
+		healthBar_.setHealth(players_[id_].health() / (float)Player::MaxHealth);
 }
 
 void Client::draw(const Frame &frame)
@@ -505,6 +514,9 @@ void Client::draw(const Frame &frame)
 				gfx::matrix(m);
 			}
 		}
+
+		gfx::identity();
+		healthBar_.draw();
 	}
 
 	if (textInputMode_)

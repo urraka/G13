@@ -58,6 +58,7 @@ public:
 	ENetPeer   *peer     () const;
 	const char *name     () const;
 	int         tick     () const;
+	int         health   () const;
 
 	ent::Soldier *soldier();
 

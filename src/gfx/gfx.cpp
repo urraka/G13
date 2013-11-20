@@ -287,6 +287,11 @@ const mat2d &matrix()
 	return context->matrix;
 }
 
+void identity()
+{
+	matrix(mat2d());
+}
+
 void translate(float x, float y)
 {
 	matrix(context->matrix * mat2d::translate(x, y));

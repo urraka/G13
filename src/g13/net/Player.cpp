@@ -327,4 +327,9 @@ int Player::tick() const
 	return tick_;
 }
 
+int Player::health() const
+{
+	return health_;
+}
+
 }} // g13::net

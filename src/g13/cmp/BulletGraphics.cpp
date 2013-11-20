@@ -8,9 +8,11 @@ namespace cmp {
 void BulletGraphics::update(Time dt, const BulletPhysics *physics)
 {
 	position.previous = position.current;
+	velocity.previous = velocity.current;
 	angle.previous = angle.current;
 
 	position.current = from_fixed(physics->position);
+	velocity.current = glm::length(from_fixed(physics->velocity));
 
 	vec2 delta = position.current - position.previous;
 	angle.current = glm::atan(delta.y, delta.x);
@@ -19,6 +21,7 @@ void BulletGraphics::update(Time dt, const BulletPhysics *physics)
 void BulletGraphics::frame(Frame frame)
 {
 	position.interpolate(frame.percent);
+	velocity.interpolate(frame.percent);
 	angle.interpolate(frame.percent);
 }
 
@@ -35,7 +38,7 @@ gfx::Sprite BulletGraphics::sprite() const
 	sprite.height = 9.0f;
 	sprite.tx0 = vec2(16.0f, 11.0f) / texsize;
 	sprite.tx1 = (vec2(16.0f, 11.0f) + vec2(90.0f, 9.0f)) / texsize;
-	sprite.scale = vec2(0.8f, 0.35f);
+	sprite.scale = vec2(0.8f * ((float)velocity / 1000.0f), 0.35f);
 	sprite.color = gfx::Color(0x33, 200);
 
 	return sprite;

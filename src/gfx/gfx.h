@@ -48,6 +48,7 @@ void draw(Text *text);
 void matrix(const mat2d &matrix);
 const mat2d &matrix();
 
+void identity();
 void translate(float x, float y);
 void rotate(float angle);
 void scale(float x, float y);
