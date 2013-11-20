@@ -15,6 +15,8 @@ public:
 	void frame(Frame frame);
 	gfx::Sprite sprite() const;
 
+	vec2 initialPosition;
+
 	math::interpolable<vec2> position;
 	math::interpolable<float> velocity;
 	math::interpolable<float, math::mix_angle> angle;

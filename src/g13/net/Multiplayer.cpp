@@ -141,7 +141,7 @@ void Multiplayer::updateBullets(Time dt)
 	{
 		bullets_[i].update(dt, map_->world());
 
-		if (bullets_[i].state != ent::Bullet::Alive)
+		if (bullets_[i].state == ent::Bullet::Dead)
 		{
 			std::swap(bullets_[i--], bullets_[bullets_.size() - 1]);
 			bullets_.pop_back();

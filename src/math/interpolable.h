@@ -39,6 +39,11 @@ public:
 		previous = current = interpolatedValue_ = value;
 	}
 
+	const T &get() const
+	{
+		return interpolatedValue_;
+	}
+
 	const T &interpolate(float percent)
 	{
 		return interpolatedValue_ = F(previous, current, percent);

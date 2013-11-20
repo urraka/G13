@@ -15,14 +15,20 @@ Bullet::Bullet(const cmp::BulletParams &params)
 	physics.position = params.position;
 	physics.velocity = fixvec2(fpm::cos(params.angle), fpm::sin(params.angle)) * params.speed;
 
-	graphics.position.set(from_fixed(params.position));
+	graphics.initialPosition = from_fixed(params.position);
+	graphics.position.set(graphics.initialPosition);
 	graphics.angle.set(params.angle.to_float());
 }
 
 void Bullet::update(Time dt, const coll::World *world)
 {
-	if (state != Alive)
+	if (state == Impact)
+		state = Dead;
+
+	if (state == Dead)
 		return;
+
+	fixvec2 prevPosition = physics.position;
 
 	physics.update(dt, world);
 
@@ -41,7 +47,10 @@ void Bullet::update(Time dt, const coll::World *world)
 			collisionCallback.fire(&params);
 		}
 
-		state = Impact;
+		if (fpm::length2(physics.position - prevPosition) > 1)
+			state = Impact;
+		else
+			state = Dead;
 	}
 
 	if (!fpm::contains(world->bounds(), physics.position))
