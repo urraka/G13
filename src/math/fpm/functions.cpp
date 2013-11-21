@@ -108,6 +108,20 @@ fixed lerp(const fixed &a, const fixed &b, const fixed &step)
 	return a + (b - a) * step;
 }
 
+fixed radians(const fixed &x)
+{
+	static const fixed to_rad = fixed::from_value(1144);
+
+	return x * to_rad;
+}
+
+fixed degrees(const fixed &x)
+{
+	static const fixed to_deg = fixed::from_value(3754936);
+
+	return x * to_deg;
+}
+
 // vec2 functions
 
 fixed dot(const vec2 &a, const vec2 &b)

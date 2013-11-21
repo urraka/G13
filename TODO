@@ -1,4 +1,5 @@
 Game
+  - Fix bullets going through ground when aiming down.
   - Improve player movement.
     - Add acceleration.
     - Better handling of wall vs floor.
@@ -56,9 +57,10 @@ System
 Math
   - Add some overflow checks in fpm functions.
   - Consider using int64 in some functions if necessary.
-  - Add radian/dergees convertion to fpm.
+  - Move constants from fixed class to fpm namespace.
 
 Archive
+  x Add radian/dergees convertion to fpm.
   x Fix bullet collisions with ground (dissapears before reaching ground).
   x Switch shaders to mat3 (mat3x2 not supported on GLES2)
   x Move createBullet callback to Client/Server.

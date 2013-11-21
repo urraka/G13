@@ -69,7 +69,7 @@ fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle)
 		fixed::from_value(2457600)
 	};
 
-	fixed alpha = angle * fixed(180) / fixed::pi;
+	fixed alpha = fpm::degrees(angle);
 
 	alpha = alpha < -90 ? fixed(-180) - alpha :
 	        alpha >  90 ? fixed( 180) - alpha :

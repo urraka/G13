@@ -28,6 +28,8 @@ fixed max          (const fixed &x, const fixed &y);
 fixed fmod         (const fixed &x, const fixed &y);
 fixed epsilon_check(const fixed &x, const fixed &epsilon);
 fixed lerp         (const fixed &a, const fixed &b, const fixed &step);
+fixed radians      (const fixed &x);
+fixed degrees      (const fixed &x);
 
 // vec2
 fixed dot          (const vec2 &a, const vec2 &b);
