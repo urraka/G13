@@ -178,6 +178,19 @@ Result World::collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox,
 
 		for (int i = 0; i < (int)entities.size(); i++)
 		{
+			// cheap solution for when we're inside the entity
+			// better would be checking intersection between bbox and "motion bounds" polygon, i guess?
+			if (fpm::intersects(bbox + a, entities[i]->previous) ||
+				fpm::intersects(bbox + a, entities[i]->current))
+			{
+				result.segment = 0;
+				result.entity = entities[i];
+				result.percent = 0;
+				result.position = a;
+
+				return result;
+			}
+
 			int n = entities[i]->motionBounds(segments);
 
 			for (int j = 0; j < n; j++)

@@ -1,9 +1,11 @@
 Game
-  - Fix bullets don't hit player when spawn point is inside of the player.
+  - Entity->motionBounds is a horrible function name. Think of a better one.
+  - Multiple weapons.
   - Improve player movement.
     - Add acceleration.
-    - Better handling of wall vs floor.
-    - Friction?
+    - Fix sliding in wall gaining speed after stopping.
+    ? Better handling of wall vs floor.
+    ? Friction.
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
@@ -21,15 +23,10 @@ Game
   - Move BitStream to hlp, could be useful for binary files aswell.
   - Consider adding range checks on packet serialization.
   - Check where peer->mtu is negotiated.
-  / Server asserts when client tick > server tick. Make it kill the client or something more clever.
-  / The number of ticks that remote players are rendered behind is hardcoded, fix that.
-  / Extrapolation [done but ugly]
   - Add some client side correcting if out of sync when needed.
-  / Add debug hints: frozen time, remote players render ticks.
   - Make a class for the chatbox.
   - Move all the Client rendering to a separate class.
   - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  / Map should carry some parameters (like gravity).
   - Add some real menu. Consider removing debug menu.
   - Think how the event system should work. Consider some minimalistic ui system.
   - Replace network.txt with config.cfg and move it to root directory.
@@ -60,6 +57,12 @@ Math
   - Move constants from fixed class to fpm namespace.
 
 Archive
+  x Fix bullets don't hit player when spawn point is inside of the player.
+  x Map should carry some parameters (like gravity). Note: World will keep the params.
+  x Add debug hints: frozen time, remote players render ticks.
+  x Server asserts when client tick > server tick. Make it kill the client or something more clever.
+  x The number of ticks that remote players are rendered behind is hardcoded, fix that.
+  x Extrapolation [done but ugly]
   x Fix bullets going through ground when aiming down.
   x Add radian/dergees convertion to fpm.
   x Fix bullet collisions with ground (dissapears before reaching ground).
