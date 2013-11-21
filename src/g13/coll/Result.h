@@ -17,6 +17,8 @@ public:
 	int     index;
 
 	bool collided() const { return segment != 0 || entity != 0; }
+
+	operator const bool() const { return collided(); }
 };
 
 }} // g13::coll

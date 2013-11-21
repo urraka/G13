@@ -35,7 +35,8 @@ public:
 private:
 	Time shootingTime_;
 
-	fixvec2 bulletSpawnPoint(const fixvec2 &position, const fixed &angle);
+	fixvec2 bulletSpawnPoint(const fixvec2 &position, const fixed &angle) const;
+	fixvec2 bodyOffset() const;
 };
 
 }} // g13::ent

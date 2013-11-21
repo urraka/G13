@@ -41,8 +41,16 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 			if (!input.rightwards)
 				angle = -angle + pi;
 
-			cmp::BulletParams params(id, bulletSpawnPoint(physics.position, angle), 2000, angle);
-			createBulletCallback.fire(&params);
+			const coll::World *world = physics.world;
+			const fixvec2 &position = physics.position;
+
+			fixvec2 spawnPoint = bulletSpawnPoint(position, angle);
+
+			if (!world->collision(position + bodyOffset(), spawnPoint, fixrect(0, 0, 1, 1)))
+			{
+				cmp::BulletParams params(id, spawnPoint, 2000, angle);
+				createBulletCallback.fire(&params);
+			}
 		}
 
 		shootingTime_ += dt;
@@ -53,7 +61,7 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 	}
 }
 
-fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle)
+fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle) const
 {
 	// All constants here are taken from SoldierGraphics, multiplied by the scale factor 0.15
 	// and then multiplied by 65536 to get the fixed point value.
@@ -84,10 +92,14 @@ fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle)
 
 	// calculate the bullet start point
 
-	const fixvec2 bodyOffset = fixvec2(0, -fixed::from_value(1720320));
 	const fixvec2 direction = fixvec2(fpm::cos(angle), fpm::sin(angle));
 
-	return fixvec2(position + bodyOffset + direction * weapdist);
+	return fixvec2(position + bodyOffset() + direction * weapdist);
+}
+
+fixvec2 Soldier::bodyOffset() const
+{
+	return fixvec2(0, -fixed::from_value(1720320));
 }
 
 void Soldier::reset(fixvec2 pos)

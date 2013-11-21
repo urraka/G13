@@ -1,5 +1,5 @@
 Game
-  - Fix bullets going through ground when aiming down.
+  - Fix bullets don't hit player when spawn point is inside of the player.
   - Improve player movement.
     - Add acceleration.
     - Better handling of wall vs floor.
@@ -60,6 +60,7 @@ Math
   - Move constants from fixed class to fpm namespace.
 
 Archive
+  x Fix bullets going through ground when aiming down.
   x Add radian/dergees convertion to fpm.
   x Fix bullet collisions with ground (dissapears before reaching ground).
   x Switch shaders to mat3 (mat3x2 not supported on GLES2)
