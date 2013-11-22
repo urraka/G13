@@ -13,7 +13,7 @@ public:
 	fixrect current;
 	bool    active;
 
-	int motionBounds(Segment (&segments)[8]) const;
+	int boundingSegments(Segment (&segments)[8]) const;
 };
 
 }} // g13::coll

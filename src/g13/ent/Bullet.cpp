@@ -32,6 +32,8 @@ void Bullet::update(Time dt, const coll::World *world)
 
 	fixvec2 prevPosition = physics.position;
 
+	// TODO: check if bullet was just fired or something to decide ownerEntity->active value
+
 	ownerEntity_->active = false;
 	physics.update(dt, world);
 	ownerEntity_->active = true;

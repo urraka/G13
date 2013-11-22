@@ -20,7 +20,7 @@ static int update_segments(Segment *segments, const fixvec2 *linestrip, int coun
 	return count;
 }
 
-int Entity::motionBounds(Segment (&segments)[8]) const
+int Entity::boundingSegments(Segment (&segments)[8]) const
 {
 	const fixrect &A = previous;
 	const fixrect &B = current;

@@ -195,7 +195,7 @@ Result World::collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox,
 					return result;
 				}
 
-				int n = entity->motionBounds(segments);
+				int n = entity->boundingSegments(segments);
 
 				for (int j = 0; j < n; j++)
 				{
