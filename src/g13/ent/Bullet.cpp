@@ -8,6 +8,7 @@ namespace ent {
 Bullet::Bullet() {}
 
 Bullet::Bullet(const cmp::BulletParams &params, coll::Entity *ownerEntity)
+	:	hitsOwner_(false)
 {
 	state = Alive;
 	id = params.playerid;
@@ -30,13 +31,22 @@ void Bullet::update(Time dt, const coll::World *world)
 	if (state == Dead)
 		return;
 
+	if (!hitsOwner_)
+	{
+		fixrect bounds = fpm::expand(ownerEntity_->previous, ownerEntity_->current);
+
+		if (!fpm::intersects(bounds, fixrect(0, 0, 1, 1) + physics.position))
+			hitsOwner_ = true;
+	}
+
 	fixvec2 prevPosition = physics.position;
 
-	// TODO: check if bullet was just fired or something to decide ownerEntity->active value
+	bool active = ownerEntity_->active;
+	ownerEntity_->active = hitsOwner_;
 
-	ownerEntity_->active = false;
 	physics.update(dt, world);
-	ownerEntity_->active = true;
+
+	ownerEntity_->active = active;
 
 	const coll::Result &collision = physics.collision;
 

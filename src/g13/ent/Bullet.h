@@ -28,6 +28,7 @@ public:
 
 private:
 	coll::Entity *ownerEntity_;
+	bool hitsOwner_;
 };
 
 }} // g13::ent
