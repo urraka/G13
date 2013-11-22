@@ -7,7 +7,7 @@ namespace ent {
 
 Bullet::Bullet() {}
 
-Bullet::Bullet(const cmp::BulletParams &params)
+Bullet::Bullet(const cmp::BulletParams &params, coll::Entity *ownerEntity)
 {
 	state = Alive;
 	id = params.playerid;
@@ -18,6 +18,8 @@ Bullet::Bullet(const cmp::BulletParams &params)
 	graphics.initialPosition = from_fixed(params.position);
 	graphics.position.set(graphics.initialPosition);
 	graphics.angle.set(params.angle.to_float());
+
+	ownerEntity_ = ownerEntity;
 }
 
 void Bullet::update(Time dt, const coll::World *world)
@@ -30,11 +32,15 @@ void Bullet::update(Time dt, const coll::World *world)
 
 	fixvec2 prevPosition = physics.position;
 
+	ownerEntity_->active = false;
 	physics.update(dt, world);
+	ownerEntity_->active = true;
 
-	if (physics.collision.collided())
+	const coll::Result &collision = physics.collision;
+
+	if (collision.collided())
 	{
-		if (physics.collision.entity != 0)
+		if (collision.entity != 0)
 		{
 			struct params_t
 			{
@@ -42,7 +48,7 @@ void Bullet::update(Time dt, const coll::World *world)
 				const coll::Entity *entity;
 			};
 
-			params_t params = {id, physics.collision.entity};
+			params_t params = {id, collision.entity};
 
 			collisionCallback.fire(&params);
 		}

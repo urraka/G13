@@ -154,7 +154,7 @@ void Client::update(Time dt)
 			players_[id_].onInput(tick_, input_);
 			players_[id_].updateLocal(dt);
 
-			map_->world()->add(players_[id_].soldier()->collisionEntity);
+			map_->world()->add(&(players_[id_].soldier()->collisionEntity));
 
 			msg::Input input;
 
@@ -180,7 +180,7 @@ void Client::update(Time dt)
 
 			player->updateRemote(dt, tick_ - interpolation_);
 
-			map_->world()->add(player->soldier()->collisionEntity);
+			map_->world()->add(&(player->soldier()->collisionEntity));
 		}
 
 		updateBullets(dt);
@@ -212,7 +212,9 @@ Client::State Client::state() const
 
 void Client::createBullet(void *data)
 {
-	ent::Bullet bullet(*(cmp::BulletParams*)data);
+	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
+
+	ent::Bullet bullet(params, &(players_[params.playerid].soldier()->collisionEntity));
 	bullet.collisionCallback = make_callback(this, Client, playerBulletCollision);
 
 	bullets_.push_back(bullet);
@@ -607,8 +609,11 @@ bool Client::event(Event *evt)
 					hlp::utf8_encode(chatString_, msg.text);
 					send(&msg, peer_);
 
-					playersText_[id_].time = sys::time<sys::Seconds>(5);
-					playersText_[id_].text->value(chatString_);
+					if (players_[id_].state() == Player::Playing)
+					{
+						playersText_[id_].time = sys::time<sys::Seconds>(5);
+						playersText_[id_].text->value(chatString_);
+					}
 				}
 
 				chatString_.clear();

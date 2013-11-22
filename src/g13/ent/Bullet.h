@@ -14,7 +14,7 @@ public:
 	enum State { Alive, Impact, Dead };
 
 	Bullet();
-	Bullet(const cmp::BulletParams &params);
+	Bullet(const cmp::BulletParams &params, coll::Entity *ownerEntity);
 
 	void update(Time dt, const coll::World *world);
 
@@ -25,6 +25,9 @@ public:
 	uint8_t id;
 
 	Callback collisionCallback;
+
+private:
+	coll::Entity *ownerEntity_;
 };
 
 }} // g13::ent

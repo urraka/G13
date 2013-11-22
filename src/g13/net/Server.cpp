@@ -85,7 +85,7 @@ void Server::update(Time dt)
 			player->updateServer(dt, tick_);
 			activePlayers++;
 
-			map_->world()->add(player->soldier()->collisionEntity);
+			map_->world()->add(&(player->soldier()->collisionEntity));
 		}
 	}
 
@@ -337,7 +337,7 @@ void Server::createBullet(void *data)
 {
 	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
 
-	ent::Bullet bullet(*(cmp::BulletParams*)data);
+	ent::Bullet bullet(params, &(players_[params.playerid].soldier()->collisionEntity));
 	bullet.collisionCallback = make_callback(this, Server, playerBulletCollision);
 
 	bullets_.push_back(bullet);

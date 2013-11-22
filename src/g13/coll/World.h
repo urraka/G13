@@ -10,6 +10,8 @@ enum Mode
 	All     = (Static | Dynamic)
 };
 
+typedef const Entity *entity_t;
+
 class World
 {
 public:
@@ -20,7 +22,7 @@ public:
 
 	void create(const std::vector<Linestrip> &linestrips);
 
-	void add(const Entity &entity);
+	void add(const entity_t &entity);
 	void clear();
 
 	Result collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox, Mode mode = Static) const;
@@ -32,14 +34,14 @@ public:
 
 private:
 	Grid<Segment> *segmentsGrid_;
-	Grid<Entity>  *entitiesGrid_;
+	Grid<entity_t> *entitiesGrid_;
 
 	fixrect bounds_;
 	fixed gravity_;
 
 	mutable std::vector<int> sharedIndices_;
 	mutable std::vector<const Segment*> segments_;
-	mutable std::vector<const Entity*> entities_;
+	mutable std::vector<const entity_t*> entities_;
 
 	template<typename T> std::vector<const T*> &retrieve(const fixrect &bounds) const;
 	template<typename T> inline std::vector<const T*> &cache() const;
@@ -58,12 +60,12 @@ template<> inline std::vector<const Segment*> &World::cache<Segment>() const
 	return segments_;
 }
 
-template<> inline const Grid<Entity> &World::grid<Entity>() const
+template<> inline const Grid<entity_t> &World::grid<entity_t>() const
 {
 	return *entitiesGrid_;
 }
 
-template<> inline std::vector<const Entity*> &World::cache<Entity>() const
+template<> inline std::vector<const entity_t*> &World::cache<entity_t>() const
 {
 	return entities_;
 }
@@ -80,16 +82,16 @@ template<> inline bool Grid<Segment>::intersects(const Segment &item, const fixr
 	return fpm::intersects(bounds, item.line);
 }
 
-template<> inline fixrect Grid<Entity>::bounds(const Entity &item)
+template<> inline fixrect Grid<entity_t>::bounds(const entity_t &item)
 {
-	return fpm::expand(item.previous, item.current);
+	return fpm::expand(item->previous, item->current);
 }
 
-template<> inline bool Grid<Entity>::intersects(const Entity &item, const fixrect &bounds)
+template<> inline bool Grid<entity_t>::intersects(const entity_t &item, const fixrect &bounds)
 {
 	// TODO: change fpm::expand with something better
 
-	return fpm::intersects(bounds, fpm::expand(item.previous, item.current));
+	return fpm::intersects(bounds, fpm::expand(item->previous, item->current));
 }
 
 }} // g13::coll

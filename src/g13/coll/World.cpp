@@ -12,7 +12,7 @@ static void check_collision(const Segment &seg, const fixline &path, const fixre
 static const fixed epsilon = fixed::from_value(2048); // 0,03125 = 1 / 32
 
 template std::vector<const Segment*> &World::retrieve<Segment>(const fixrect &bounds) const;
-template std::vector<const Entity*> &World::retrieve<Entity>(const fixrect &bounds) const;
+template std::vector<const entity_t*> &World::retrieve<entity_t>(const fixrect &bounds) const;
 
 // World
 
@@ -28,7 +28,7 @@ World::World(const fixrect &bounds)
 	const int rows = fpm::ceil(bounds.height() / cellsize.y).to_int();
 
 	segmentsGrid_ = new Grid<Segment>(cols, rows, bounds);
-	entitiesGrid_ = new Grid<Entity >(cols, rows, bounds);
+	entitiesGrid_ = new Grid<entity_t>(cols, rows, bounds);
 }
 
 World::~World()
@@ -88,7 +88,7 @@ void World::create(const std::vector<Linestrip> &linestrips)
 		map_pointers(*segmentsGrid_, segmentsGrid_->sharedItems()[i], map);
 }
 
-void World::add(const Entity &entity)
+void World::add(const entity_t &entity)
 {
 	entitiesGrid_->push(entity);
 }
@@ -172,39 +172,44 @@ Result World::collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox,
 
 	if (mode & Dynamic && result.position != a)
 	{
-		std::vector<const Entity*> &entities = retrieve<Entity>(bounds);
+		std::vector<const entity_t*> &entities = retrieve<entity_t>(bounds);
 
 		Segment segments[8];
 
 		for (int i = 0; i < (int)entities.size(); i++)
 		{
-			// cheap solution for when we're inside the entity
-			// better would be checking intersection between bbox and "motion bounds" polygon, i guess?
-			if (fpm::intersects(bbox + a, entities[i]->previous) ||
-				fpm::intersects(bbox + a, entities[i]->current))
+			const Entity *entity = *entities[i];
+
+			if (entity->active)
 			{
-				result.segment = 0;
-				result.entity = entities[i];
-				result.percent = 0;
-				result.position = a;
-
-				return result;
-			}
-
-			int n = entities[i]->motionBounds(segments);
-
-			for (int j = 0; j < n; j++)
-			{
-				check_collision(segments[j], path, bbox, result);
-
-				if (result.segment == &segments[j])
+				// cheap solution for when we're inside the entity
+				// better would be checking intersection between bbox and "motion bounds" polygon, i guess?
+				if (fpm::intersects(bbox + a, entity->previous) ||
+					fpm::intersects(bbox + a, entity->current))
 				{
 					result.segment = 0;
-					result.entity = entities[i];
+					result.entity = entity;
+					result.percent = 0;
+					result.position = a;
+
+					return result;
 				}
 
-				if (result.percent == 0)
-					return result;
+				int n = entity->motionBounds(segments);
+
+				for (int j = 0; j < n; j++)
+				{
+					check_collision(segments[j], path, bbox, result);
+
+					if (result.segment == &segments[j])
+					{
+						result.segment = 0;
+						result.entity = entity;
+					}
+
+					if (result.percent == 0)
+						return result;
+				}
 			}
 		}
 	}

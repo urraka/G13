@@ -6,11 +6,12 @@ namespace coll {
 class Entity
 {
 public:
-	Entity() : data(0) {}
+	Entity() : data(0), active(true) {}
 
 	void   *data;
 	fixrect previous;
 	fixrect current;
+	bool    active;
 
 	int motionBounds(Segment (&segments)[8]) const;
 };
