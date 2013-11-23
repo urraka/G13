@@ -188,12 +188,14 @@ void Player::updateServer(Time dt, int tick)
 	{
 		soldier_.collisionEntity.previous = soldier_.physics.bounds() + soldier_.physics.position;
 
-		for (size_t i = 0; i < inputs_.size() && inputs_[i].tick <= tick; i++, tick_++)
+		size_t i;
+
+		for (i = 0; i < inputs_.size() && inputs_[i].tick < tick; i++, tick_++)
 			soldier_.update(dt, &inputs_[i].data);
 
 		soldier_.collisionEntity.current = soldier_.physics.bounds() + soldier_.physics.position;
 
-		inputs_.clear();
+		inputs_.erase(inputs_.begin(), inputs_.begin() + i);
 	}
 }
 
