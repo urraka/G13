@@ -169,6 +169,10 @@ void Client::update(Time dt)
 			input.shoot      = input_.shoot;
 
 			send(&input, peer_);
+
+			const vec2 &position = players_[id_].soldier()->graphics.position.current;
+
+			cameraTarget_ = glm::mix(target_, position, 0.5f);
 		}
 
 		for (int i = 0; i < MaxPlayers; i++)
@@ -387,7 +391,8 @@ void Client::onPlayerJoin(msg::PlayerJoin *playerJoin)
 
 	if (playerJoin->id == id_)
 	{
-		camera_.target(&players_[id_].soldier()->graphics.position.current);
+		cameraTarget_ = players_[id_].soldier()->graphics.position.current;
+		camera_.target(&cameraTarget_);
 		healthBar_.setHealth(players_[id_].health() / (float)Player::MaxHealth);
 	}
 

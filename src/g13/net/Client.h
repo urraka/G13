@@ -36,6 +36,7 @@ private:
 	char name_[Player::MaxNameLength * 4 + 1];
 	cmp::SoldierInput input_;
 	vec2 target_;
+	vec2 cameraTarget_;
 
 	int connectingCount_;
 	int interpolation_;

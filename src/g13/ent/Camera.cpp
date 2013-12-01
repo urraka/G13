@@ -18,7 +18,8 @@ Camera::Camera()
 
 void Camera::update(Time dt)
 {
-	const float kVelMultiplier = 2.5f;
+	const float kVelMultiplier = 10.0f;
+	const float kZoomMultiplier = 5.0f;
 
 	float dts = sys::to_seconds(dt);
 
@@ -27,7 +28,7 @@ void Camera::update(Time dt)
 
 	zoomTarget_ = glm::clamp(zoomTarget_ + zoomType_ * zoomRate_ * dts, -1.0f, 1.0f);
 	zoomVelocity_ = zoomTarget_ - zoom_.current;
-	zoom_.current += zoomVelocity_ * kVelMultiplier * zoomRate_ * dts;
+	zoom_.current += zoomVelocity_ * kZoomMultiplier * zoomRate_ * dts;
 
 	if (target_ == 0)
 		return;
