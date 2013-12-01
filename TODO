@@ -1,4 +1,5 @@
 Game
+  - Target cursor with camera movement.
   - Multiple weapons.
   - Improve player movement.
     - Add acceleration.

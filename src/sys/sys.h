@@ -16,6 +16,7 @@ enum CursorMode     { Normal, Hidden, Disabled };
 // typedefs
 typedef uint64_t Time;
 typedef void (*Callback)();
+typedef void* Cursor;
 
 // general
 void callback(CallbackType type, Callback callback);
@@ -48,6 +49,10 @@ bool   pressed(int code);
 void   mouse(double *x, double *y);
 double mousex();
 double mousey();
+
+// cursor
+Cursor create_cursor(int width, int height, int cx, int cy, const void *data);
+void   set_cursor(Cursor cursor);
 void   cursor_mode(CursorMode mode);
 
 // time

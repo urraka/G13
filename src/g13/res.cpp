@@ -16,8 +16,16 @@ struct FontInfo
 	gfx::Font  *font;
 };
 
+struct CursorInfo
+{
+	const char *filename;
+	sys::Cursor cursor;
+	int cx, cy;
+};
+
 static TextureInfo textures[TextureCount] = {};
-static FontInfo    fonts   [FontCount   ] = {};
+static FontInfo    fonts[FontCount]       = {};
+static CursorInfo  cursors[CursorCount]   = {};
 
 void initialize()
 {
@@ -28,6 +36,10 @@ void initialize()
 
 	fonts[DefaultFont].filename = "data/NotoSans-Bold.ttf";
 	fonts[Monospace  ].filename = "data/consolab.ttf";
+
+	cursors[Crosshair].filename = "data/tcross.png";
+	cursors[Crosshair].cx = 12;
+	cursors[Crosshair].cy = 12;
 }
 
 void terminate()
@@ -65,6 +77,19 @@ gfx::Font *font(FontID id)
 		fonts[id].font = new gfx::Font(fonts[id].filename);
 
 	return fonts[id].font;
+}
+
+sys::Cursor cursor(CursorID id)
+{
+	CursorInfo &info = cursors[id];
+
+	if (info.cursor == 0)
+	{
+		gfx::Image image = gfx::Image(info.filename);
+		info.cursor = sys::create_cursor(image.width(), image.height(), info.cx, info.cy, image.data());
+	}
+
+	return info.cursor;
 }
 
 }} // g13::res

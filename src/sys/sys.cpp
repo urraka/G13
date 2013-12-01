@@ -510,6 +510,30 @@ double mousey()
 	return y;
 }
 
+// -----------------------------------------------------------------------------
+// Cursor
+// -----------------------------------------------------------------------------
+
+Cursor create_cursor(int width, int height, int cx, int cy, const void *data)
+{
+	Cursor cursor = 0;
+
+	#ifndef IOS
+		if (sys.initialized)
+			cursor = glfwCreateCursor(width, height, cx, cy, 0, data);
+	#endif
+
+	return cursor;
+}
+
+void set_cursor(Cursor cursor)
+{
+	#ifndef IOS
+		if (sys.initialized)
+			glfwSetCursor(sys.window, (GLFWcursor*)cursor);
+	#endif
+}
+
 void cursor_mode(CursorMode mode)
 {
 	#ifndef IOS

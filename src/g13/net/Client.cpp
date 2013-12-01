@@ -247,6 +247,8 @@ void Client::onDisconnect(ENetPeer *peer)
 
 	enet_host_destroy(connection_);
 
+	sys::set_cursor(0);
+
 	peer_ = 0;
 	connection_ = 0;
 	id_ = Player::InvalidId;
@@ -325,6 +327,8 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	{
 		players_[id_].onConnect(name_);
 
+		sys::set_cursor(res::cursor(res::Crosshair));
+
 		msg::Ready ready;
 		send(&ready, peer_);
 
@@ -349,6 +353,8 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 		if (--connectingCount_ == 0)
 		{
 			players_[id_].onConnect(name_);
+
+			sys::set_cursor(res::cursor(res::Crosshair));
 
 			msg::Ready ready;
 			send(&ready, peer_);

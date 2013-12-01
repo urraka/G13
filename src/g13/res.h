@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sys/sys.h>
 #include <gfx/forward.h>
 
 namespace g13 {
@@ -21,10 +22,17 @@ enum FontID
 	FontCount
 };
 
+enum CursorID
+{
+	Crosshair,
+	CursorCount
+};
+
 void initialize();
 void terminate();
 
 gfx::Texture *texture(TextureID id);
-gfx::Font *font(FontID id);
+gfx::Font    *font(FontID id);
+sys::Cursor   cursor(CursorID id);
 
 }} // g13::res

@@ -46,7 +46,7 @@ gfx::Sprite BulletGraphics::sprite() const
 	sprite.tx0 = vec2(16.0f, 11.0f) / texsize;
 	sprite.tx1 = (vec2(16.0f, 11.0f) + vec2(90.0f, 9.0f)) / texsize;
 	sprite.scale = vec2(sx, 0.35f);
-	sprite.color = gfx::Color(0xFE, 160);
+	sprite.color = gfx::Color(0x00, 160);
 
 	return sprite;
 }
