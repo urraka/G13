@@ -1,4 +1,12 @@
 Game
+  - Cursor clipping.
+  - Figure out how to generalize the character animations.
+  - Show nicknames somewhere.
+  - Count kills/deaths etc.
+  - Match start/end.
+  - Some kind of rope (like in teeworlds).
+  - Chat box (with history and crap).
+  - Terminal falling velocity.
   - Multiple weapons.
   - Improve player movement.
     - Add acceleration.
@@ -6,6 +14,7 @@ Game
     ? Better handling of wall vs floor.
     ? Friction.
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
+    - This is an intersection precision problem, when endpoint is very near the line.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     - Setting peer-data to id could help with this.
