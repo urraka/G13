@@ -18,7 +18,7 @@ Camera::Camera()
 
 void Camera::update(Time dt)
 {
-	const float kVelMultiplier = 10.0f;
+	const float kVelMultiplier = 20.0f;
 	const float kZoomMultiplier = 5.0f;
 
 	float dts = sys::to_seconds(dt);

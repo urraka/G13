@@ -1,5 +1,4 @@
 Game
-  - Target cursor with camera movement.
   - Multiple weapons.
   - Improve player movement.
     - Add acceleration.
@@ -37,6 +36,7 @@ Game
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Graphics
+  - Double buffer vbos.
   - Add ability to update specific sprites in SpriteBatch.
   - Add text outlines.
   - Add special case in text shader for black/white color. Fix blending.
@@ -57,6 +57,7 @@ Math
   - Move constants from fixed class to fpm namespace.
 
 Archive
+  x Target cursor with camera movement.
   x Entity->motionBounds is a horrible function name. Think of a better one.
   x Fix bullets don't hit player when spawn point is inside of the player.
   x Map should carry some parameters (like gravity). Note: World will keep the params.
