@@ -688,6 +688,9 @@ bool Client::event(Event *evt)
 
 void Client::onResize(int width, int height)
 {
+	if (width == 0 || height == 0)
+		return;
+
 	camera_.viewport(width, height);
 
 	gfx::ColorVertex vertex[4];
