@@ -1,209 +1,206 @@
-Game
-  - Cursor clipping.
-  - Figure out how to generalize the character animations.
-  - Show nicknames somewhere.
-  - Count kills/deaths etc.
-  - Match start/end.
-  - Some kind of rope (like in teeworlds).
-  - Chat box (with history and crap).
-  - Terminal falling velocity.
-  - Multiple weapons.
-  - Improve player movement.
-    - Add acceleration.
-    - Fix sliding in wall gaining speed after stopping.
-    ? Better handling of wall vs floor.
-    ? Friction.
-  - Due to quantum mechanics bullets go through players when shooting from a certain position.
-    - This is an intersection precision problem, when endpoint is very near the line.
-  - Sanity check collision data and re-enable assertions on fpm::normalize.
-  - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
-    - Setting peer-data to id could help with this.
-  - Implement lag compensation.
-    - Bullets may have to be kept by players.
-  - Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
-  - Set channel on message definitions.
-  - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
-  - Remove Client::active() and make some easier to understand checks instead.
-  - Don't send gamestate of local player every time.
-  / Handle somehow cases where a player leaves and another player join getting same ID.
-    Old messages from the previous player might still happen. Bullets might still exist, etc.
-  - Set timeouts on both client and server.
-  - Move BitStream to hlp, could be useful for binary files aswell.
-  - Consider adding range checks on packet serialization.
-  - Check where peer->mtu is negotiated.
-  - Add some client side correcting if out of sync when needed.
-  - Make a class for the chatbox.
-  - Move all the Client rendering to a separate class.
-  - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  - Add some real menu. Consider removing debug menu.
-  - Think how the event system should work. Consider some minimalistic ui system.
-  - Replace network.txt with config.cfg and move it to root directory.
-  - Add some INI parsing lib.
-  - Separate collision map from map rendering stuff.
-  - Find collision bug and fix it, I FUCKING SAW IT.
-    x Run from bottom-left to the right until blocked by the "wall", then walk left.
-  - Auto-record every fucking gameplay and store in new files with dates and shit.
+* Game [0/35]
+  [ ] Cursor clipping.
+  [ ] Figure out how to generalize the character animations.
+  [ ] Show nicknames somewhere.
+  [ ] Count kills/deaths etc.
+  [ ] Match start/end.
+  [ ] Some kind of rope (like in teeworlds).
+  [ ] Chat box (with history and crap).
+  [ ] Terminal falling velocity.
+  [ ] Multiple weapons.
+  [ ] Improve player movement.
+    [ ] Add acceleration.
+    [ ] Fix sliding in wall gaining speed after stopping.
+    [ ] Better handling of wall vs floor.
+    [ ] Friction.
+  [ ] Due to quantum mechanics bullets go through players when shooting from a certain position.
+    [ ] This is an intersection precision problem, when endpoint is very near the line.
+  [ ] Sanity check collision data and re-enable assertions on fpm::normalize.
+  [ ] Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
+    [ ] Setting peer-data to id could help with this.
+  [ ] Implement lag compensation.
+    [ ] Bullets may have to be kept by players.
+  [ ] Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
+  [ ] Set channel on message definitions.
+  [ ] Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
+  [ ] Remove Client::active() and make some easier to understand checks instead.
+  [ ] Don't send gamestate of local player every time.
+  [ ] Handle somehow cases where a player leaves and another player join getting same ID.
+    ~ Old messages from the previous player might still happen. Bullets might still exist, etc.
+  [ ] Set timeouts on both client and server.
+  [ ] Move BitStream to hlp, could be useful for binary files aswell.
+  [ ] Consider adding range checks on packet serialization.
+  [ ] Check where peer->mtu is negotiated.
+  [ ] Add some client side correcting if out of sync when needed.
+  [ ] Make a class for the chatbox.
+  [ ] Move all the Client rendering to a separate class.
+  [ ] Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
+  [ ] Add some real menu. Consider removing debug menu.
+  [ ] Think how the event system should work. Consider some minimalistic ui system.
+  [ ] Replace network.txt with config.cfg and move it to root directory.
+  [ ] Add some INI parsing lib.
+  [ ] Separate collision map from map rendering stuff.
+  [ ] Find collision bug and fix it, I FUCKING SAW IT.
+    [X] Run from bottom-left to the right until blocked by the "wall", then walk left.
+  [ ] Auto-record every fucking gameplay and store in new files with dates and shit.
 
-Graphics
-  - Double buffer vbos.
-  - Add ability to update specific sprites in SpriteBatch.
-  - Add text outlines.
-  - Add special case in text shader for black/white color. Fix blending.
-  - Add easy to draw rectangles.
-  - Text crashing with weird character 0x2584.
-  - Add ability to set own mipmaps.
+* Graphics [0/7]
+  [ ] Double buffer vbos.
+  [ ] Add ability to update specific sprites in SpriteBatch.
+  [ ] Add text outlines.
+  [ ] Add special case in text shader for black/white color. Fix blending.
+  [ ] Add easy to draw rectangles.
+  [ ] Text crashing with weird character 0x2584.
+  [ ] Add ability to set own mipmaps.
 
-General
-  - Consider making each module a library to include into the game.
-  - Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
+* General [0/2]
+  [ ] Consider making each module a library to include into the game.
+  [ ] Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
-System
-  - iOS: callbacks for touch/movement events.
+* System [0/1]
+  [ ] iOS: callbacks for touch/movement events.
 
-Math
-  - Add some overflow checks in fpm functions.
-  - Consider using int64 in some functions if necessary.
-  - Move constants from fixed class to fpm namespace.
+* Math [0/3]
+  [ ] Add some overflow checks in fpm functions.
+  [ ] Consider using int64 in some functions if necessary.
+  [ ] Move constants from fixed class to fpm namespace.
 
-Archive
-  x Target cursor with camera movement.
-  x Entity->motionBounds is a horrible function name. Think of a better one.
-  x Fix bullets don't hit player when spawn point is inside of the player.
-  x Map should carry some parameters (like gravity). Note: World will keep the params.
-  x Add debug hints: frozen time, remote players render ticks.
-  x Server asserts when client tick > server tick. Make it kill the client or something more clever.
-  x The number of ticks that remote players are rendered behind is hardcoded, fix that.
-  x Extrapolation [done but ugly]
-  x Fix bullets going through ground when aiming down.
-  x Add radian/dergees convertion to fpm.
-  x Fix bullet collisions with ground (dissapears before reaching ground).
-  x Switch shaders to mat3 (mat3x2 not supported on GLES2)
-  x Move createBullet callback to Client/Server.
-  x Entity collision can return invalid segment pointers.
-  x Implement bullet-player collisions.
-  x Add some kind of World where entities live to check collisions.
-  x Possible bug in fpm::rect. Check header. Perhaps it's just fine.
-  x Calculate min camera zoom.
-  x Keep camera within map bounds.
-  x Check & fix instances of for loops with i < vector.size() - 1.
-  x Fix hardcoded map bounds on Bullet.cpp.
-  x kGravity constant repeated in different files.
-  x Maybe some refactor in collision class, is_floor() predicate is duplicated in Map and Collision.
-  x Bullet tickOffsets should be set at the moment of bullet creation on server.
-  x Promote Player::TimedData to net so it can be used in Servera aswell. Think of a different name.
-  x Change all tick values to int to avoid unsigned shitty issues.
-  x Add tick in disconnect event.
-  x Remove BulletInfo from Server and add some cmp::BulletParams to carry bullet creation parameters.
-  x Bullet messages should have some tick. Client should use that to create them at a proper time.
-  x Add <g13/types.h> and add all forward declarations there. Include it in g13.h.
-  x Don't send bullets to the player who created them.
-  x New soldier animations with ability to aim at arbitrary angles.
-  x Interpolate angle properly when direction changes (use shortest direction).
-  x Set compression stuff.
-  x Make matrix invalidation O(1), iterate shaders on a draw call.
-  x Add some text metrics stuff.
-  x Check if font has kerning again.
-  x Test if all the refactoring works on linux/osx/ios.
-  x Split keyboard event in KeyPressedEvent/KeyReleasedEvent.
-  x Consider renaming events so structs are like sys::KeyPressed and type sys::KeyPressedEvent.
-  x Framebuffer size vs window size.
-  x Try that clock formula or use double instead.
-  x Figure out how to simplify debug output.
-  x Add text rendering.
-    x Remove Font::Page, mix all sizes in same atlas.
-    x Let atlas handle its own size and enlarging.
-    x Glyph default values.
-    x Check if there's a more efficient technique for copying from one texture to another.
-    x Font->kerning()
-    x Release atlas buffer when reaching max size.
-  x Store max texture size.
-    x Double check if done right.
-  x Move shaders to context object.
-  x Find the proper way to choose the mipmap generation method.
-  x Modules: sys, gfx, math, hlp, g13.
-  x Move fpm namespace inside math namespace.
-  x Each directory under src/ should be named after a namespace.
-  x Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
-  x Move platform.h away from system.
-  x Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
-  x Replace using directives with typedefs.
-  x Add g13/math.h
-  x Remove Game class and turn it into global functions in g13 namespace.
-  x Move all game classes into g13 namespace.
-  x Clock goes away, just do sys::time(), sys::milliseconds(), etc.
-  x Add all external includes to project and all libs compiled for the different systems.
-  x Massive refactoring.
-  x Switch to GLFW3 (when ready).
-  x Revisit keyboard/char input stuff.
-  x Decide what to do with platform.h, which is needed across modules.
-  x Remove unnecesary includes from Graphics.h and add gfx.h as the general file to include.
-  x Remove dependency with Math and System.
-  x Test buffer state keeping.
-  x Add Image class which loads PNG into a memory buffer.
-  x Make texture class use Image class and add ability to load from buffer.
-  x Add mipmaping support with glGenMipmaps and GL_GENERATE_MIPMAP or whatever (for 2.1).
-  x Add shader type to VBO object so it binds it for you.
-  x Add #version when creating shader.
-  x Check for GL_ES in shaders.
-  x Even better, add preamble #defining lowp, etc to nothing on desktop and add precision on GLES2.
-  x Add glsl step on makefile.
-  x vbo/ibo -> allocate() should delete buffer and reallocate if necessary.
-  x SpriteBatch might be able to share the same IBO across instances.
-  x Graphics turns into global functions in gfx namespace.
-  x Graphics initialization through gfx::initialize().
-  x Design a better approach to handle shaders.
-  x Different gfx objects not created from graphics instance anymore (just using new).
-  x Add opacity to sprites.
-  x Coding convention: remove identation inside namespaces.
-  x Add some kind of switch to enable/disable server.
-  x Messages
-    x Nick
-    x SpawnRequest
-    x Input
-    x Start
-    x PlayerJoin
-    x PlayerLeave
-    x Gamestate
-    x Spawn
-  x Soldier state needs animation id.
-  x Add tick to every message so unordered packets can be used.
-  x Add own allocation for enet.
-  x Add some SoldierState and embed it inside PlayerInfo
-  x Decide if server updates only when receiving data.
-  x Design packet structures/format.
-  / Self-contained loop with time measuring and crap in Server class.
-  x Decide how to handle server (standalone, along with client, use another thread, etc).
-    * Standalone, then find its way into the client.
-  x Decide what object will keep all the game state (players, bullets, etc).
-    * Server class will be main container (for now).
-  x Add all messages in a Message directory and divide them in h/cpp.
-  x Simplify Packet so it contains only one Message.
-  x Add DataReader/DataWriter to access binary data in a network friendly way.
-  x Player should be a more dedicated class. Share it between client and server?
-  x Read about networking and decide what to do first.
-  x Consider removing init() from Scene and initialize on constructor, assuming it's always created
-    on the heap with new.
-  x Rename Scene to State.
-  x Use namespaces for states, entities and components (stt, ent, cmp).
-  x Add some method to switch Game state.
-  x Fix replay crashing game on release.
-  x Move all debug outputs to debugger object.
-  x Add global Debugger object which everyone has access to.
-  x Move the debug drawing to Debugger object.
-  x Think of a way to remove Debugger calls on release mode.
-  x Check for room before jumping to avoid insane bouncing.
-  x Add ducking.
-  x Sort headers again so Graphics doesn't depend on useless stuff.
-  x interpolable<T> with T previous and T current, and methods update(), update(T value) and
-    value(float percent).
-  x Move glewInit to system module to remove platform specific code in graphics module.
-  x Add SoldierGraphics component.
-  x Make camera take a vec2* instead of Entity*.
-  x Consider Removing Entity class.
-  x iOS: set statusbar orientation when orientation changed.
-  x Fix not POD warnings generated by offsetof.
-  x Replace bufferFlagged with pointedBuffer and call attributes functions if
-    pointedBuffer != currentBuffer.
+* Archive [118/118]
+  [X] Target cursor with camera movement.
+  [X] Entity->motionBounds is a horrible function name. Think of a better one.
+  [X] Fix bullets don't hit player when spawn point is inside of the player.
+  [X] Map should carry some parameters (like gravity). Note: World will keep the params.
+  [X] Add debug hints: frozen time, remote players render ticks.
+  [X] Server asserts when client tick > server tick. Make it kill the client or something more clever.
+  [X] The number of ticks that remote players are rendered behind is hardcoded, fix that.
+  [X] Extrapolation [done but ugly]
+  [X] Fix bullets going through ground when aiming down.
+  [X] Add radian/dergees convertion to fpm.
+  [X] Fix bullet collisions with ground (dissapears before reaching ground).
+  [X] Switch shaders to mat3 (mat3x2 not supported on GLES2)
+  [X] Move createBullet callback to Client/Server.
+  [X] Entity collision can return invalid segment pointers.
+  [X] Implement bullet-player collisions.
+  [X] Add some kind of World where entities live to check collisions.
+  [X] Possible bug in fpm::rect. Check header. Perhaps it's just fine.
+  [X] Calculate min camera zoom.
+  [X] Keep camera within map bounds.
+  [X] Check & fix instances of for loops with i < vector.size() - 1.
+  [X] Fix hardcoded map bounds on Bullet.cpp.
+  [X] kGravity constant repeated in different files.
+  [X] Maybe some refactor in collision class, is_floor() predicate is duplicated in Map and Collision.
+  [X] Bullet tickOffsets should be set at the moment of bullet creation on server.
+  [X] Promote Player::TimedData to net so it can be used in Servera aswell. Think of a different name.
+  [X] Change all tick values to int to avoid unsigned shitty issues.
+  [X] Add tick in disconnect event.
+  [X] Remove BulletInfo from Server and add some cmp::BulletParams to carry bullet creation parameters.
+  [X] Bullet messages should have some tick. Client should use that to create them at a proper time.
+  [X] Add <g13/types.h> and add all forward declarations there. Include it in g13.h.
+  [X] Don't send bullets to the player who created them.
+  [X] New soldier animations with ability to aim at arbitrary angles.
+  [X] Interpolate angle properly when direction changes (use shortest direction).
+  [X] Set compression stuff.
+  [X] Make matrix invalidation O(1), iterate shaders on a draw call.
+  [X] Add some text metrics stuff.
+  [X] Check if font has kerning again.
+  [X] Test if all the refactoring works on linux/osx/ios.
+  [X] Split keyboard event in KeyPressedEvent/KeyReleasedEvent.
+  [X] Consider renaming events so structs are like sys::KeyPressed and type sys::KeyPressedEvent.
+  [X] Framebuffer size vs window size.
+  [X] Try that clock formula or use double instead.
+  [X] Figure out how to simplify debug output.
+  [X] Add text rendering.
+    [X] Remove Font::Page, mix all sizes in same atlas.
+    [X] Let atlas handle its own size and enlarging.
+    [X] Glyph default values.
+    [X] Check if there's a more efficient technique for copying from one texture to another.
+    [X] Font->kerning()
+    [X] Release atlas buffer when reaching max size.
+  [X] Store max texture size.
+    [X] Double check if done right.
+  [X] Move shaders to context object.
+  [X] Find the proper way to choose the mipmap generation method.
+  [X] Modules: sys, gfx, math, hlp, g13.
+  [X] Move fpm namespace inside math namespace.
+  [X] Each directory under src/ should be named after a namespace.
+  [X] Each module can have a general include (gfx/gfx.h, sys/sys.h, math/math.h, etc)
+  [X] Move platform.h away from system.
+  [X] Consider moving all System stuff into sys namespace, Graphics to gfx and Math to math.
+  [X] Replace using directives with typedefs.
+  [X] Add g13/math.h
+  [X] Remove Game class and turn it into global functions in g13 namespace.
+  [X] Move all game classes into g13 namespace.
+  [X] Clock goes away, just do sys::time(), sys::milliseconds(), etc.
+  [X] Add all external includes to project and all libs compiled for the different systems.
+  [X] Massive refactoring.
+  [X] Switch to GLFW3 (when ready).
+  [X] Revisit keyboard/char input stuff.
+  [X] Decide what to do with platform.h, which is needed across modules.
+  [X] Remove unnecesary includes from Graphics.h and add gfx.h as the general file to include.
+  [X] Remove dependency with Math and System.
+  [X] Test buffer state keeping.
+  [X] Add Image class which loads PNG into a memory buffer.
+  [X] Make texture class use Image class and add ability to load from buffer.
+  [X] Add mipmaping support with glGenMipmaps and GL_GENERATE_MIPMAP or whatever (for 2.1).
+  [X] Add shader type to VBO object so it binds it for you.
+  [X] Add #version when creating shader.
+  [X] Check for GL_ES in shaders.
+  [X] Even better, add preamble #defining lowp, etc to nothing on desktop and add precision on GLES2.
+  [X] Add glsl step on makefile.
+  [X] vbo/ibo -> allocate() should delete buffer and reallocate if necessary.
+  [X] SpriteBatch might be able to share the same IBO across instances.
+  [X] Graphics turns into global functions in gfx namespace.
+  [X] Graphics initialization through gfx::initialize().
+  [X] Design a better approach to handle shaders.
+  [X] Different gfx objects not created from graphics instance anymore (just using new).
+  [X] Add opacity to sprites.
+  [X] Coding convention: remove identation inside namespaces.
+  [X] Add some kind of switch to enable/disable server.
+  [X] Messages
+    [X] Nick
+    [X] SpawnRequest
+    [X] Input
+    [X] Start
+    [X] PlayerJoin
+    [X] PlayerLeave
+    [X] Gamestate
+    [X] Spawn
+  [X] Soldier state needs animation id.
+  [X] Add tick to every message so unordered packets can be used.
+  [X] Add own allocation for enet.
+  [X] Add some SoldierState and embed it inside PlayerInfo
+  [X] Decide if server updates only when receiving data.
+  [X] Design packet structures/format.
+  [X] Self-contained loop with time measuring and crap in Server class.
+  [X] Decide how to handle server (standalone, along with client, use another thread, etc).
+    ~ Standalone, then find its way into the client.
+  [X] Decide what object will keep all the game state (players, bullets, etc).
+    ~ Server class will be main container (for now).
+  [X] Add all messages in a Message directory and divide them in h/cpp.
+  [X] Simplify Packet so it contains only one Message.
+  [X] Add DataReader/DataWriter to access binary data in a network friendly way.
+  [X] Player should be a more dedicated class. Share it between client and server?
+  [X] Read about networking and decide what to do first.
+  [X] Consider removing init() from Scene and initialize on constructor, assuming it's always created on the heap with new.
+  [X] Rename Scene to State.
+  [X] Use namespaces for states, entities and components (stt, ent, cmp).
+  [X] Add some method to switch Game state.
+  [X] Fix replay crashing game on release.
+  [X] Move all debug outputs to debugger object.
+  [X] Add global Debugger object which everyone has access to.
+  [X] Move the debug drawing to Debugger object.
+  [X] Think of a way to remove Debugger calls on release mode.
+  [X] Check for room before jumping to avoid insane bouncing.
+  [X] Add ducking.
+  [X] Sort headers again so Graphics doesn't depend on useless stuff.
+  [X] interpolable<T> with T previous and T current, and methods update(), update(T value) and value(float percent).
+  [X] Move glewInit to system module to remove platform specific code in graphics module.
+  [X] Add SoldierGraphics component.
+  [X] Make camera take a vec2* instead of Entity*.
+  [X] Consider Removing Entity class.
+  [X] iOS: set statusbar orientation when orientation changed.
+  [X] Fix not POD warnings generated by offsetof.
+  [X] Replace bufferFlagged with pointedBuffer and call attributes functions if pointedBuffer != currentBuffer.
 
 
 

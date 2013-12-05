@@ -101,6 +101,7 @@ static void push_event(const Event &event);
 	static void cb_scroll(GLFWwindow *window, double xoffset, double yoffset);
 	static void cb_focus(GLFWwindow *window, int focused);
 	static void cb_close(GLFWwindow *window);
+	static void cb_refresh(GLFWwindow *window);
 #endif
 
 // -----------------------------------------------------------------------------
@@ -265,6 +266,7 @@ void initialize()
 		glfwSetScrollCallback         (sys.window, cb_scroll);
 		glfwSetWindowFocusCallback    (sys.window, cb_focus);
 		glfwSetWindowCloseCallback    (sys.window, cb_close);
+		glfwSetWindowRefreshCallback  (sys.window, cb_refresh);
 	#endif
 
 	sys.initialized = true;
@@ -758,6 +760,12 @@ void cb_close(GLFWwindow *window)
 	Event event;
 	event.type = Event::Closed;
 	push_event(event);
+}
+
+void cb_refresh(GLFWwindow *window)
+{
+	sys.callbacks.display();
+	glfwSwapBuffers(window);
 }
 
 #endif
