@@ -150,14 +150,14 @@ void Player::updateRemote(Time dt, int tick)
 	}
 
 
-	std::deque<BulletParams>::iterator it = bullets_.begin();
+	std::deque<BulletParams>::iterator it = bulletsQueue_.begin();
 
-	while (it != bullets_.end() && it->tick <= renderedTick)
+	while (it != bulletsQueue_.end() && it->tick <= renderedTick)
 	{
 		soldier_.createBulletCallback.fire(&(it->data));
 
-		bullets_.pop_front();
-		it = bullets_.begin();
+		bulletsQueue_.pop_front();
+		it = bulletsQueue_.begin();
 	}
 
 	// update collision entity
@@ -186,17 +186,65 @@ void Player::updateServer(Time dt, int tick)
 	}
 	else
 	{
-		soldier_.collisionEntity.previous = soldier_.physics.bounds() + soldier_.physics.position;
-
 		size_t i;
 
 		for (i = 0; i < inputs_.size() && inputs_[i].tick < tick; i++, tick_++)
+		{
 			soldier_.update(dt, &inputs_[i].data);
 
-		soldier_.collisionEntity.current = soldier_.physics.bounds() + soldier_.physics.position;
+			if (boundsBuffer_.full())
+				boundsBufferTick_++;
+
+			boundsBuffer_.push(soldier_.physics.bounds() + soldier_.physics.position);
+		}
 
 		inputs_.erase(inputs_.begin(), inputs_.begin() + i);
 	}
+}
+
+void Player::updateBullets(Time dt)
+{
+	const coll::World *world = soldier_.physics.world;
+
+	for (size_t i = 0; i < bullets_.size(); i++)
+	{
+		bullets_[i].update(dt, world);
+
+		if (bullets_[i].state == ent::Bullet::Dead)
+		{
+			std::swap(bullets_[i--], bullets_[bullets_.size() - 1]);
+			bullets_.pop_back();
+		}
+	}
+}
+
+void Player::setCollisionTick(int tick)
+{
+	assert(boundsBuffer_.size() >= 1);
+
+	int min = boundsBufferTick_ + 1;
+	int max = boundsBufferTick_ + boundsBuffer_.size() - 1;
+
+	if (min <= max)
+	{
+		tick = glm::clamp<int>(tick, min, max);
+
+		soldier_.collisionEntity.previous = boundsBuffer_[tick - boundsBufferTick_ - 1];
+		soldier_.collisionEntity.current  = boundsBuffer_[tick - boundsBufferTick_];
+	}
+	else
+	{
+		soldier_.collisionEntity.previous = boundsBuffer_[0];
+		soldier_.collisionEntity.current  = boundsBuffer_[0];
+	}
+}
+
+void Player::createBullet(const cmp::BulletParams &params, Callback collisionCallback)
+{
+	ent::Bullet bullet(params, &soldier_.collisionEntity);
+	bullet.collisionCallback = collisionCallback;
+
+	bullets_.push_back(bullet);
 }
 
 void Player::onConnecting(ENetPeer *peer)
@@ -220,14 +268,14 @@ void Player::onDisconnect(int tick)
 
 	// let go all the bullets
 
-	std::deque<BulletParams>::iterator it = bullets_.begin();
+	std::deque<BulletParams>::iterator it = bulletsQueue_.begin();
 
-	while (it != bullets_.end())
+	while (it != bulletsQueue_.end())
 	{
 		soldier_.createBulletCallback.fire(&(it->data));
 
-		bullets_.pop_front();
-		it = bullets_.begin();
+		bulletsQueue_.pop_front();
+		it = bulletsQueue_.begin();
 	}
 }
 
@@ -242,6 +290,12 @@ void Player::onJoin(int tick, const Map *map, const fixvec2 &position)
 
 	inputs_.clear();
 	stateBuffer_.clear();
+
+	boundsBufferTick_ = tick_;
+	boundsBuffer_.clear();
+	boundsBuffer_.push(soldier_.physics.bounds() + soldier_.physics.position);
+
+	bullets_.clear();
 
 	health_ = MaxHealth;
 }
@@ -280,7 +334,7 @@ void Player::onBulletCreated(int tick, const cmp::BulletParams &prams)
 	if (tick <= disconnectTick_)
 		soldier_.createBulletCallback.fire(&params);
 	else
-		bullets_.push_back(BulletParams(tick, params));
+		bulletsQueue_.push_back(BulletParams(tick, params));
 }
 
 void Player::onDamage(int tick, int amount)

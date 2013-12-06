@@ -135,18 +135,4 @@ void Multiplayer::free_packet(ENetPacket *packet)
 	self->dataPool_->free((msg::Storage*)packet->data);
 }
 
-void Multiplayer::updateBullets(Time dt)
-{
-	for (size_t i = 0; i < bullets_.size(); i++)
-	{
-		bullets_[i].update(dt, map_->world());
-
-		if (bullets_[i].state == ent::Bullet::Dead)
-		{
-			std::swap(bullets_[i--], bullets_[bullets_.size() - 1]);
-			bullets_.pop_back();
-		}
-	}
-}
-
 }} // net

@@ -74,8 +74,6 @@ void Server::update(Time dt)
 
 	int activePlayers = 0;
 
-	map_->world()->clear();
-
 	for (int i = 0; i < MaxPlayers; i++)
 	{
 		Player *player = &players_[i];
@@ -84,8 +82,6 @@ void Server::update(Time dt)
 		{
 			player->updateServer(dt, tick_);
 			activePlayers++;
-
-			map_->world()->add(&(player->soldier()->collisionEntity));
 		}
 	}
 
@@ -97,13 +93,34 @@ void Server::update(Time dt)
 		state_ = Stopped;
 		enet_host_destroy(connection_);
 		connection_ = 0;
-		bullets_.clear();
 		createdBullets_.clear();
 
 		return;
 	}
 
-	updateBullets(dt);
+	for (int i = 0; i < MaxPlayers; i++)
+	{
+		if (!players_[i].connected())
+			continue;
+
+		// TODO: roundTripTime might not be a good value. Maybe should use the RTT when joining
+		// and comparing with the current one to decide whether to add interpolation or not.
+
+		int lag = players_[i].peer()->roundTripTime / sys::to_milliseconds(dt) + 5;
+
+		map_->world()->clear();
+
+		for (int j = 0; j < MaxPlayers; j++)
+		{
+			if (players_[j].state() != Player::Playing)
+				continue;
+
+			players_[j].setCollisionTick(tick_ - (i != j ? lag : 0));
+			map_->world()->add(&(players_[j].soldier()->collisionEntity));
+		}
+
+		players_[i].updateBullets(dt);
+	}
 
 	for (int i = 0; i < MaxPlayers; i++)
 	{
@@ -163,6 +180,20 @@ void Server::update(Time dt)
 
 		send(&gameState);
 	}
+
+	#ifdef DEBUG
+		if (tick_ % 3 == 0)
+		{
+			for (int i = 0; i < MaxPlayers; i++)
+			{
+				if (players_[i].peer() == 0)
+					continue;
+
+				LOG("Player #" << i << " roundTripTime: " << players_[i].peer()->roundTripTime);
+				LOG("Player #" << i << " lastRoundTripTime: " << players_[i].peer()->lastRoundTripTime);
+			}
+		}
+	#endif
 
 	if (connection_ != 0)
 		enet_host_flush(connection_);
@@ -336,12 +367,10 @@ void Server::onPlayerChat(Player *player, msg::Chat *chat)
 void Server::createBullet(void *data)
 {
 	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
+	Player *player = &players_[params.playerid];
 
-	ent::Bullet bullet(params, &(players_[params.playerid].soldier()->collisionEntity));
-	bullet.collisionCallback = make_callback(this, Server, playerBulletCollision);
-
-	bullets_.push_back(bullet);
-	createdBullets_.push_back(BulletParams(players_[params.playerid].tick(), params));
+	player->createBullet(params, make_callback(this, Server, playerBulletCollision));
+	createdBullets_.push_back(BulletParams(player->tick(), params));
 }
 
 void Server::playerBulletCollision(void *data)

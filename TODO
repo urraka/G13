@@ -1,4 +1,6 @@
 * Game [0/35]
+  [ ] When you die and re-join might be a good time to re-sync client tick if needed.
+  [ ] Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
   [ ] Cursor clipping.
   [ ] Figure out how to generalize the character animations.
   [ ] Show nicknames somewhere.
@@ -19,7 +21,8 @@
   [ ] Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     [ ] Setting peer-data to id could help with this.
   [ ] Implement lag compensation.
-    [ ] Bullets may have to be kept by players.
+    [X] Bullets may have to be kept by players.
+    [ ] serverTick - playerTick can be used to decide whether to account for interpolation ticks.
   [ ] Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
   [ ] Set channel on message definitions.
   [ ] Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.

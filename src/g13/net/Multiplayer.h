@@ -34,7 +34,6 @@ protected:
 
 	Map *map_;
 	Player players_[MaxPlayers];
-	std::vector<ent::Bullet> bullets_;
 
 	void pollEvents();
 	void loadMap();
@@ -45,8 +44,6 @@ protected:
 	virtual void onMessage      (msg::Message *msg, ENetPeer *from) = 0;
 
 	static void free_packet(ENetPacket *packet);
-
-	void updateBullets(Time dt);
 };
 
 }} // g13::net

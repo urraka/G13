@@ -187,7 +187,11 @@ void Client::update(Time dt)
 			map_->world()->add(&(player->soldier()->collisionEntity));
 		}
 
-		updateBullets(dt);
+		for (int i = 0; i < MaxPlayers; i++)
+		{
+			if (players_[i].connected())
+				players_[i].updateBullets(dt);
+		}
 
 		camera_.update(dt);
 	}
@@ -217,15 +221,14 @@ Client::State Client::state() const
 void Client::createBullet(void *data)
 {
 	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
+	Player *player = &players_[params.playerid];
 
-	ent::Bullet bullet(params, &(players_[params.playerid].soldier()->collisionEntity));
-	bullet.collisionCallback = make_callback(this, Client, playerBulletCollision);
-
-	bullets_.push_back(bullet);
+	player->createBullet(params, make_callback(this, Client, playerBulletCollision));
 }
 
 void Client::playerBulletCollision(void *data)
 {
+	// TODO: show blood, etc
 }
 
 void Client::onConnect(ENetPeer *peer)
@@ -262,7 +265,6 @@ void Client::onDisconnect(ENetPeer *peer)
 	target_ = vec2(0.0f);
 	input_ = cmp::SoldierInput();
 	camera_ = ent::Camera();
-	bullets_.clear();
 
 	for (int i = 0; i < MaxPlayers; i++)
 	{
@@ -485,18 +487,36 @@ void Client::draw(const Frame &frame)
 
 		// draw bullets
 
-		bulletsBatch_->clear();
-
-		if (bulletsBatch_->capacity() < bullets_.size())
-			bulletsBatch_->resize(bullets_.size());
-
-		for (int i = 0; i < (int)bullets_.size(); i++)
 		{
-			bullets_[i].graphics.frame(frame);
-			bulletsBatch_->add(bullets_[i].graphics.sprite());
-		}
+			bulletsBatch_->clear();
 
-		gfx::draw(bulletsBatch_);
+			size_t count = 0;
+
+			for (int i = 0; i < MaxPlayers; i++)
+			{
+				if (players_[i].connected())
+					count += players_[i].bullets().size();
+			}
+
+			if (bulletsBatch_->capacity() < count)
+				bulletsBatch_->resize(count);
+
+			for (int i = 0; i < MaxPlayers; i++)
+			{
+				if (players_[i].connected())
+				{
+					std::vector<ent::Bullet> &bullets = players_[i].bullets();
+
+					for (size_t j = 0; j < bullets.size(); j++)
+					{
+						bullets[j].graphics.frame(frame);
+						bulletsBatch_->add(bullets[j].graphics.sprite());
+					}
+				}
+			}
+
+			gfx::draw(bulletsBatch_);
+		}
 
 		// draw chat text
 

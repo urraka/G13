@@ -40,6 +40,11 @@ public:
 		return N;
 	}
 
+	bool full() const
+	{
+		return size_ == N;
+	}
+
 	const T &operator[](size_t index) const
 	{
 		assert(index < size_);

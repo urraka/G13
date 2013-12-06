@@ -2,6 +2,7 @@
 
 #include <g13/g13.h>
 #include <g13/ent/Soldier.h>
+#include <g13/ent/Bullet.h>
 #include <g13/cmp/BulletParams.h>
 
 #include <hlp/ring.h>
@@ -42,6 +43,9 @@ public:
 	void updateLocal(Time dt);
 	void updateRemote(Time dt, int tick);
 	void updateServer(Time dt, int tick);
+	void updateBullets(Time dt);
+	void createBullet(const cmp::BulletParams &params, Callback collisionCallback);
+	void setCollisionTick(int tick);
 
 	void onConnecting(ENetPeer *peer = 0);
 	void onConnect(const char *name);
@@ -62,6 +66,8 @@ public:
 
 	ent::Soldier *soldier();
 
+	std::vector<ent::Bullet> &bullets() { return bullets_; }
+
 private:
 	typedef Ticked<cmp::BulletParams> BulletParams;
 	typedef Ticked<cmp::SoldierState> SoldierState;
@@ -79,8 +85,13 @@ private:
 	hlp::ring<SoldierState, 10> stateBuffer_;
 	ENetPeer *peer_;
 	Time connectTimeout_;
-	std::deque<BulletParams> bullets_;
 	int health_;
+
+	std::deque<BulletParams> bulletsQueue_;
+	std::vector<ent::Bullet> bullets_;
+
+	int boundsBufferTick_;
+	hlp::ring<fixrect, 40> boundsBuffer_;
 
 	friend class Multiplayer;
 
