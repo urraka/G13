@@ -34,6 +34,7 @@ private:
 	void onMessage   (msg::Message *msg, ENetPeer *from);
 
 	void onPlayerLogin(Player *player, msg::Login *login);
+	void onPlayerPong (Player *player, msg::Pong  *pong);
 	void onPlayerReady(Player *player, msg::Ready *ready);
 	void onPlayerInput(Player *player, msg::Input *input);
 	void onPlayerChat (Player *player, msg::Chat  *chat);

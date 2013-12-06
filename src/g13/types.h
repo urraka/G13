@@ -28,6 +28,7 @@ namespace g13
 			class Message;
 			class Chat;
 			class Login;
+			class Pong;
 			class Ready;
 			class Input;
 			class ServerInfo;

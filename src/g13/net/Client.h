@@ -39,7 +39,6 @@ private:
 	vec2 cameraTarget_;
 
 	int connectingCount_;
-	int interpolation_;
 
 	ent::Camera camera_;
 	gfx::VBO *background_;

@@ -18,6 +18,7 @@ public:
 	virtual ~Multiplayer();
 
 	static const int MaxPlayers = 32;
+	static const int InterpolationTicks = 5;
 
 protected:
 	enum Channels

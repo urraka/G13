@@ -21,7 +21,6 @@ Client::Client()
 	:	state_(Disconnected),
 		peer_(0),
 		id_(Player::InvalidId),
-		interpolation_(5),
 		background_(0),
 		soldiersBatch_(0),
 		bulletsBatch_(0),
@@ -182,7 +181,7 @@ void Client::update(Time dt)
 			if (i == id_ || player->state() != Player::Playing)
 				continue;
 
-			player->updateRemote(dt, tick_ - interpolation_);
+			player->updateRemote(dt, tick_ - InterpolationTicks);
 
 			map_->world()->add(&(player->soldier()->collisionEntity));
 		}
@@ -260,7 +259,6 @@ void Client::onDisconnect(ENetPeer *peer)
 	connection_ = 0;
 	id_ = Player::InvalidId;
 	state_ = Disconnected;
-	interpolation_ = 4;
 	textInputMode_ = false;
 	target_ = vec2(0.0f);
 	input_ = cmp::SoldierInput();
@@ -295,6 +293,12 @@ void Client::onServerInfo(msg::ServerInfo *info)
 {
 	id_ = info->clientId;
 	tick_ = info->tick;
+
+	{
+		msg::Pong pong;
+		send(&pong, peer_);
+		enet_host_flush(connection_);
+	}
 
 	loadMap();
 
@@ -567,7 +571,7 @@ void Client::draw(const Frame &frame)
 	}
 
 	#ifdef DEBUG
-		dbg->drawStateBuffers(tick_, interpolation_, id_, players_);
+		dbg->drawStateBuffers(tick_, InterpolationTicks, id_, players_);
 		dbg->drawFontAtlas();
 	#endif
 }

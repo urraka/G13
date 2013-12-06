@@ -103,10 +103,9 @@ void Server::update(Time dt)
 		if (!players_[i].connected())
 			continue;
 
-		// TODO: roundTripTime might not be a good value. Maybe should use the RTT when joining
-		// and comparing with the current one to decide whether to add interpolation or not.
+		int lag = (players_[i].pongTick - players_[i].pingTick) / 2 + InterpolationTicks;
 
-		int lag = players_[i].peer()->roundTripTime / sys::to_milliseconds(dt) + 5;
+		// TODO: lag = max(lag, lastRTT/2)
 
 		map_->world()->clear();
 
@@ -181,7 +180,7 @@ void Server::update(Time dt)
 		send(&gameState);
 	}
 
-	#ifdef DEBUG
+	#if defined(DEBUG) && 0
 		if (tick_ % 3 == 0)
 		{
 			for (int i = 0; i < MaxPlayers; i++)
@@ -252,6 +251,7 @@ void Server::onMessage(msg::Message *msg, ENetPeer *from)
 	switch (msg->type())
 	{
 		case msg::Login::Type: onPlayerLogin(player, (msg::Login*)msg); break;
+		case msg::Pong::Type:  onPlayerPong (player, (msg::Pong*) msg); break;
 		case msg::Ready::Type: onPlayerReady(player, (msg::Ready*)msg); break;
 		case msg::Input::Type: onPlayerInput(player, (msg::Input*)msg); break;
 		case msg::Chat::Type:  onPlayerChat (player, (msg::Chat*) msg); break;
@@ -277,7 +277,10 @@ void Server::onPlayerLogin(Player *player, msg::Login *login)
 		if (i != id && players_[i].connected())
 			info.players[info.nPlayers++] = i;
 
+	player->pingTick = tick_;
+
 	send(&info, peer);
+	enet_host_flush(connection_);
 
 	// broadcast PlayerConnect event
 	msg::PlayerConnect playerConnect;
@@ -297,6 +300,12 @@ void Server::onPlayerLogin(Player *player, msg::Login *login)
 	}
 
 	LOG("Player #" << (int)player->id() << " connected. Name: " << player->name());
+}
+
+void Server::onPlayerPong(Player *player, msg::Pong *pong)
+{
+	if (player->pongTick == -1)
+		player->pongTick = tick_;
 }
 
 void Server::onPlayerReady(Player *player, msg::Ready *ready)

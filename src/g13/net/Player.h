@@ -68,6 +68,11 @@ public:
 
 	std::vector<ent::Bullet> &bullets() { return bullets_; }
 
+	// ping/pong used to calculate initial RTT (for lag compensation)
+	// used by server
+	int pingTick;
+	int pongTick;
+
 private:
 	typedef Ticked<cmp::BulletParams> BulletParams;
 	typedef Ticked<cmp::SoldierState> SoldierState;

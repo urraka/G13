@@ -12,7 +12,9 @@ namespace g13 {
 namespace net {
 
 Player::Player()
-	:	peer_(0)
+	:	pingTick(-1),
+		pongTick(-1),
+		peer_(0)
 {
 	hlp::assign(name_, "");
 
@@ -265,6 +267,8 @@ void Player::onDisconnect(int tick)
 	state_ = Disconnected;
 	peer_ = 0;
 	disconnectTick_ = tick;
+	pingTick = -1;
+	pongTick = -1;
 
 	// let go all the bullets
 

@@ -27,6 +27,10 @@ BEGIN
 	String(name, Player::MinNameLength)
 END
 
+MESSAGE(Pong)
+BEGIN
+END
+
 MESSAGE(Ready)
 BEGIN
 END
