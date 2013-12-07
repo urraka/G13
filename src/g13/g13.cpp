@@ -38,7 +38,6 @@ void initialize()
 
 	sys::samples(4);
 	sys::fullscreen(fullscreen);
-	// sys::cursor_mode(sys::Disabled);
 	sys::window_title("G13");
 
 	if (!fullscreen)

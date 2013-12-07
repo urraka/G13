@@ -1,7 +1,7 @@
-* Game [0/35]
+* Game [1/35]
+  [X] Lag compensation: check current RTT to decide whether to account for interpolation ticks.
   [ ] When you die and re-join might be a good time to re-sync client tick if needed.
   [ ] Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
-  [ ] Cursor clipping.
   [ ] Figure out how to generalize the character animations.
   [ ] Show nicknames somewhere.
   [ ] Count kills/deaths etc.
@@ -20,16 +20,11 @@
   [ ] Sanity check collision data and re-enable assertions on fpm::normalize.
   [ ] Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     [ ] Setting peer-data to id could help with this.
-  [ ] Implement lag compensation.
-    [X] Bullets may have to be kept by players.
-    [ ] serverTick - playerTick can be used to decide whether to account for interpolation ticks.
   [ ] Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
   [ ] Set channel on message definitions.
   [ ] Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
   [ ] Remove Client::active() and make some easier to understand checks instead.
   [ ] Don't send gamestate of local player every time.
-  [ ] Handle somehow cases where a player leaves and another player join getting same ID.
-    ~ Old messages from the previous player might still happen. Bullets might still exist, etc.
   [ ] Set timeouts on both client and server.
   [ ] Move BitStream to hlp, could be useful for binary files aswell.
   [ ] Consider adding range checks on packet serialization.
@@ -61,6 +56,7 @@
   [ ] Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
 * System [0/1]
+  [ ] Cursor clipping.
   [ ] iOS: callbacks for touch/movement events.
 
 * Math [0/3]
@@ -69,6 +65,8 @@
   [ ] Move constants from fixed class to fpm namespace.
 
 * Archive [118/118]
+  [X] Implement lag compensation.
+  [X] Bullets may have to be kept by players.
   [X] Target cursor with camera movement.
   [X] Entity->motionBounds is a horrible function name. Think of a better one.
   [X] Fix bullets don't hit player when spawn point is inside of the player.

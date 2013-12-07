@@ -103,9 +103,10 @@ void Server::update(Time dt)
 		if (!players_[i].connected())
 			continue;
 
-		int lag = (players_[i].pongTick - players_[i].pingTick) / 2 + InterpolationTicks;
+		int initialRTT = players_[i].pongTick - players_[i].pingTick;
+		int currentRTT = players_[i].peer()->roundTripTime / (int)sys::to_milliseconds(dt);
 
-		// TODO: lag = max(lag, lastRTT/2)
+		int lag = std::max(InterpolationTicks + initialRTT / 2, currentRTT / 2);
 
 		map_->world()->clear();
 
