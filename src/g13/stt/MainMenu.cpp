@@ -271,6 +271,40 @@ void MainMenu::onKeyPressed(const Event::KeyEvent &key)
 			}
 		}
 		break;
+
+		case 'C':
+		{
+			if (key.ctrl && isTextOption(menu_, selected_))
+			{
+				std::string str;
+				hlp::utf8_encode(*value(menu_, selected_), str);
+				sys::clipboard(str.c_str());
+			}
+		}
+		break;
+
+		case 'V':
+		{
+			if (key.ctrl && isTextOption(menu_, selected_))
+			{
+				const char *clipboard = sys::clipboard();
+
+				if (clipboard != 0)
+				{
+					const uint32_t caret[] = {'_', 0};
+					const string32_t *label = MainMenu::label(menu_, selected_);
+					string32_t *value = MainMenu::value(menu_, selected_);
+
+					*value += hlp::utf8_decode(clipboard);
+
+					if (value == &name_ && value->size() > net::Player::MaxNameLength)
+						value->resize(net::Player::MaxNameLength);
+
+					currentOptions_[selected_].value(*label + *value + caret);
+				}
+			}
+		}
+		break;
 	}
 }
 

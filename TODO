@@ -1,4 +1,5 @@
-* Game [1/35]
+* Game [2/37]
+  [ ] Store menu options (player name, host, port).
   [ ] Change graphics interpolation method to account for acceleration.
   [ ] Maybe get rid of the interpolable object.
   [X] Lag compensation: check current RTT to decide whether to account for interpolation ticks.
@@ -36,7 +37,7 @@
   [ ] Make a class for the chatbox.
   [ ] Move all the Client rendering to a separate class.
   [ ] Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  [ ] Add some real menu. Consider removing debug menu.
+  [X] Add some real menu. Consider removing debug menu.
   [ ] Think how the event system should work. Consider some minimalistic ui system.
   [ ] Replace network.txt with config.cfg and move it to root directory.
   [ ] Add some INI parsing lib.

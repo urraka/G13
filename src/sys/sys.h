@@ -41,6 +41,10 @@ void window_size(float width, float height);
 void window_position(int x, int y);
 void window_position(float x, float y);
 
+// clipboard
+const char *clipboard();
+void clipboard(const char *str);
+
 // events
 Event *poll_events();
 

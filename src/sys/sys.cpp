@@ -470,6 +470,32 @@ int framebuffer_height()
 }
 
 // -----------------------------------------------------------------------------
+// Clipboard
+// -----------------------------------------------------------------------------
+
+const char *clipboard()
+{
+	assert(sys.initialized);
+
+	const char *result = 0;
+
+	#ifndef IOS
+		result = glfwGetClipboardString(sys.window);
+	#endif
+
+	return result;
+}
+
+void clipboard(const char *str)
+{
+	assert(sys.initialized);
+
+	#ifndef IOS
+		glfwSetClipboardString(sys.window, str);
+	#endif
+}
+
+// -----------------------------------------------------------------------------
 // Input
 // -----------------------------------------------------------------------------
 
