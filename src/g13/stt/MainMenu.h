@@ -29,7 +29,7 @@ private:
 	const string32_t *label(int menu, int option);
 	string32_t *value(int menu, int option);
 
-	enum Menu { Main, Host, Join, MenuCount };
+	enum Menu       { Main, Host, Join, MenuCount };
 	enum MainOption { MainJoin, MainHost, MainQuit, MainOptionCount };
 	enum HostOption { HostName, HostPort, HostStart, HostOptionCount };
 	enum JoinOption { JoinName, JoinAddress, JoinStart, JoinOptionCount };

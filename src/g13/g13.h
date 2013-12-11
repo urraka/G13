@@ -29,5 +29,6 @@ public:
 void initialize();
 void display();
 void terminate();
+void set_state(stt::State *state);
 
 }

@@ -105,6 +105,8 @@ void initialize()
 
 	state = new stt::MainMenu();
 	time = sys::time();
+
+	srand((unsigned int)time);
 }
 
 // -----------------------------------------------------------------------------
@@ -183,9 +185,9 @@ void display()
 
 	state->draw(frame);
 
-	#ifdef DEBUG
-		dbg->drawConsole();
-	#endif
+	// #ifdef DEBUG
+	// 	dbg->drawConsole();
+	// #endif
 
 	accumulator += frameTime;
 
@@ -196,6 +198,11 @@ void display()
 	}
 
 	fps_count++;
+}
+
+void set_state(stt::State *state)
+{
+	g13::state = state;
 }
 
 } // g13

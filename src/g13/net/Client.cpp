@@ -28,7 +28,7 @@ Client::Client()
 		chatBackground_(0),
 		textInputMode_(false)
 {
-	hlp::assign(name_, "player");
+	hlp::assign(name_, "asshole");
 
 	caret_ += '_';
 
@@ -215,6 +215,16 @@ bool Client::active() const
 Client::State Client::state() const
 {
 	return state_;
+}
+
+void Client::nick(const string32_t &nick)
+{
+	const char *names[] = {"batman", "monkey", "duck", "megatron", "robin hood"};
+
+	if (nick.size() > 0)
+		hlp::utf8_encode(nick, name_);
+	else
+		hlp::assign(name_, names[rand() % countof(names)]);
 }
 
 void Client::createBullet(void *data)

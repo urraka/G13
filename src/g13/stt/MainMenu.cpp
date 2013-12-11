@@ -1,8 +1,11 @@
 #include "MainMenu.h"
+#include "Multiplayer.h"
 
 #include <g13/res.h>
 #include <g13/math.h>
 #include <hlp/utf8.h>
+#include <hlp/split.h>
+#include <hlp/to_int.h>
 
 #include <g13/net/Player.h>
 
@@ -20,7 +23,7 @@ MainMenu::MainMenu()
 		optionCount_(3),
 		selected_(0)
 {
-	gfx::Font *font = res::font(res::Monospace);
+	gfx::Font *font = res::font(res::DefaultFont);
 
 	// menu titles
 
@@ -179,7 +182,17 @@ void MainMenu::command()
 			{
 				case HostName:  setSelected((selected_ + 1) % optionCount_); break;
 				case HostPort:  setSelected((selected_ + 1) % optionCount_); break;
-				case HostStart: /* start game */ break;
+
+				case HostStart:
+				{
+					std::string port;
+					hlp::utf8_encode(port_, port);
+
+					g13::set_state(new Multiplayer(name_, hlp::to_int(port)));
+
+					delete this;
+				}
+				break;
 			}
 		}
 		break;
@@ -190,7 +203,18 @@ void MainMenu::command()
 			{
 				case JoinName:    setSelected((selected_ + 1) % optionCount_); break;
 				case JoinAddress: setSelected((selected_ + 1) % optionCount_); break;
-				case JoinStart:   /* start game */ break;
+
+				case JoinStart:
+				{
+					std::string addr;
+					hlp::utf8_encode(address_, addr);
+					hlp::strvector parts = hlp::split(addr, ':');
+
+					g13::set_state(new Multiplayer(name_, parts[0].c_str(), hlp::to_int(parts[1])));
+
+					delete this;
+				}
+				break;
 			}
 		}
 		break;

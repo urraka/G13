@@ -10,6 +10,11 @@ inline bool utf8_valid(const char *str)
 	return utf8::is_valid(str, str + strlen(str));
 }
 
+inline void utf8_encode(const std::basic_string<uint32_t> &str, std::string &dest)
+{
+	utf8::unchecked::utf32to8(str.begin(), str.end(), std::back_inserter(dest));
+}
+
 template<size_t N> void utf8_encode(const std::basic_string<uint32_t> &str, char (&dest)[N])
 {
 	assert(str.size() * 4 <= N - 1);

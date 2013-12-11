@@ -52,6 +52,9 @@ bool Server::start(int port)
 
 void Server::stop()
 {
+	if (state_ != Running)
+		return;
+
 	state_ = Stopping;
 
 	LOG("Disconnecting...");

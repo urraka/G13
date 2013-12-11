@@ -9,7 +9,8 @@ namespace stt {
 class Multiplayer : public State
 {
 public:
-	Multiplayer();
+	Multiplayer(const string32_t &name, int port);
+	Multiplayer(const string32_t &name, const char *host, int port);
 	~Multiplayer();
 
 	void update(Time dt);
@@ -17,6 +18,9 @@ public:
 	bool event(Event *evt);
 
 private:
+	enum State { Connecting, Connected, Disconnecting };
+
+	State state_;
 	net::Client *client_;
 	net::Server *server_;
 

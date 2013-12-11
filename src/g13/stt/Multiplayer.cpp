@@ -1,53 +1,107 @@
 #include "Multiplayer.h"
+#include "MainMenu.h"
 
 #include <g13/g13.h>
 #include <g13/net/Client.h>
 #include <g13/net/Server.h>
 
 #include <gfx/gfx.h>
-#include <hlp/read.h>
-#include <hlp/split.h>
-#include <hlp/to_int.h>
+#include <hlp/utf8.h>
 
 namespace g13 {
 namespace stt {
 
-static void read_settings(std::string *host, int *port)
+Multiplayer::Multiplayer(const string32_t &name, int port)
+	:	state_(Connecting),
+		client_(0),
+		server_(0)
 {
-	hlp::strvector elements = hlp::split(hlp::read("data/network.txt"), ':');
+	server_ = new net::Server();
+	server_->start(port);
 
-	*host = "";
-	*port = 0;
-
-	if (elements.size() == 2)
-	{
-		*host = elements[0];
-		*port = hlp::to_int(elements[1]);
-	}
+	client_ = new net::Client();
+	client_->nick(name);
+	client_->connect("localhost", port);
 }
 
-Multiplayer::Multiplayer()
-	:	client_(0),
+Multiplayer::Multiplayer(const string32_t &name, const char *host, int port)
+	:	state_(Connecting),
+		client_(0),
 		server_(0)
 {
 	client_ = new net::Client();
-	server_ = new net::Server();
-
-	#if defined(DEBUG) && defined(IOS)
-		onKeyPressed('C');
-	#endif
+	client_->nick(name);
+	client_->connect(host, port);
 }
 
 Multiplayer::~Multiplayer()
 {
 	delete client_;
-	delete server_;
+
+	if (server_)
+		delete server_;
 }
 
 void Multiplayer::update(Time dt)
 {
-	server_->update(dt);
+	if (server_ != 0)
+		server_->update(dt);
+
 	client_->update(dt);
+
+	switch (state_)
+	{
+		case Connecting:
+		{
+			if (client_->state() == net::Client::Connected)
+				state_ = Connected;
+
+			if (client_->state() == net::Client::Disconnected ||
+				(server_ != 0 && server_->state() == net::Server::Stopped))
+			{
+				client_->disconnect();
+
+				if (server_ != 0)
+					server_->stop();
+
+				state_ = Disconnecting;
+			}
+		}
+		break;
+
+		case Connected:
+		{
+			if (client_->state() == net::Client::Disconnected ||
+				(server_ != 0 && server_->state() == net::Server::Stopped))
+			{
+				client_->disconnect();
+
+				if (server_ != 0)
+					server_->stop();
+
+				state_ = Disconnecting;
+			}
+		}
+		break;
+
+		case Disconnecting:
+		{
+			bool disconnected = client_->state() == net::Client::Disconnected;
+
+			if (server_ != 0)
+				disconnected = (disconnected && server_->state() == net::Server::Stopped);
+
+			if (disconnected)
+			{
+				g13::set_state(new MainMenu());
+				delete this;
+				return;
+			}
+		}
+		break;
+
+		default: break;
+	}
 }
 
 void Multiplayer::draw(const Frame &frame)
@@ -74,45 +128,14 @@ bool Multiplayer::onKeyPressed(const Event::KeyEvent &key)
 {
 	switch (key.code)
 	{
-		case 'S':
-		{
-			if (key.ctrl && server_->state() == net::Server::Stopped)
-			{
-				int port;
-				std::string host;
-				read_settings(&host, &port);
-
-				server_->start(port);
-			}
-		}
-		break;
-
-		case 'C':
-		{
-			if (key.ctrl && client_->state() == net::Client::Disconnected)
-			{
-				int port;
-				std::string host;
-				read_settings(&host, &port);
-
-				client_->connect(host.c_str(), port);
-			}
-		}
-		break;
-
 		case sys::Escape:
 		{
-			if (client_->state() == net::Client::Disconnected && server_->state() == net::Server::Stopped)
-			{
-				sys::exit();
-			}
-			else
-			{
-				if (server_->state() == net::Server::Running)
-					server_->stop();
+			if (server_ != 0)
+				server_->stop();
 
-				client_->disconnect();
-			}
+			client_->disconnect();
+
+			state_ = Disconnecting;
 		}
 		break;
 

@@ -28,6 +28,8 @@ public:
 	bool active() const;
 	State state() const;
 
+	void nick(const string32_t &nick);
+
 private:
 	State state_;
 	ENetPeer *peer_;
