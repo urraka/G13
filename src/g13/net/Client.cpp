@@ -605,7 +605,7 @@ bool Client::event(Event *evt)
 				else if (players_[id_].state() == Player::Dead)
 				{
 					msg::Ready ready;
-					send(&ready, peer_);
+					send(&ready, peer_); // TODO: check if it was already sent
 				}
 			}
 		}

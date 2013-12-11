@@ -2,6 +2,7 @@
 #include "res.h"
 #include "stt/State.h"
 #include "stt/Multiplayer.h"
+#include "stt/MainMenu.h"
 
 #include <gfx/gfx.h>
 #include <enet/enet.h>
@@ -102,7 +103,7 @@ void initialize()
 	if (enet_initialize() != 0)
 		error_log("Failed to initialize enet.");
 
-	state = new stt::Multiplayer();
+	state = new stt::MainMenu();
 	time = sys::time();
 }
 
