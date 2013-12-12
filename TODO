@@ -1,5 +1,5 @@
-* Game [2/37]
-  [ ] Store menu options (player name, host, port).
+* Game [4/38]
+  [X] Store menu options (player name, host, port).
   [ ] Change graphics interpolation method to account for acceleration.
   [ ] Maybe get rid of the interpolable object.
   [X] Lag compensation: check current RTT to decide whether to account for interpolation ticks.
@@ -40,13 +40,14 @@
   [X] Add some real menu. Consider removing debug menu.
   [ ] Think how the event system should work. Consider some minimalistic ui system.
   [ ] Replace network.txt with config.cfg and move it to root directory.
-  [ ] Add some INI parsing lib.
+  [X] Add some INI parsing lib.
   [ ] Separate collision map from map rendering stuff.
   [ ] Find collision bug and fix it, I FUCKING SAW IT.
     [X] Run from bottom-left to the right until blocked by the "wall", then walk left.
   [ ] Auto-record every fucking gameplay and store in new files with dates and shit.
 
 * Graphics [0/7]
+  [ ] Add wrap width to gfx::Text.
   [ ] Double buffer vbos.
   [ ] Add ability to update specific sprites in SpriteBatch.
   [ ] Add text outlines.

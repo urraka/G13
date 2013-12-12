@@ -19,10 +19,13 @@ static const gfx::Color fontColorSel = gfx::Color(0xFF, 0xFF);
 MainMenu::MainMenu()
 	:	currentOptions_(mainOptions_),
 		menuTitles_(),
+		config_("config.ini"),
 		menu_(0),
 		optionCount_(3),
 		selected_(0)
 {
+	loadConfig();
+
 	gfx::Font *font = res::font(res::DefaultFont);
 
 	// menu titles
@@ -30,12 +33,6 @@ MainMenu::MainMenu()
 	menuTitles_[Main] = 0;
 	menuTitles_[Host] = &mainOptions_[MainHost];
 	menuTitles_[Join] = &mainOptions_[MainJoin];
-
-	// default values
-
-	name_    = hlp::utf8_decode("Player");
-	address_ = hlp::utf8_decode("localhost:1234");
-	port_    = hlp::utf8_decode("1234");
 
 	// main options
 
@@ -54,7 +51,7 @@ MainMenu::MainMenu()
 
 	hostOptions_[HostName].value(*label(Host, HostName) + *value(Host, HostName));
 	hostOptions_[HostPort].value(*label(Host, HostPort) + *value(Host, HostPort));
-	hostOptions_[HostStart].value("Play");
+	hostOptions_[HostStart].value("Start");
 
 	for (int i = 0; i < HostOptionCount; i++)
 	{
@@ -67,7 +64,7 @@ MainMenu::MainMenu()
 
 	joinOptions_[JoinName].value(*label(Join, JoinName) + *value(Join, JoinName));
 	joinOptions_[JoinAddress].value(*label(Join, JoinAddress) + *value(Join, JoinAddress));
-	joinOptions_[JoinStart].value("Play");
+	joinOptions_[JoinStart].value("Connect");
 
 	for (int i = 0; i < JoinOptionCount; i++)
 	{
@@ -171,7 +168,13 @@ void MainMenu::command()
 			{
 				case MainHost: setMenu(Host); break;
 				case MainJoin: setMenu(Join); break;
-				case MainQuit: sys::exit();   break;
+
+				case MainQuit:
+				{
+					saveConfig();
+					sys::exit();
+				}
+				break;
 			}
 		}
 		break;
@@ -185,6 +188,8 @@ void MainMenu::command()
 
 				case HostStart:
 				{
+					saveConfig();
+
 					std::string port;
 					hlp::utf8_encode(port_, port);
 
@@ -206,6 +211,8 @@ void MainMenu::command()
 
 				case JoinStart:
 				{
+					saveConfig();
+
 					std::string addr;
 					hlp::utf8_encode(address_, addr);
 					hlp::strvector parts = hlp::split(addr, ':');
@@ -228,9 +235,14 @@ void MainMenu::onKeyPressed(const Event::KeyEvent &key)
 		case sys::Escape:
 		{
 			if (menu_ == Main)
+			{
+				saveConfig();
 				sys::exit();
+			}
 			else
+			{
 				setMenu(Main);
+			}
 		}
 		break;
 
@@ -358,6 +370,29 @@ string32_t *MainMenu::value(int menu, int option)
 	}
 
 	return 0;
+}
+
+void MainMenu::loadConfig()
+{
+	name_    = hlp::utf8_decode(config_.readString("client:nick", "Player"));
+	address_ = hlp::utf8_decode(config_.readString("client:host", "localhost:1234"));
+	port_    = hlp::utf8_decode(config_.readString("server:listen", "1234"));
+}
+
+void MainMenu::saveConfig()
+{
+	static std::string str;
+
+	hlp::utf8_encode(name_, str);
+	config_.setString("client:nick", str.c_str());
+
+	hlp::utf8_encode(address_, str);
+	config_.setString("client:host", str.c_str());
+
+	hlp::utf8_encode(port_, str);
+	config_.setString("server:listen", str.c_str());
+
+	config_.save("config.ini");
 }
 
 }} // g13::stt

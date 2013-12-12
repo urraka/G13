@@ -3,6 +3,7 @@
 #include <g13/g13.h>
 #include <gfx/gfx.h>
 #include <gfx/Color.h>
+#include <hlp/ConfigFile.h>
 
 #include "State.h"
 
@@ -29,6 +30,9 @@ private:
 	const string32_t *label(int menu, int option);
 	string32_t *value(int menu, int option);
 
+	void loadConfig();
+	void saveConfig();
+
 	enum Menu       { Main, Host, Join, MenuCount };
 	enum MainOption { MainJoin, MainHost, MainQuit, MainOptionCount };
 	enum HostOption { HostName, HostPort, HostStart, HostOptionCount };
@@ -40,6 +44,8 @@ private:
 
 	gfx::Text *currentOptions_;
 	gfx::Text *menuTitles_[MenuCount];
+
+	hlp::ConfigFile config_;
 
 	string32_t name_;
 	string32_t address_;

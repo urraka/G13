@@ -12,6 +12,7 @@ inline bool utf8_valid(const char *str)
 
 inline void utf8_encode(const std::basic_string<uint32_t> &str, std::string &dest)
 {
+	dest.clear();
 	utf8::unchecked::utf32to8(str.begin(), str.end(), std::back_inserter(dest));
 }
 
