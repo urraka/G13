@@ -1,4 +1,5 @@
 * Game [4/38]
+  [ ] There's no reason to have all gfx objects as pointers in net::Client.
   [X] Store menu options (player name, host, port).
   [ ] Change graphics interpolation method to account for acceleration.
   [ ] Maybe get rid of the interpolable object.

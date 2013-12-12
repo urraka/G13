@@ -5,7 +5,7 @@
 #include <g13/g13.h>
 #include <g13/ent/Camera.h>
 #include <g13/ui/HealthBar.h>
-#include <gfx/forward.h>
+#include <gfx/gfx.h>
 #include <string>
 
 namespace g13 {
@@ -48,6 +48,7 @@ private:
 	gfx::SpriteBatch *bulletsBatch_;
 	gfx::Text *chatText_;
 	gfx::VBO *chatBackground_;
+	gfx::Text connectingText_;
 
 	ui::HealthBar healthBar_;
 

@@ -73,6 +73,11 @@ Client::Client()
 	healthBar_.setOutline(1.0f, gfx::Color(0));
 	healthBar_.setOpacity(0.7f);
 
+	connectingText_.font(font);
+	connectingText_.size(16);
+	connectingText_.color(gfx::Color(0xFF));
+	connectingText_.value(hlp::utf8_decode("Connecting..."));
+
 	// preload some glyphs
 
 	font->size(fontSize);
@@ -89,6 +94,7 @@ Client::~Client()
 		delete playersText_[i].text;
 
 	delete chatText_;
+	delete chatBackground_;
 	delete background_;
 	delete soldiersBatch_;
 	delete bulletsBatch_;
@@ -567,6 +573,23 @@ void Client::draw(const Frame &frame)
 
 		gfx::identity();
 		healthBar_.draw();
+	}
+	else
+	{
+		int w, h;
+		sys::framebuffer_size(&w, &h);
+
+		const gfx::Text::Bounds &bounds = connectingText_.bounds();
+
+		float x = 0.5f * w - 0.5f * bounds.width - bounds.x;
+		float y = 0.5f * h - 0.5f * bounds.height - bounds.y;
+
+		float intensity = 0.5f * std::sin(M_PI * sys::to_seconds(frame.time)) + 0.5f;
+
+		connectingText_.color(gfx::Color(0xFF, glm::mix(0xA0, 0xFF, intensity)));
+
+		gfx::matrix(mat2d::translate(x, y));
+		gfx::draw(&connectingText_);
 	}
 
 	if (textInputMode_)
