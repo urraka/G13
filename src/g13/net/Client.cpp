@@ -175,8 +175,11 @@ void Client::update(Time dt)
 
 			send(&input, peer_);
 
-			const vec2 &position = players_[id_].soldier()->graphics.position.current;
-
+			// this shit fixes some camera issues
+			const vec2 &position = from_fixed(players_[id_].soldier()->physics.position);
+			Frame frame = {0, 0, 1.0f};
+			camera_.frame(frame);
+			target_ = camera_.matrixinv() * vec2(sys::mousex(), sys::mousey());
 			cameraTarget_ = glm::mix(target_, position, 0.5f);
 		}
 

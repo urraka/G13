@@ -1,9 +1,6 @@
-* Game [4/38]
+* Game [1/35]
   [ ] There's no reason to have all gfx objects as pointers in net::Client.
-  [X] Store menu options (player name, host, port).
-  [ ] Change graphics interpolation method to account for acceleration.
   [ ] Maybe get rid of the interpolable object.
-  [X] Lag compensation: check current RTT to decide whether to account for interpolation ticks.
   [ ] When you die and re-join might be a good time to re-sync client tick if needed.
   [ ] Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
   [ ] Figure out how to generalize the character animations.
@@ -38,10 +35,8 @@
   [ ] Make a class for the chatbox.
   [ ] Move all the Client rendering to a separate class.
   [ ] Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  [X] Add some real menu. Consider removing debug menu.
   [ ] Think how the event system should work. Consider some minimalistic ui system.
   [ ] Replace network.txt with config.cfg and move it to root directory.
-  [X] Add some INI parsing lib.
   [ ] Separate collision map from map rendering stuff.
   [ ] Find collision bug and fix it, I FUCKING SAW IT.
     [X] Run from bottom-left to the right until blocked by the "wall", then walk left.
@@ -71,6 +66,12 @@
   [ ] Move constants from fixed class to fpm namespace.
 
 * Archive [118/118]
+  [X] Change graphics interpolation method to account for acceleration.
+    ~ This wasn't a problem actually. It was the camera's fault.
+  [X] Store menu options (player name, host, port).
+  [X] Lag compensation: check current RTT to decide whether to account for interpolation ticks.
+  [X] Add some real menu. Consider removing debug menu.
+  [X] Add some INI parsing lib.
   [X] Implement lag compensation.
   [X] Bullets may have to be kept by players.
   [X] Target cursor with camera movement.
