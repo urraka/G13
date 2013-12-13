@@ -64,6 +64,7 @@ private:
 	};
 
 	PlayerText playersText_[MaxPlayers];
+	gfx::Text nicknamesText_[MaxPlayers];
 
 	void onConnect(ENetPeer *peer);
 	void onDisconnect(ENetPeer *peer);

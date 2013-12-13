@@ -21,6 +21,7 @@ public:
 	void reset(fixvec2 pos);
 	void world(const coll::World *world);
 	cmp::SoldierState state() const;
+	fixvec2 bodyOffset() const;
 
 	cmp::SoldierInput input;
 	cmp::SoldierPhysics physics;
@@ -36,7 +37,6 @@ private:
 	Time shootingTime_;
 
 	fixvec2 bulletSpawnPoint(const fixvec2 &position, const fixed &angle) const;
-	fixvec2 bodyOffset() const;
 };
 
 }} // g13::ent

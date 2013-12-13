@@ -1,10 +1,12 @@
-* Game [1/35]
+* Game [1/34]
+  [ ] Pick different font sizes depending window width.
+  [ ] Use font size to calculate chatbox height.
   [ ] There's no reason to have all gfx objects as pointers in net::Client.
   [ ] Maybe get rid of the interpolable object.
   [ ] When you die and re-join might be a good time to re-sync client tick if needed.
   [ ] Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
   [ ] Figure out how to generalize the character animations.
-  [ ] Show nicknames somewhere.
+  [X] Show nicknames somewhere.
   [ ] Count kills/deaths etc.
   [ ] Match start/end.
   [ ] Some kind of rope (like in teeworlds).

@@ -10,6 +10,7 @@
 #include <hlp/assign.h>
 #include <hlp/utf8.h>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/norm.hpp>
 
 #include <assert.h>
 #include <iostream>
@@ -49,13 +50,12 @@ Client::Client()
 	bulletsBatch_->texture(res::texture(res::Bullet));
 
 	gfx::Font *font = res::font(res::DefaultFont);
-	gfx::Color fontColor(255, 255, 255);
-	uint32_t fontSize = 9;
+	uint32_t fontSize = 11;
 
 	chatText_ = new gfx::Text();
 	chatText_->font(font);
 	chatText_->size(fontSize);
-	chatText_->color(fontColor);
+	chatText_->color(gfx::Color(0xFF));
 	chatText_->value(caret_);
 
 	for (int i = 0; i < MaxPlayers; i++)
@@ -63,7 +63,11 @@ Client::Client()
 		playersText_[i].text = new gfx::Text();
 		playersText_[i].text->font(font);
 		playersText_[i].text->size(fontSize);
-		playersText_[i].text->color(fontColor);
+		playersText_[i].text->color(gfx::Color(0xFF));
+
+		nicknamesText_[i].font(font);
+		nicknamesText_[i].size(fontSize);
+		nicknamesText_[i].color(gfx::Color(0xFF));
 
 		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
@@ -312,6 +316,7 @@ void Client::onServerInfo(msg::ServerInfo *info)
 {
 	id_ = info->clientId;
 	tick_ = info->tick;
+	nicknamesText_[id_].value(hlp::utf8_decode(name_));
 
 	{
 		msg::Pong pong;
@@ -374,6 +379,8 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 	Player *player = &players_[playerConnect->id];
 
 	assert(!player->connected());
+
+	nicknamesText_[playerConnect->id].value(hlp::utf8_decode(playerConnect->name));
 
 	if (player->state() == Player::Connecting)
 	{
@@ -555,11 +562,12 @@ void Client::draw(const Frame &frame)
 
 				vec2 pos = graph.position;
 				pos += vec2(2.0f, -20.0f);
+				pos.y -= physics.bboxNormal.height().to_float();
 
-				if (physics.ducking())
-					pos.y -= physics.bboxDucked.height().to_float();
-				else
-					pos.y -= physics.bboxNormal.height().to_float();
+				// if (physics.ducking())
+				// 	pos.y -= physics.bboxDucked.height().to_float();
+				// else
+				// 	pos.y -= physics.bboxNormal.height().to_float();
 
 				mat2d m = gfx::matrix();
 				pos = m * pos;
@@ -567,10 +575,34 @@ void Client::draw(const Frame &frame)
 				gfx::matrix(mat2d());
 
 				gfx::translate(pos.x - 0.5f * bounds.width, glm::floor(pos.y));
-				text->color(gfx::Color(0, 0, 0));
 				gfx::draw(text);
 
 				gfx::matrix(m);
+			}
+		}
+
+		for (int i = 0; i < MaxPlayers; i++)
+		{
+			if (players_[i].state() == Player::Playing)
+			{
+				ent::Soldier *soldier = players_[i].soldier();
+				vec2 pos = soldier->graphics.position.get() + from_fixed(soldier->bodyOffset());
+
+				float radius = soldier->physics.bboxNormal.width().to_float();
+
+				if (glm::distance2(pos, target_) < radius * radius)
+				{
+					gfx::Text *text = &nicknamesText_[i];
+					const gfx::Text::Bounds &bounds = text->bounds();
+
+					pos = gfx::matrix() * (soldier->graphics.position.get() + vec2(0.0f, 20.0f));
+
+					gfx::matrix(mat2d());
+					gfx::translate(pos.x - 0.5f * bounds.width, glm::floor(pos.y));
+					gfx::draw(text);
+
+					break;
+				}
 			}
 		}
 
