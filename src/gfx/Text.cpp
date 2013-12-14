@@ -11,7 +11,9 @@ namespace gfx {
 Text::Text()
 	:	font_(0),
 		size_(16),
-		color_(255, 255, 255),
+		color_(255),
+		outlineWidth_(0.0f),
+		outlineColor_(0),
 		updatedGeometry_(true),
 		updatedBounds_(true),
 		ibo_(new IBO())
@@ -90,6 +92,21 @@ void Text::color(const Color &color)
 	color_ = color;
 }
 
+void Text::outlineColor(const Color &color)
+{
+	outlineColor_ = color;
+}
+
+void Text::outlineWidth(float width)
+{
+	if (outlineWidth_ != width)
+	{
+		outlineWidth_ = width;
+		updatedGeometry_ = false;
+		updatedBounds_ = false;
+	}
+}
+
 const Text::string32_t &Text::value()
 {
 	return value_;
@@ -118,6 +135,58 @@ const Text::Bounds &Text::bounds()
 	return bounds_;
 }
 
+typedef std::vector<const Font::Glyph*> glyphs_t;
+typedef std::vector<Text::DrawData> buffers_t;
+typedef std::vector<VBO*> vbos_t;
+
+static void get_glyphs(const Text::string32_t &text, Font *font, glyphs_t &glyphs)
+{
+	glyphs.resize(text.size());
+
+	for (size_t i = 0; i < text.size(); i++)
+	{
+		glyphs[i] = 0;
+
+		if (text[i] == ' ' || text[i] == '\n' || text[i] == '\t' || text[i] == '\v')
+			continue;
+
+		glyphs[i] = font->glyph(text[i]);
+	}
+}
+
+static void prepare(Font *font, const glyphs_t &glyphs, buffers_t &data, vbos_t &vbos, int &ivbo, int &max)
+{
+	data.resize(font->textureCount());
+
+	for (size_t i = 0; i < glyphs.size(); i++)
+	{
+		if (glyphs[i] != 0)
+			data[glyphs[i]->atlas].count++;
+	}
+
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		if (data[i].count > 0)
+		{
+			if (data[i].count > max)
+				max = data[i].count;
+
+			if (ivbo >= (int)vbos.size())
+				vbos.push_back(new VBO());
+
+			VBO *vbo = vbos[ivbo];
+
+			if (vbo->size() < (size_t)data[i].count * 4)
+				vbo->allocate<TextVertex>(data[i].count * 4, Dynamic);
+
+			data[i].vbo = vbo;
+			data[i].atlas = i;
+
+			ivbo++;
+		}
+	}
+}
+
 void Text::update(bool upload)
 {
 	if (upload)
@@ -127,6 +196,8 @@ void Text::update(bool upload)
 
 	drawData_.clear();
 	glyphs_.clear();
+	outlineDrawData_.clear();
+	outlineGlyphs_.clear();
 
 	bounds_ = Bounds();
 
@@ -134,52 +205,25 @@ void Text::update(bool upload)
 		return;
 
 	font_->size(size_);
-	glyphs_.resize(value_.size());
+	font_->outlineWidth(0.0f);
+	get_glyphs(value_, font_, glyphs_);
 
-	for (size_t i = 0; i < value_.size(); i++)
+	if (outlineWidth_ != 0.0f)
 	{
-		glyphs_[i] = 0;
-
-		if (value_[i] == ' ' || value_[i] == '\n' || value_[i] == '\t' || value_[i] == '\v')
-			continue;
-
-		glyphs_[i] = font_->glyph(value_[i]);
+		font_->outlineWidth(outlineWidth_);
+		get_glyphs(value_, font_, outlineGlyphs_);
 	}
 
 	if (upload)
 	{
-		drawData_.resize(font_->atlases_.size());
-
-		for (size_t i = 0; i < glyphs_.size(); i++)
-		{
-			if (glyphs_[i] != 0)
-				drawData_[glyphs_[i]->atlas].count++;
-		}
-
+		int base = vbos_.size();
 		int ivbo = 0;
 		int maxCount = 0;
 
-		for (size_t i = 0; i < drawData_.size(); i++)
-		{
-			if (drawData_[i].count > 0)
-			{
-				if (drawData_[i].count > maxCount)
-					maxCount = drawData_[i].count;
+		prepare(font_, glyphs_, drawData_, vbos_, ivbo, maxCount);
 
-				if (ivbo >= (int)vbos_.size())
-					vbos_.push_back(new VBO(ibo_));
-
-				VBO *vbo = vbos_[ivbo];
-
-				if (vbo->size() < (size_t)drawData_[i].count * 4)
-					vbo->allocate<TextVertex>(drawData_[i].count * 4, Dynamic);
-
-				drawData_[i].vbo = vbo;
-				drawData_[i].atlas = i;
-
-				ivbo++;
-			}
-		}
+		if (outlineWidth_ != 0.0f)
+			prepare(font_, outlineGlyphs_, outlineDrawData_, vbos_, ivbo, maxCount);
 
 		if (ibo_->size() < (size_t)maxCount * 6)
 		{
@@ -195,7 +239,12 @@ void Text::update(bool upload)
 					indices[j] += 4;
 			}
 		}
+
+		for (int i = base; i < ivbo; i++)
+			vbos_[i]->ibo(ibo_);
 	}
+
+	font_->outlineWidth(0.0f);
 
 	float x = 0.0f;
 	float y = 0.0f;
@@ -244,6 +293,29 @@ void Text::update(bool upload)
 			drawData_[g.atlas].offset += 4;
 		}
 
+		if (outlineWidth_ != 0.0f)
+		{
+			const Font::Glyph &g = *outlineGlyphs_[i];
+
+			xmin = std::min(xmin, x + g.x);
+			ymin = std::min(ymin, y + g.y);
+			xmax = std::max(xmax, x + g.x + g.w);
+			ymax = std::max(ymax, y + g.y + g.h);
+
+			if (upload)
+			{
+				TextVertex v[4] = {
+					{x + g.x      , y + g.y      , (uint16_t)g.u0, (uint16_t)g.v0},
+					{x + g.x + g.w, y + g.y      , (uint16_t)g.u1, (uint16_t)g.v0},
+					{x + g.x + g.w, y + g.y + g.h, (uint16_t)g.u1, (uint16_t)g.v1},
+					{x + g.x      , y + g.y + g.h, (uint16_t)g.u0, (uint16_t)g.v1}
+				};
+
+				outlineDrawData_[g.atlas].vbo->set(v, outlineDrawData_[g.atlas].offset, 4);
+				outlineDrawData_[g.atlas].offset += 4;
+			}
+		}
+
 		x += g.advance;
 	}
 
@@ -251,6 +323,12 @@ void Text::update(bool upload)
 	{
 		if (drawData_[i].count == 0)
 			drawData_.erase(drawData_.begin() + i--);
+	}
+
+	for (size_t i = 0; i < outlineDrawData_.size(); i++)
+	{
+		if (outlineDrawData_[i].count == 0)
+			outlineDrawData_.erase(outlineDrawData_.begin() + i--);
 	}
 
 	bounds_.x = xmin;
@@ -264,9 +342,37 @@ void Text::draw()
 	if (!updatedGeometry_)
 		update(true);
 
+	if (outlineDrawData_.size() > 0)
+	{
+		glm::vec4 color(
+			outlineColor_.r / 255.f,
+			outlineColor_.g / 255.f,
+			outlineColor_.b / 255.f,
+			outlineColor_.a / 255.f
+		);
+
+		context->shdrtext->uniform(context->shdrtext_color, color);
+
+		for (size_t i = 0; i < outlineDrawData_.size(); i++)
+		{
+			Texture *tx = font_->texture(outlineDrawData_[i].atlas);
+			glm::vec2 texsize((float)tx->width(), (float)tx->height());
+
+			context->shdrtext->uniform(context->shdrtext_texsize, texsize);
+
+			gfx::bind(tx);
+			gfx::draw(outlineDrawData_[i].vbo, 0, outlineDrawData_[i].count * 6);
+		}
+	}
+
 	if (drawData_.size() > 0)
 	{
-		glm::vec4 color(color_.r / 255.f, color_.g / 255.f, color_.b / 255.f, color_.a / 255.f);
+		glm::vec4 color(
+			color_.r / 255.f,
+			color_.g / 255.f,
+			color_.b / 255.f,
+			color_.a / 255.f
+		);
 
 		context->shdrtext->uniform(context->shdrtext_color, color);
 

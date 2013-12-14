@@ -2,6 +2,7 @@
 
 #include <map>
 #include <vector>
+#include <deque>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -29,7 +30,7 @@ public:
 	class Atlas
 	{
 	public:
-		Atlas();
+		Atlas(int size = 128);
 		~Atlas();
 
 		struct Region
@@ -67,26 +68,39 @@ public:
 		bool enlarge();
 	};
 
-	Font(const char *filename);
+	Font(const char *filename, int atlasSize = 128);
 	~Font();
 
 	void size(uint32_t size);
+	void outlineWidth(float width);
 	float kerning(uint32_t a, uint32_t b);
 	int linespacing();
 	Texture *texture(int atlas);
 	const Glyph *glyph(uint32_t codepoint);
 
+	int textureCount() { return atlases_.size(); }
+
 private:
-	typedef std::map<uint32_t, Glyph>       GlyphTable;
-	typedef std::map<uint32_t, GlyphTable*> PageTable;
+	typedef std::map<uint32_t, Glyph>         GlyphTable;
+	typedef std::pair<uint32_t, GlyphTable>   OutlinePair;
+	typedef std::deque<OutlinePair>           OutlineTable;
+	typedef std::map<uint32_t, OutlineTable*> SizeTable;
 
 	void *face_;
-	PageTable glyphs_;
+	SizeTable glyphs_;
 	std::vector<Atlas*> atlases_;
 
-	GlyphTable *currentTable_;
-	uint32_t    currentSize_;
+	GlyphTable   *glyphTable_;
+	OutlineTable *outlineTable_;
 
+	uint32_t size_;
+	uint32_t curSize_;
+	uint32_t thickness_;
+	uint32_t curThickness_;
+
+	int atlasSize_;
+
+	void updateGlyphTable();
 	Glyph load(uint32_t codepoint);
 
 	friend class Text;

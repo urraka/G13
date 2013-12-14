@@ -5,6 +5,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_LCD_FILTER_H
+#include FT_STROKER_H
 
 #include <iostream>
 #include <assert.h>
@@ -19,10 +20,15 @@ static const gfx::TexFilter tex_filter = gfx::Linear;
 // Font
 // -----------------------------------------------------------------------------
 
-Font::Font(const char *filename)
+Font::Font(const char *filename, int atlasSize)
 	:	face_(0),
-		currentTable_(0),
-		currentSize_(0)
+		glyphTable_(0),
+		outlineTable_(0),
+		size_(0),
+		curSize_(0),
+		thickness_(0.0f),
+		curThickness_(0.0f),
+		atlasSize_(atlasSize)
 {
 	FT_Face face;
 
@@ -51,8 +57,11 @@ Font::~Font()
 	if (face_ != 0)
 		FT_Done_Face((FT_Face)face_);
 
-	for (PageTable::iterator i = glyphs_.begin(); i != glyphs_.end(); ++i)
-		delete i->second;
+	for (SizeTable::iterator i = glyphs_.begin(); i != glyphs_.end(); ++i)
+	{
+		if (i->second != 0)
+			delete i->second;
+	}
 
 	for (size_t i = 0; i < atlases_.size(); i++)
 		delete atlases_[i];
@@ -60,33 +69,22 @@ Font::~Font()
 
 void Font::size(uint32_t size)
 {
-	assert(size > 0);
+	size_ = size;
 
-	if (currentSize_ != size)
-	{
-		FT_Matrix matrix = {
-			(int)((1.0 / hres) * 0x10000L),
-			(int)((0.0)        * 0x10000L),
-			(int)((0.0)        * 0x10000L),
-			(int)((1.0)        * 0x10000L)
-		};
+	if (glyphTable_ == 0)
+		updateGlyphTable();
+}
 
-		FT_Set_Char_Size((FT_Face)face_, size * 64, 0, 96 * hres, 96);
-		FT_Set_Transform((FT_Face)face_, &matrix, 0);
-
-		GlyphTable *&table = glyphs_[size]; // will insert the first time
-
-		if (table == 0)
-			table = new GlyphTable();
-
-		currentSize_ = size;
-		currentTable_ = table;
-	}
+void Font::outlineWidth(float width)
+{
+	thickness_ = (uint32_t)(width * 64);
 }
 
 float Font::kerning(uint32_t a, uint32_t b)
 {
 	assert(face_ != 0);
+
+	updateGlyphTable();
 
 	FT_Face face = (FT_Face)face_;
 
@@ -108,7 +106,10 @@ float Font::kerning(uint32_t a, uint32_t b)
 int Font::linespacing()
 {
 	if (face_ != 0)
+	{
+		updateGlyphTable();
 		return FT_Face(face_)->size->metrics.height >> 6;
+	}
 
 	return 0;
 }
@@ -125,14 +126,81 @@ Texture *Font::texture(int atlas)
 
 const Font::Glyph *Font::glyph(uint32_t codepoint)
 {
-	assert(currentTable_ != 0);
+	assert(glyphTable_ != 0);
 
-	GlyphTable::iterator i = currentTable_->find(codepoint);
+	updateGlyphTable();
 
-	if (i == currentTable_->end())
-		i = currentTable_->insert(std::make_pair(codepoint, load(codepoint))).first;
+	GlyphTable::iterator i = glyphTable_->find(codepoint);
+
+	if (i == glyphTable_->end())
+		i = glyphTable_->insert(std::make_pair(codepoint, load(codepoint))).first;
 
 	return &i->second;
+}
+
+void Font::updateGlyphTable()
+{
+	if (size_ != curSize_)
+	{
+		FT_Matrix matrix = {
+			(int)((1.0 / hres) * 0x10000L),
+			(int)((0.0)        * 0x10000L),
+			(int)((0.0)        * 0x10000L),
+			(int)((1.0)        * 0x10000L)
+		};
+
+		FT_Set_Char_Size((FT_Face)face_, size_ * 64, 0, 96 * hres, 96);
+		FT_Set_Transform((FT_Face)face_, &matrix, 0);
+
+		// update outline and glyph tables
+
+		OutlineTable *&table = glyphs_[size_];
+
+		if (table == 0)
+		{
+			table = new OutlineTable();
+			table->push_back(std::make_pair((uint32_t)0, GlyphTable()));
+
+			outlineTable_ = table;
+			glyphTable_ = &table->front().second;
+
+			curThickness_ = 0;
+
+			std::cout << glyphTable_ << std::endl;
+		}
+		else
+		{
+			outlineTable_ = table;
+			glyphTable_ = &table->front().second;
+			curThickness_ = 0;
+		}
+
+		curSize_ = size_;
+	}
+
+	if (thickness_ != curThickness_)
+	{
+		OutlineTable::iterator i = outlineTable_->begin();
+
+		while (i != outlineTable_->end())
+		{
+			if (i->first == thickness_)
+			{
+				glyphTable_ = &i->second;
+				curThickness_ = thickness_;
+				return;
+			}
+
+			++i;
+		}
+
+		if (i == outlineTable_->end())
+		{
+			outlineTable_->push_back(std::make_pair(thickness_, GlyphTable()));
+			glyphTable_ = &outlineTable_->back().second;
+			curThickness_ = thickness_;
+		}
+	}
 }
 
 Font::Glyph Font::load(uint32_t codepoint)
@@ -144,15 +212,72 @@ Font::Glyph Font::load(uint32_t codepoint)
 	if (face == 0)
 		return glyph;
 
-	FT_UInt iGlyph = FT_Get_Char_Index(face, codepoint);
+	updateGlyphTable();
 
-	if (FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_TARGET_LCD) != 0)
+	FT_UInt iGlyph = FT_Get_Char_Index(face, codepoint);
+	FT_Int32 flags = FT_LOAD_TARGET_LCD;
+
+	if (thickness_ != 0)
+		flags |= FT_LOAD_NO_BITMAP;
+	else
+		flags |= FT_LOAD_RENDER;
+
+	if (FT_Load_Glyph(face, iGlyph, flags) != 0)
 		return glyph;
 
-	FT_Bitmap &bitmap = face->glyph->bitmap;
+	FT_Bitmap bitmap;
+	FT_Glyph ftglyph;
+
+	int top, left;
+
+	if (thickness_ != 0)
+	{
+		FT_Stroker stroker;
+
+		if (FT_Stroker_New(context->freetype, &stroker) != 0)
+			return glyph;
+
+		FT_Stroker_Set(stroker, thickness_, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+
+		if (FT_Get_Glyph(face->glyph, &ftglyph) != 0)
+		{
+			FT_Stroker_Done(stroker);
+			return glyph;
+		}
+
+		// if (FT_Glyph_StrokeBorder(&ftglyph, stroker, 0, 1) != 0)
+		if (FT_Glyph_Stroke(&ftglyph, stroker, 1) != 0)
+		{
+			FT_Stroker_Done(stroker);
+			FT_Done_Glyph(ftglyph);
+			return glyph;
+		}
+
+		if (FT_Glyph_To_Bitmap(&ftglyph, FT_RENDER_MODE_LCD, 0, 1) != 0)
+		{
+			FT_Stroker_Done(stroker);
+			FT_Done_Glyph(ftglyph);
+			return glyph;
+		}
+
+		bitmap = ((FT_BitmapGlyph)ftglyph)->bitmap;
+		top    = ((FT_BitmapGlyph)ftglyph)->top;
+		left   = ((FT_BitmapGlyph)ftglyph)->left;
+
+		FT_Stroker_Done(stroker);
+	}
+	else
+	{
+		bitmap  = face->glyph->bitmap;
+		top     = face->glyph->bitmap_top;
+		left    = face->glyph->bitmap_left;
+	}
 
 	if (bitmap.width <= 0 || bitmap.rows <= 0)
 	{
+		if (thickness_ != 0)
+			FT_Done_Glyph(ftglyph);
+
 		FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
 		glyph.advance = face->glyph->advance.x / 64.0;
 		return glyph;
@@ -175,7 +300,7 @@ Font::Glyph Font::load(uint32_t codepoint)
 
 	if (region.width == 0)
 	{
-		atlas = new Atlas();
+		atlas = new Atlas(atlasSize_);
 
 		if (atlas->texture() == 0)
 		{
@@ -192,8 +317,8 @@ Font::Glyph Font::load(uint32_t codepoint)
 
 	glyph.atlas = (int)atlases_.size() - 1;
 
-	glyph.x =  face->glyph->bitmap_left;
-	glyph.y = -face->glyph->bitmap_top ;
+	glyph.x =  left;
+	glyph.y = -top;
 	glyph.w =  region.width; // includes right padding
 	glyph.h =  region.height - padding;
 
@@ -210,6 +335,9 @@ Font::Glyph Font::load(uint32_t codepoint)
 	FT_Load_Glyph(face, iGlyph, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
 	glyph.advance = face->glyph->advance.x / 64.0;
 
+	if (thickness_ != 0)
+		FT_Done_Glyph(ftglyph);
+
 	return glyph;
 }
 
@@ -217,10 +345,10 @@ Font::Glyph Font::load(uint32_t codepoint)
 // Font::Atlas
 // -----------------------------------------------------------------------------
 
-Font::Atlas::Atlas() : texture_(0), buffer_(0)
+Font::Atlas::Atlas(int size) : texture_(0), buffer_(0)
 {
-	int width  = 128;
-	int height = 128;
+	int width  = size;
+	int height = size;
 
 	texture_ = new Texture(width, height, depth, false);
 	texture_->filter(tex_filter);

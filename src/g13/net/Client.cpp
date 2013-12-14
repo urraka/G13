@@ -64,10 +64,14 @@ Client::Client()
 		playersText_[i].text->font(font);
 		playersText_[i].text->size(fontSize);
 		playersText_[i].text->color(gfx::Color(0xFF));
+		playersText_[i].text->outlineColor(gfx::Color(0x00));
+		playersText_[i].text->outlineWidth(0.5f);
 
 		nicknamesText_[i].font(font);
 		nicknamesText_[i].size(fontSize);
 		nicknamesText_[i].color(gfx::Color(0xFF));
+		nicknamesText_[i].outlineColor(gfx::Color(0x00));
+		nicknamesText_[i].outlineWidth(0.5f);
 
 		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
@@ -85,6 +89,11 @@ Client::Client()
 	// preload some glyphs
 
 	font->size(fontSize);
+
+	for (int i = 32; i < 127; i++)
+		font->glyph(i);
+
+	font->outlineWidth(0.5f);
 
 	for (int i = 32; i < 127; i++)
 		font->glyph(i);

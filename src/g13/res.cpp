@@ -74,7 +74,7 @@ gfx::Texture *texture(TextureID id)
 gfx::Font *font(FontID id)
 {
 	if (fonts[id].font == 0)
-		fonts[id].font = new gfx::Font(fonts[id].filename);
+		fonts[id].font = new gfx::Font(fonts[id].filename, 512);
 
 	return fonts[id].font;
 }

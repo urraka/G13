@@ -35,23 +35,15 @@ public:
 	void size(uint32_t size);
 	void color(const Color &color);
 
+	void outlineColor(const Color &color);
+	void outlineWidth(float width);
+
 	const string32_t &value();
 	Font *font() const;
 	Color color() const;
 	uint32_t size() const;
 
 	const Bounds &bounds();
-
-private:
-	string32_t value_;
-	Font *font_;
-	uint32_t size_;
-	Color color_;
-
-	Bounds bounds_;
-
-	bool updatedGeometry_;
-	bool updatedBounds_;
 
 	struct DrawData
 	{
@@ -63,10 +55,26 @@ private:
 		int offset;
 	};
 
+private:
+	string32_t value_;
+	Font *font_;
+	uint32_t size_;
+	Color color_;
+	float outlineWidth_;
+	Color outlineColor_;
+
+	Bounds bounds_;
+
+	bool updatedGeometry_;
+	bool updatedBounds_;
+
 	IBO *ibo_;
 	std::vector<VBO*> vbos_;
 	std::vector<DrawData> drawData_;
 	std::vector<const Font::Glyph*> glyphs_;
+
+	std::vector<DrawData> outlineDrawData_;
+	std::vector<const Font::Glyph*> outlineGlyphs_;
 
 	void update(bool upload);
 	void draw();

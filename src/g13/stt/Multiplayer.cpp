@@ -112,11 +112,8 @@ void Multiplayer::draw(const Frame &frame)
 
 bool Multiplayer::event(Event *evt)
 {
-	if (client_->state() == net::Client::Connected)
-	{
-		if (!client_->event(evt))
-			return false;
-	}
+	if (!client_->event(evt))
+		return false;
 
 	if (evt->type == Event::KeyPressed)
 		return onKeyPressed(evt->key);

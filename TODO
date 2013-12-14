@@ -1,4 +1,4 @@
-* Game [1/34]
+* Game [1/36]
   [ ] Pick different font sizes depending window width.
   [ ] Use font size to calculate chatbox height.
   [ ] There's no reason to have all gfx objects as pointers in net::Client.
@@ -44,11 +44,11 @@
     [X] Run from bottom-left to the right until blocked by the "wall", then walk left.
   [ ] Auto-record every fucking gameplay and store in new files with dates and shit.
 
-* Graphics [0/7]
+* Graphics [1/8]
   [ ] Add wrap width to gfx::Text.
   [ ] Double buffer vbos.
   [ ] Add ability to update specific sprites in SpriteBatch.
-  [ ] Add text outlines.
+  [X] Add text outlines.
   [ ] Add special case in text shader for black/white color. Fix blending.
   [ ] Add easy to draw rectangles.
   [ ] Text crashing with weird character 0x2584.

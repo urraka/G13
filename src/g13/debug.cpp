@@ -229,8 +229,8 @@ void Debugger::drawFontAtlas()
 	if (!showFontAtlas)
 		return;
 
-	gfx::Font *font = res::font(res::Monospace);
-	// gfx::Font *font = res::font(res::DefaultFont);
+	// gfx::Font *font = res::font(res::Monospace);
+	gfx::Font *font = res::font(res::DefaultFont);
 
 	if (font->texture(0) != 0)
 	{
