@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace g13 {
 namespace coll {
 
@@ -32,12 +34,17 @@ public:
 
 	void gravity(fixed value);
 
+	void addSpawnPoint(const fixvec2 &position) { spawnpoints_.push_back(position); }
+	const std::vector<fixvec2> &spawnpoints() const { return spawnpoints_; }
+
 private:
 	Grid<Segment> *segmentsGrid_;
 	Grid<entity_t> *entitiesGrid_;
 
 	fixrect bounds_;
 	fixed gravity_;
+
+	std::vector<fixvec2> spawnpoints_;
 
 	mutable std::vector<int> sharedIndices_;
 	mutable std::vector<const Segment*> segments_;

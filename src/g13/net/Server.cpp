@@ -5,6 +5,7 @@
 #include <g13/callback.h>
 #include <hlp/countof.h>
 #include <hlp/assign.h>
+#include <vector>
 #include <assert.h>
 #include <iostream>
 
@@ -315,15 +316,11 @@ void Server::onPlayerPong(Player *player, msg::Pong *pong)
 void Server::onPlayerReady(Player *player, msg::Ready *ready)
 {
 	msg::PlayerJoin join;
+	const std::vector<fixvec2> &spawnpoints = map_->world()->spawnpoints();
+
 	join.tick = tick_;
 	join.id = player->id();
-
-	const fixrect &bounds = map_->world()->bounds();
-
-	join.position = fixvec2(
-		fpm::lerp(bounds.tl.x, bounds.br.x, fixed(rand() / (float)RAND_MAX)),
-		fpm::lerp(bounds.tl.y, bounds.br.y, fixed(rand() / (float)RAND_MAX))
-	);
+	join.position = spawnpoints[rand() % spawnpoints.size()];
 
 	player->onJoin(tick_, map_, join.position);
 

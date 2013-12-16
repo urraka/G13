@@ -103,6 +103,18 @@ void Map::load()
 	world_ = new coll::World(bounds);
 	world_->create(linestrips);
 
+	// spawn points
+
+	Json::Value &spawnpoints = data["spawnpoints"];
+
+	for (size_t i = 0; i < spawnpoints.size(); i++)
+	{
+		world_->addSpawnPoint(fixvec2(
+			fixed::from_value(spawnpoints[i]["x"].asInt()),
+			fixed::from_value(spawnpoints[i]["y"].asInt())
+		));
+	}
+
 	// ground vbo/ibo
 
 	Json::Value &ground_vbo = data["ground"]["vbo"];

@@ -165,8 +165,6 @@ void Font::updateGlyphTable()
 			glyphTable_ = &table->front().second;
 
 			curThickness_ = 0;
-
-			std::cout << glyphTable_ << std::endl;
 		}
 		else
 		{
