@@ -112,7 +112,11 @@ ifeq ($(platform),osx)
   lib += lib/osx/libfixmath.a
   lib += lib/osx/libenet.a
   lib += lib/osx/libfreetype.a
-  lib += -framework OpenGL -framework Cocoa -framework IOKit
+  lib += -framework OpenGL
+  lib += -framework Cocoa
+  lib += -framework IOKit
+  lib += -framework CoreFoundation
+  lib += -framework CoreVideo
   inc += -Iinclude
   def += -DOSX
 endif
