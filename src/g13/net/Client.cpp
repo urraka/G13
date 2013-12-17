@@ -583,7 +583,7 @@ void Client::draw(const Frame &frame)
 
 				gfx::matrix(mat2d());
 
-				gfx::translate(pos.x - 0.5f * bounds.width, glm::floor(pos.y));
+				gfx::translate(pos.x - 0.5f * bounds.width, pos.y); //glm::floor(pos.y));
 				gfx::draw(text);
 
 				gfx::matrix(m);
