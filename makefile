@@ -93,7 +93,7 @@ ifeq ($(platform),linux)
   lib += lib/linux/libfixmath.a
   lib += lib/linux/libenet.a
   lib += lib/linux/libfreetype.a
-  lib += -lpthread -lXi -lX11 -lXxf86vm -lXrandr -lGL
+  lib += -lpthread -lXcursor -lXi -lX11 -lXxf86vm -lXrandr -lGL
   inc += -Iinclude
   def += -DUNIX -DPNG_SKIP_SETJMP_CHECK
   ifeq ($(debug),no)
