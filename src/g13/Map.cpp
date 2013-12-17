@@ -83,14 +83,14 @@ void Map::load()
 
 	std::vector<coll::World::Linestrip> linestrips(collisionData.size());
 
-	for (size_t i = 0; i < collisionData.size(); i++)
+	for (Json::ArrayIndex i = 0; i < collisionData.size(); i++)
 	{
 		Json::Value &linestripData = collisionData[i];
 		coll::World::Linestrip &linestrip = linestrips[i];
 
 		linestrip.resize(linestripData.size());
 
-		for (size_t j = 0; j < linestripData.size(); j++)
+		for (Json::ArrayIndex j = 0; j < linestripData.size(); j++)
 		{
 			Json::Value &p = linestripData[j];
 
@@ -107,7 +107,7 @@ void Map::load()
 
 	Json::Value &spawnpoints = data["spawnpoints"];
 
-	for (size_t i = 0; i < spawnpoints.size(); i++)
+	for (Json::ArrayIndex i = 0; i < spawnpoints.size(); i++)
 	{
 		world_->addSpawnPoint(fixvec2(
 			fixed::from_value(spawnpoints[i]["x"].asInt()),
@@ -123,7 +123,7 @@ void Map::load()
 	std::vector<gfx::SpriteVertex> vertices(ground_vbo.size());
 	std::vector<uint16_t> indices(ground_ibo.size());
 
-	for (size_t i = 0; i < ground_vbo.size(); i++)
+	for (Json::ArrayIndex i = 0; i < ground_vbo.size(); i++)
 	{
 		float x = ground_vbo[i]["x"].asFloat();
 		float y = ground_vbo[i]["y"].asFloat();
@@ -133,7 +133,7 @@ void Map::load()
 		vertices[i] = gfx::sprite_vertex(x, y, u, v, gfx::Color(255));
 	}
 
-	for (size_t i = 0; i < ground_ibo.size(); i++)
+	for (Json::ArrayIndex i = 0; i < ground_ibo.size(); i++)
 		indices[i] = ground_ibo[i].asInt();
 
 	vbo_ = new gfx::VBO();
@@ -151,7 +151,7 @@ void Map::load()
 	Json::Value &grass_data = data["grass"];
 	std::vector<gfx::Sprite> grassSprites(grass_data.size());
 
-	for (size_t i = 0; i < grass_data.size(); i++)
+	for (Json::ArrayIndex i = 0; i < grass_data.size(); i++)
 	{
 		Json::Value &sprite_data = grass_data[i];
 		gfx::Sprite &sprite = grassSprites[i];
