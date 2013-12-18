@@ -76,8 +76,8 @@ Client::Client()
 		players_[i].soldier()->createBulletCallback = make_callback(this, Client, createBullet);
 	}
 
-	healthBar_.setPosition(10.0f, 10.0f);
-	healthBar_.setSize(200.0f, 6.0f);
+	healthBar_.setPosition(15.0f, 15.0f);
+	healthBar_.setSize(100.0f, 15.0f);
 	healthBar_.setOutline(1.0f, gfx::Color(0));
 	healthBar_.setOpacity(0.7f);
 
@@ -269,6 +269,10 @@ void Client::onConnect(ENetPeer *peer)
 	msg::Login login;
 	hlp::assign(login.name, name_);
 
+	login.color[0] = soldierColor_.r;
+	login.color[1] = soldierColor_.g;
+	login.color[2] = soldierColor_.b;
+
 	send(&login, peer);
 
 	debug_log("Connected to server. Waiting response...");
@@ -368,7 +372,7 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	}
 	else
 	{
-		players_[id_].onConnect(name_);
+		players_[id_].onConnect(name_, soldierColor_);
 
 		sys::set_cursor(res::cursor(res::Crosshair));
 
@@ -386,6 +390,7 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 		return;
 
 	Player *player = &players_[playerConnect->id];
+	gfx::Color color(playerConnect->color[0], playerConnect->color[1], playerConnect->color[2]);
 
 	assert(!player->connected());
 
@@ -393,11 +398,11 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 
 	if (player->state() == Player::Connecting)
 	{
-		player->onConnect(playerConnect->name);
+		player->onConnect(playerConnect->name, color);
 
 		if (--connectingCount_ == 0)
 		{
-			players_[id_].onConnect(name_);
+			players_[id_].onConnect(name_, soldierColor_);
 
 			sys::set_cursor(res::cursor(res::Crosshair));
 
@@ -409,7 +414,7 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 	}
 	else
 	{
-		player->onConnect(playerConnect->name);
+		player->onConnect(playerConnect->name, color);
 
 		debug_log("Player #" << (int)playerConnect->id << " connected.");
 	}
@@ -434,7 +439,7 @@ void Client::onPlayerJoin(msg::PlayerJoin *playerJoin)
 	{
 		cameraTarget_ = players_[id_].soldier()->graphics.position.current;
 		camera_.target(&cameraTarget_);
-		healthBar_.setHealth(players_[id_].health() / (float)Player::MaxHealth);
+		healthBar_.setPercent(players_[id_].health() / (float)Player::MaxHealth);
 	}
 
 	#ifdef DEBUG
@@ -489,7 +494,7 @@ void Client::onDamage(msg::Damage *damage)
 	players_[damage->playerId].onDamage(damage->tick, damage->amount);
 
 	if (active() && damage->playerId == id_)
-		healthBar_.setHealth(players_[id_].health() / (float)Player::MaxHealth);
+		healthBar_.setPercent(players_[id_].health() / (float)Player::MaxHealth);
 }
 
 void Client::draw(const Frame &frame)
@@ -583,7 +588,7 @@ void Client::draw(const Frame &frame)
 
 				gfx::matrix(mat2d());
 
-				gfx::translate(pos.x - 0.5f * bounds.width, pos.y); //glm::floor(pos.y));
+				gfx::translate(pos.x - 0.5f * bounds.width, pos.y);
 				gfx::draw(text);
 
 				gfx::matrix(m);
@@ -597,7 +602,7 @@ void Client::draw(const Frame &frame)
 				ent::Soldier *soldier = players_[i].soldier();
 				vec2 pos = soldier->graphics.position.get() + from_fixed(soldier->bodyOffset());
 
-				float radius = soldier->physics.bboxNormal.width().to_float();
+				float radius = soldier->physics.bboxNormal.height().to_float();
 
 				if (glm::distance2(pos, target_) < radius * radius)
 				{
@@ -607,7 +612,7 @@ void Client::draw(const Frame &frame)
 					pos = gfx::matrix() * (soldier->graphics.position.get() + vec2(0.0f, 20.0f));
 
 					gfx::matrix(mat2d());
-					gfx::translate(pos.x - 0.5f * bounds.width, glm::floor(pos.y));
+					gfx::translate(pos.x - 0.5f * bounds.width, pos.y);
 					gfx::draw(text);
 
 					break;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <g13/g13.h>
+#include <g13/ui/Bar.h>
 #include <gfx/gfx.h>
-#include <gfx/Color.h>
 #include <hlp/ConfigFile.h>
 
 #include "State.h"
@@ -23,6 +23,7 @@ private:
 	void setMenu(int menu);
 	void setSelected(int selected);
 	bool isTextOption(int menu, int option);
+	bool isColorOption(int menu, int option);
 	void command();
 	void onKeyPressed(const Event::KeyEvent &key);
 	void onText(const Event::TextEvent &text);
@@ -35,12 +36,14 @@ private:
 
 	enum Menu       { Main, Host, Join, MenuCount };
 	enum MainOption { MainJoin, MainHost, MainQuit, MainOptionCount };
-	enum HostOption { HostName, HostPort, HostStart, HostOptionCount };
-	enum JoinOption { JoinName, JoinAddress, JoinStart, JoinOptionCount };
+	enum HostOption { HostName, HostColor, HostPort, HostStart, HostOptionCount };
+	enum JoinOption { JoinName, JoinColor, JoinAddress, JoinStart, JoinOptionCount };
 
 	gfx::Text hostOptions_[HostOptionCount];
 	gfx::Text joinOptions_[JoinOptionCount];
 	gfx::Text mainOptions_[MainOptionCount];
+
+	ui::Bar colorBar_;
 
 	gfx::Text *currentOptions_;
 	gfx::Text *menuTitles_[MenuCount];
@@ -50,6 +53,7 @@ private:
 	string32_t name_;
 	string32_t address_;
 	string32_t port_;
+	int        color_;
 
 	int menu_;
 	int optionCount_;

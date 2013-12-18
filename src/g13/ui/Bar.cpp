@@ -1,4 +1,4 @@
-#include "HealthBar.h"
+#include "Bar.h"
 #include <gfx/gfx.h>
 
 namespace g13 {
@@ -7,9 +7,9 @@ namespace ui {
 static const int index_count  = 5 * 6;
 static const int vertex_count = 5 * 4;
 
-HealthBar::HealthBar()
+Bar::Bar()
 	:	changed_(true),
-		health_(1.0f),
+		percent_(1.0f),
 		size_(100.0f, 10.0f),
 		opacity_(1.0f),
 		outlineWidth_(2.0f),
@@ -35,52 +35,52 @@ HealthBar::HealthBar()
 	vbo_->ibo()->set(indices, 0, index_count);
 }
 
-HealthBar::~HealthBar()
+Bar::~Bar()
 {
 	delete vbo_->ibo();
 	delete vbo_;
 }
 
-void HealthBar::setSize(float width, float height)
+void Bar::setSize(float width, float height)
 {
 	changed_ = true;
 	size_.x = width;
 	size_.y = height;
 }
 
-void HealthBar::setPosition(float x, float y)
+void Bar::setPosition(float x, float y)
 {
 	changed_ = true;
 	position_.x = x;
 	position_.y = y;
 }
 
-void HealthBar::setHealth(float percent)
+void Bar::setPercent(float percent)
 {
 	changed_ = true;
-	health_ = percent;
+	percent_ = percent;
 }
 
-void HealthBar::setOutline(float width, const gfx::Color &color)
+void Bar::setOutline(float width, const gfx::Color &color)
 {
 	changed_ = true;
 	outlineWidth_ = width;
 	outlineColor_ = color;
 }
 
-void HealthBar::setFill(const gfx::Color &color)
+void Bar::setFill(const gfx::Color &color)
 {
 	changed_ = true;
 	fillColor_ = color;
 }
 
-void HealthBar::setOpacity(float opacity)
+void Bar::setOpacity(float opacity)
 {
 	changed_ = true;
 	opacity_ = opacity;
 }
 
-void HealthBar::draw()
+void Bar::draw()
 {
 	if (changed_)
 	{
@@ -100,7 +100,7 @@ void HealthBar::draw()
 		const float bi = position_.y + outlineWidth_ + size_.y;
 		const float bo = position_.y + outlineWidth_ + size_.y + outlineWidth_;
 
-		const float hx = glm::mix(li, ri, health_);
+		const float hx = glm::mix(li, ri, percent_);
 
 		gfx::Color fill = fillColor_;
 		gfx::Color outline = outlineColor_;

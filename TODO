@@ -1,4 +1,4 @@
-* Game [1/36]
+* Game [2/36]
   [ ] Pick different font sizes depending window width.
   [ ] Use font size to calculate chatbox height.
   [ ] There's no reason to have all gfx objects as pointers in net::Client.
@@ -38,13 +38,14 @@
   [ ] Move all the Client rendering to a separate class.
   [ ] Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
   [ ] Think how the event system should work. Consider some minimalistic ui system.
-  [ ] Replace network.txt with config.cfg and move it to root directory.
+  [X] Replace network.txt with config.cfg and move it to root directory.
   [ ] Separate collision map from map rendering stuff.
   [ ] Find collision bug and fix it, I FUCKING SAW IT.
     [X] Run from bottom-left to the right until blocked by the "wall", then walk left.
   [ ] Auto-record every fucking gameplay and store in new files with dates and shit.
 
 * Graphics [1/8]
+  [ ] Avoid rendering invalid characters if possible.
   [ ] Add wrap width to gfx::Text.
   [ ] Double buffer vbos.
   [ ] Add ability to update specific sprites in SpriteBatch.

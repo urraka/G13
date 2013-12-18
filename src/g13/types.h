@@ -10,6 +10,7 @@ namespace g13
 	{
 		class State;
 		class Multiplayer;
+		class MainMenu;
 	}
 
 	namespace net
@@ -66,5 +67,10 @@ namespace g13
 		class Entity;
 		class Result;
 		class World;
+	}
+
+	namespace ui
+	{
+		class Bar;
 	}
 }

@@ -256,10 +256,11 @@ void Player::onConnecting(ENetPeer *peer)
 	connectTimeout_ = 0;
 }
 
-void Player::onConnect(const char *name)
+void Player::onConnect(const char *name, const gfx::Color &color)
 {
 	state_ = Connected;
 	hlp::assign(name_, name);
+	soldier_.graphics.bodyColor = color;
 }
 
 void Player::onDisconnect(int tick)

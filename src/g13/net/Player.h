@@ -5,6 +5,7 @@
 #include <g13/ent/Bullet.h>
 #include <g13/cmp/BulletParams.h>
 
+#include <gfx/Color.h>
 #include <hlp/ring.h>
 #include <stdint.h>
 #include <vector>
@@ -48,7 +49,7 @@ public:
 	void setCollisionTick(int tick);
 
 	void onConnecting(ENetPeer *peer = 0);
-	void onConnect(const char *name);
+	void onConnect(const char *name, const gfx::Color &color);
 	void onDisconnect(int tick);
 	void onJoin(int tick, const Map *map, const fixvec2 &position);
 	void onSoldierState(int tick, const cmp::SoldierState &soldierState);

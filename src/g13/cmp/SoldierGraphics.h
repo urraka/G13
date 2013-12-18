@@ -40,6 +40,7 @@ public:
 	}
 
 	gfx::Sprite sprite;
+	gfx::Color bodyColor;
 	math::interpolable<vec2> position;
 	vec2 *target;
 

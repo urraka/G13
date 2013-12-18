@@ -11,7 +11,7 @@
 namespace g13 {
 namespace stt {
 
-Multiplayer::Multiplayer(const string32_t &name, int port)
+Multiplayer::Multiplayer(const string32_t &name, const gfx::Color &color, int port)
 	:	state_(Connecting),
 		client_(0),
 		server_(0)
@@ -21,16 +21,18 @@ Multiplayer::Multiplayer(const string32_t &name, int port)
 
 	client_ = new net::Client();
 	client_->nick(name);
+	client_->soldierColor(color);
 	client_->connect("localhost", port);
 }
 
-Multiplayer::Multiplayer(const string32_t &name, const char *host, int port)
+Multiplayer::Multiplayer(const string32_t &name, const gfx::Color &color, const char *host, int port)
 	:	state_(Connecting),
 		client_(0),
 		server_(0)
 {
 	client_ = new net::Client();
 	client_->nick(name);
+	client_->soldierColor(color);
 	client_->connect(host, port);
 }
 

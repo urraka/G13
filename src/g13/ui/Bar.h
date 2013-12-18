@@ -8,24 +8,32 @@
 namespace g13 {
 namespace ui {
 
-class HealthBar
+class Bar
 {
 public:
-	HealthBar();
-	~HealthBar();
+	Bar();
+	~Bar();
 
 	void setSize(float width, float height);
 	void setPosition(float x, float y);
-	void setHealth(float percent);
+	void setPercent(float percent);
 	void setOutline(float width, const gfx::Color &color);
 	void setFill(const gfx::Color &color);
 	void setOpacity(float opacity);
+
+	float percent() const { return percent_; }
+	float opacity() const { return opacity_; }
+	float outlineWidth() const { return outlineWidth_; }
+	const vec2 &size() const { return size_; }
+	const vec2 &position() const { return position_; }
+	const gfx::Color &fillColor() const { return fillColor_; }
+	const gfx::Color &outlineColor() const { return outlineColor_; }
 
 	void draw();
 
 private:
 	bool changed_;
-	float health_;
+	float percent_;
 	vec2 position_;
 	vec2 size_;
 

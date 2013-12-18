@@ -1,6 +1,7 @@
 #pragma once
 
 #include <g13/g13.h>
+#include <gfx/Color.h>
 #include "State.h"
 
 namespace g13 {
@@ -9,8 +10,8 @@ namespace stt {
 class Multiplayer : public State
 {
 public:
-	Multiplayer(const string32_t &name, int port);
-	Multiplayer(const string32_t &name, const char *host, int port);
+	Multiplayer(const string32_t &name, const gfx::Color &color, int port);
+	Multiplayer(const string32_t &name, const gfx::Color &color, const char *host, int port);
 	~Multiplayer();
 
 	void update(Time dt);

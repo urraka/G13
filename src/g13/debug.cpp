@@ -302,7 +302,7 @@ void Debugger::drawStateBuffers(int tick, int interp, int local, const net::Play
 
 		const int N = players[i].stateBuffer_.size();
 		const float y = padding + count * padding;
-		const gfx::Color color = (i == local) ? gfx::Color(0) : gfx::Color(0xCC);
+		const gfx::Color color = (i == local) ? gfx::Color(0, 200) : gfx::Color(0xCC, 200);
 
 		int mintick = N > 0 ? players[i].stateBuffer_[0].tick : 0;
 		int maxtick = N > 0 ? players[i].stateBuffer_[0].tick : 0;
@@ -340,7 +340,7 @@ void Debugger::drawStateBuffers(int tick, int interp, int local, const net::Play
 	bg.position = vec2(L - 10.0f, padding - 10.0f);
 	bg.width = R - L + padding;
 	bg.height = count * padding;
-	bg.color = gfx::Color(255);
+	bg.color = gfx::Color(255, 200);
 
 	gfx::Sprite mark = bg;
 	mark.position.x = L + (R - L) * (nTicks - 1 - interp) / float(nTicks - 1) - 4.0f;
@@ -369,45 +369,29 @@ bool Debugger::event(sys::Event *evt)
 
 bool Debugger::onKeyPressed(int key)
 {
-	if (key == sys::F1 || (consoleEnabled && key == sys::Escape))
-	{
-		consoleEnabled = !consoleEnabled;
-		return false;
-	}
-
-	if (!consoleEnabled)
-		return true;
-
-	bool result = false;
-
 	switch (key)
 	{
-		case 'W':
-			wireframe = !wireframe;
-			break;
-
-		case sys::F6:
+		case sys::F1:
 			showFPS = !showFPS;
 			break;
 
-		case 'H':
-			showCollisionHulls = !showCollisionHulls;
+		case sys::F2:
+			wireframe = !wireframe;
 			break;
 
-		case 'L':
+		case sys::F3:
 			showStateBuffers = !showStateBuffers;
 			break;
 
-		case 'S':
-		case 'C':
-			result = true;
+		case sys::F4:
+			showCollisionHulls = !showCollisionHulls;
 			break;
 
 		default:
 			break;
 	}
 
-	return result;
+	return true;
 }
 
 } // g13

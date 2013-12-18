@@ -222,7 +222,7 @@ void SoldierGraphics::frame(const Frame &frame)
 
 	{
 		weapon->color = gfx::Color(0x4C, 0x4C, 0x4C);
-		body->color   = gfx::Color(0, 0, 0xFF);
+		body->color   = bodyColor;
 		head->color   = gfx::Color(0xFF, 0xCC, 0x99);
 	}
 

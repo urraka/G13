@@ -16,6 +16,13 @@ static const uint32_t   fontSize = 16;
 static const gfx::Color fontColor = gfx::Color(0xFF, 0xA0);
 static const gfx::Color fontColorSel = gfx::Color(0xFF, 0xFF);
 
+static const gfx::Color player_colors[] = {
+	gfx::Color(   0,    0, 0xFF),
+	gfx::Color(0xFF,    0,    0),
+	gfx::Color(   0, 0xFF,    0),
+	gfx::Color(   0,    0,    0)
+};
+
 MainMenu::MainMenu()
 	:	currentOptions_(mainOptions_),
 		menuTitles_(),
@@ -50,6 +57,7 @@ MainMenu::MainMenu()
 	// host options
 
 	hostOptions_[HostName].value(*label(Host, HostName) + *value(Host, HostName));
+	hostOptions_[HostColor].value(*label(Host, HostColor));
 	hostOptions_[HostPort].value(*label(Host, HostPort) + *value(Host, HostPort));
 	hostOptions_[HostStart].value("Start");
 
@@ -63,6 +71,7 @@ MainMenu::MainMenu()
 	// join options
 
 	joinOptions_[JoinName].value(*label(Join, JoinName) + *value(Join, JoinName));
+	joinOptions_[JoinColor].value(*label(Join, JoinColor));
 	joinOptions_[JoinAddress].value(*label(Join, JoinAddress) + *value(Join, JoinAddress));
 	joinOptions_[JoinStart].value("Connect");
 
@@ -72,6 +81,11 @@ MainMenu::MainMenu()
 		joinOptions_[i].size(fontSize);
 		joinOptions_[i].color(fontColor);
 	}
+
+	colorBar_.setSize(60.0f, 14.0f);
+	colorBar_.setPercent(1.0f);
+	colorBar_.setOutline(1.0f, gfx::Color(0xFF));
+	colorBar_.setOpacity(0xA0 / 255.0f);
 
 	setMenu(Main);
 }
@@ -100,6 +114,16 @@ void MainMenu::draw(const Frame &frame)
 		float x = 0.5f * W - 0.5f * bounds.width - bounds.x;
 		float y = Y + i * lineHeight;
 
+		if (isColorOption(menu_, i))
+		{
+			const vec2 &barSize = colorBar_.size();
+
+			x -= barSize.x / 2.0f + 6.0f;
+
+			gfx::matrix(mat2d::translate(x + bounds.width + 6.0f, y - barSize.y - 1.0f));
+			colorBar_.draw();
+		}
+
 		gfx::matrix(mat2d::translate(x, y));
 		gfx::draw(&currentOptions_[i]);
 	}
@@ -123,7 +147,10 @@ void MainMenu::setMenu(int menu)
 	setSelected(0);
 
 	menu_ = menu;
-	optionCount_ = 3;
+
+	optionCount_ = menu == Main ? 3 :
+	               menu == Host ? 4 :
+	               menu == Join ? 4 : 0;
 
 	currentOptions_ = menu == Main ? mainOptions_ :
 	                  menu == Host ? hostOptions_ :
@@ -134,18 +161,33 @@ void MainMenu::setMenu(int menu)
 
 void MainMenu::setSelected(int selected)
 {
-	const uint32_t caret[] = {'_', 0};
+	const uint32_t caret = '_';
 
 	currentOptions_[selected_].color(fontColor);
 	currentOptions_[selected].color(fontColorSel);
 
+	// disable old options
+
 	if (isTextOption(menu_, selected_))
 		currentOptions_[selected_].value(*label(menu_, selected_) + *value(menu_, selected_));
+
+	if (isColorOption(menu_, selected_))
+		colorBar_.setOpacity(0xA0 / 255.0f);
+
+	// enable new options
 
 	if (isTextOption(menu_, selected))
 		currentOptions_[selected].value(*label(menu_, selected) + *value(menu_, selected) + caret);
 
+	if (isColorOption(menu_, selected))
+		colorBar_.setOpacity(1.0f);
+
 	selected_ = selected;
+}
+
+bool MainMenu::isColorOption(int menu, int option)
+{
+	return (menu == Host && option == HostColor) || (menu == Join && option == JoinColor);
 }
 
 bool MainMenu::isTextOption(int menu, int option)
@@ -186,6 +228,13 @@ void MainMenu::command()
 				case HostName:  setSelected((selected_ + 1) % optionCount_); break;
 				case HostPort:  setSelected((selected_ + 1) % optionCount_); break;
 
+				case HostColor:
+				{
+					color_ = (color_ + 1) % countof(player_colors);
+					colorBar_.setFill(player_colors[color_]);
+				}
+				break;
+
 				case HostStart:
 				{
 					saveConfig();
@@ -193,7 +242,7 @@ void MainMenu::command()
 					std::string port;
 					hlp::utf8_encode(port_, port);
 
-					g13::set_state(new Multiplayer(name_, hlp::to_int(port)));
+					g13::set_state(new Multiplayer(name_, player_colors[color_], hlp::to_int(port)));
 
 					delete this;
 				}
@@ -209,6 +258,13 @@ void MainMenu::command()
 				case JoinName:    setSelected((selected_ + 1) % optionCount_); break;
 				case JoinAddress: setSelected((selected_ + 1) % optionCount_); break;
 
+				case HostColor:
+				{
+					color_ = (color_ + 1) % countof(player_colors);
+					colorBar_.setFill(player_colors[color_]);
+				}
+				break;
+
 				case JoinStart:
 				{
 					saveConfig();
@@ -217,7 +273,10 @@ void MainMenu::command()
 					hlp::utf8_encode(address_, addr);
 					hlp::strvector parts = hlp::split(addr, ':');
 
-					g13::set_state(new Multiplayer(name_, parts[0].c_str(), hlp::to_int(parts[1])));
+					const char *host = parts[0].c_str();
+					int port = hlp::to_int(parts[1]);
+
+					g13::set_state(new Multiplayer(name_, player_colors[color_], host, port));
 
 					delete this;
 				}
@@ -341,17 +400,21 @@ const string32_t *MainMenu::label(int menu, int option)
 	static const uint32_t _name[] = {'N', 'a', 'm', 'e', ':', ' ', 0};
 	static const uint32_t _port[] = {'P', 'o', 'r', 't', ':', ' ', 0};
 	static const uint32_t _addr[] = {'S', 'e', 'r', 'v', 'e', 'r', ':', ' ', 0};
+	static const uint32_t _clor[] = {'C', 'o', 'l', 'o', 'r', ':', ' ', 0};
 
 	static string32_t name    = _name;
 	static string32_t port    = _port;
 	static string32_t address = _addr;
+	static string32_t color   = _clor;
 
 	switch (menu)
 	{
-		case Host: return option == HostName ? &name :
-		                  option == HostPort ? &port : 0;
+		case Host: return option == HostName  ? &name  :
+		                  option == HostColor ? &color :
+		                  option == HostPort  ? &port  : 0;
 
-		case Join: return option == JoinName    ? &name :
+		case Join: return option == JoinName    ? &name    :
+		                  option == JoinColor   ? &color   :
 		                  option == JoinAddress ? &address : 0;
 	}
 
@@ -374,9 +437,15 @@ string32_t *MainMenu::value(int menu, int option)
 
 void MainMenu::loadConfig()
 {
+	color_   = config_.readInt("client:color", 0);
 	name_    = hlp::utf8_decode(config_.readString("client:nick", "Player"));
 	address_ = hlp::utf8_decode(config_.readString("client:host", "localhost:1234"));
 	port_    = hlp::utf8_decode(config_.readString("server:listen", "1234"));
+
+	if (color_ < 0 || color_ >= (int)countof(player_colors))
+		color_ = 0;
+
+	colorBar_.setFill(player_colors[color_]);
 }
 
 void MainMenu::saveConfig()
@@ -385,6 +454,8 @@ void MainMenu::saveConfig()
 
 	hlp::utf8_encode(name_, str);
 	config_.setString("client:nick", str.c_str());
+
+	config_.setInt("client:color", color_);
 
 	hlp::utf8_encode(address_, str);
 	config_.setString("client:host", str.c_str());

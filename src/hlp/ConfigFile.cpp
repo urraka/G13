@@ -1,6 +1,6 @@
 #include "ConfigFile.h"
 #include "ini/iniparser.h"
-
+#include <sstream>
 #include <assert.h>
 
 namespace hlp {
@@ -59,6 +59,13 @@ void ConfigFile::setString(const char *key, const char *value)
 		iniparser_set((dictionary*)dict_, section, NULL);
 
 	iniparser_set((dictionary*)dict_, key, value);
+}
+
+void ConfigFile::setInt(const char *key, int value)
+{
+	std::stringstream ss;
+	ss << value;
+	setString(key, ss.str().c_str());
 }
 
 void ConfigFile::save(const char *filename)

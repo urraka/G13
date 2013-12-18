@@ -15,6 +15,7 @@ namespace hlp
 		bool readBoolean(const char *key, bool def = false);
 
 		void setString(const char *key, const char *value);
+		void setInt(const char *key, int value);
 
 		void save(const char *filename);
 

@@ -23,8 +23,12 @@ END
 
 MESSAGE(Login)
 	char name[Player::MaxNameLength * 4 + 1];
+	uint8_t color[3];
 BEGIN
 	String(name, Player::MinNameLength)
+	Integer(color[0])
+	Integer(color[1])
+	Integer(color[2])
 END
 
 MESSAGE(Pong)
@@ -79,9 +83,13 @@ END
 MESSAGE(PlayerConnect)
 	uint8_t id;
 	char    name[Player::MaxNameLength * 4 + 1];
+	uint8_t color[3];
 BEGIN
 	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	String(name, Player::MinNameLength)
+	Integer(color[0])
+	Integer(color[1])
+	Integer(color[2])
 END
 
 MESSAGE(PlayerDisconnect)

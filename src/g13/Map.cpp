@@ -682,10 +682,18 @@ void Map::draw(const ent::Camera *camera)
 
 	// ground
 
+	#ifdef DEBUG
+		if (dbg->wireframe) gfx::wireframe(true);
+	#endif
+
 	vbo_->ibo(ground_);
 	vbo_->mode(gfx::Triangles);
 	gfx::bind(groundTexture_);
 	gfx::draw(vbo_);
+
+	#ifdef DEBUG
+		if (dbg->wireframe) gfx::wireframe(false);
+	#endif
 
 	// grass
 

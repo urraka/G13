@@ -267,7 +267,7 @@ void Server::onMessage(msg::Message *msg, ENetPeer *from)
 
 void Server::onPlayerLogin(Player *player, msg::Login *login)
 {
-	player->onConnect(login->name);
+	player->onConnect(login->name, gfx::Color(login->color[0], login->color[1], login->color[2]));
 
 	ENetPeer *peer = player->peer();
 	uint8_t id = player->id();
@@ -290,6 +290,9 @@ void Server::onPlayerLogin(Player *player, msg::Login *login)
 	// broadcast PlayerConnect event
 	msg::PlayerConnect playerConnect;
 	playerConnect.id = id;
+	playerConnect.color[0] = login->color[0];
+	playerConnect.color[1] = login->color[1];
+	playerConnect.color[2] = login->color[2];
 	hlp::assign(playerConnect.name, login->name);
 	send(&playerConnect);
 
@@ -299,6 +302,9 @@ void Server::onPlayerLogin(Player *player, msg::Login *login)
 		if (i != id && players_[i].connected())
 		{
 			playerConnect.id = i;
+			playerConnect.color[0] = players_[i].soldier()->graphics.bodyColor.r;
+			playerConnect.color[1] = players_[i].soldier()->graphics.bodyColor.g;
+			playerConnect.color[2] = players_[i].soldier()->graphics.bodyColor.b;
 			hlp::assign(playerConnect.name, players_[i].name());
 			send(&playerConnect, peer);
 		}

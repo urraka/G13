@@ -4,7 +4,7 @@
 
 #include <g13/g13.h>
 #include <g13/ent/Camera.h>
-#include <g13/ui/HealthBar.h>
+#include <g13/ui/Bar.h>
 #include <gfx/gfx.h>
 #include <string>
 
@@ -29,6 +29,7 @@ public:
 	State state() const;
 
 	void nick(const string32_t &nick);
+	void soldierColor(const gfx::Color &color) { soldierColor_ = color; }
 
 private:
 	State state_;
@@ -36,6 +37,7 @@ private:
 
 	uint8_t id_;
 	char name_[Player::MaxNameLength * 4 + 1];
+	gfx::Color soldierColor_;
 	cmp::SoldierInput input_;
 	vec2 target_;
 	vec2 cameraTarget_;
@@ -50,7 +52,7 @@ private:
 	gfx::VBO *chatBackground_;
 	gfx::Text connectingText_;
 
-	ui::HealthBar healthBar_;
+	ui::Bar healthBar_;
 
 	bool textInputMode_;
 	string32_t chatString_;
