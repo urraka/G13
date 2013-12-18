@@ -17,10 +17,24 @@ static const gfx::Color fontColor = gfx::Color(0xFF, 0xA0);
 static const gfx::Color fontColorSel = gfx::Color(0xFF, 0xFF);
 
 static const gfx::Color player_colors[] = {
-	gfx::Color(   0,    0, 0xFF),
-	gfx::Color(0xFF,    0,    0),
-	gfx::Color(   0, 0xFF,    0),
-	gfx::Color(   0,    0,    0)
+	gfx::Color(0x00, 0x00, 0x00),
+	gfx::Color(0xFF, 0xFF, 0xFF),
+	gfx::Color(0x00, 0x00, 0xFF),
+	gfx::Color(0xFF, 0x00, 0x00),
+	gfx::Color(0x00, 0xFF, 0x00),
+	gfx::Color(0xFF, 0xFF, 0x00),
+	gfx::Color(0x00, 0xFF, 0xFF),
+	gfx::Color(0xFF, 0x00, 0xFF),
+	gfx::Color(0xFF, 0x80, 0x80),
+	gfx::Color(0x78, 0xBE, 0xF0),
+	gfx::Color(0xDE, 0xD1, 0x6F),
+	gfx::Color(0xCC, 0x66, 0xC9),
+	gfx::Color(0x5D, 0xBA, 0xAC),
+	gfx::Color(0xF2, 0xA2, 0x79),
+	gfx::Color(0x71, 0x82, 0xE3),
+	gfx::Color(0x92, 0xD1, 0x69),
+	gfx::Color(0xBF, 0x60, 0x7C),
+	gfx::Color(0x7C, 0xDD, 0xF7)
 };
 
 MainMenu::MainMenu()
@@ -226,14 +240,8 @@ void MainMenu::command()
 			switch (selected_)
 			{
 				case HostName:  setSelected((selected_ + 1) % optionCount_); break;
+				case HostColor: setSelected((selected_ + 1) % optionCount_); break;
 				case HostPort:  setSelected((selected_ + 1) % optionCount_); break;
-
-				case HostColor:
-				{
-					color_ = (color_ + 1) % countof(player_colors);
-					colorBar_.setFill(player_colors[color_]);
-				}
-				break;
 
 				case HostStart:
 				{
@@ -256,14 +264,8 @@ void MainMenu::command()
 			switch (selected_)
 			{
 				case JoinName:    setSelected((selected_ + 1) % optionCount_); break;
+				case JoinColor:   setSelected((selected_ + 1) % optionCount_); break;
 				case JoinAddress: setSelected((selected_ + 1) % optionCount_); break;
-
-				case HostColor:
-				{
-					color_ = (color_ + 1) % countof(player_colors);
-					colorBar_.setFill(player_colors[color_]);
-				}
-				break;
 
 				case JoinStart:
 				{
@@ -321,6 +323,26 @@ void MainMenu::onKeyPressed(const Event::KeyEvent &key)
 		case sys::Up:
 			setSelected((selected_ + optionCount_ - 1) % optionCount_);
 			break;
+
+		case sys::Left:
+		{
+			if (isColorOption(menu_, selected_))
+			{
+				color_ = (color_ + countof(player_colors) - 1) % countof(player_colors);
+				colorBar_.setFill(player_colors[color_]);
+			}
+		}
+		break;
+
+		case sys::Right:
+		{
+			if (isColorOption(menu_, selected_))
+			{
+				color_ = (color_ + 1) % countof(player_colors);
+				colorBar_.setFill(player_colors[color_]);
+			}
+		}
+		break;
 
 		case sys::Enter:
 			command();

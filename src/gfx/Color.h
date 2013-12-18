@@ -11,6 +11,8 @@ struct Color
 	Color(uint8_t C, uint8_t A) : r(C), g(C), b(C), a(A) {}
 	Color(uint8_t R, uint8_t G, uint8_t B, uint8_t A = 255) : r(R), g(G), b(B), a(A) {}
 
+	bool operator==(const gfx::Color &c) { return r == c.r && g == c.g && b == c.b && a == c.a; }
+
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
