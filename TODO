@@ -1,12 +1,4 @@
-* Game [2/36]
-  [ ] Pick different font sizes depending window width.
-  [ ] Use font size to calculate chatbox height.
-  [ ] There's no reason to have all gfx objects as pointers in net::Client.
-  [ ] Maybe get rid of the interpolable object.
-  [ ] When you die and re-join might be a good time to re-sync client tick if needed.
-  [ ] Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
-  [ ] Figure out how to generalize the character animations.
-  [X] Show nicknames somewhere.
+* Game [0/20]
   [ ] Count kills/deaths etc.
   [ ] Match start/end.
   [ ] Some kind of rope (like in teeworlds).
@@ -18,38 +10,43 @@
     [ ] Fix sliding in wall gaining speed after stopping.
     [ ] Better handling of wall vs floor.
     [ ] Friction.
+  [ ] Figure out how to generalize the character animations.
+  [ ] Maybe get rid of the interpolable object.
+  [ ] Pick different font sizes depending window width.
+  [ ] Use font size to calculate chatbox height.
+  [ ] There's no reason to have all gfx objects as pointers in net::Client.
   [ ] Due to quantum mechanics bullets go through players when shooting from a certain position.
-    [ ] This is an intersection precision problem, when endpoint is very near the line.
+    ~ This is an intersection precision problem, when endpoint is very near the line.
   [ ] Sanity check collision data and re-enable assertions on fpm::normalize.
+  [ ] Make a class for the chatbox.
+  [ ] Move all the Client rendering to a separate class.
+  [ ] Think how the event system should work. Consider some minimalistic ui system.
+  [ ] Separate collision map from map rendering stuff.
+  [ ] Find ultimate solution for the collision bugs.
+  [ ] Auto-record every fucking gameplay and store in new files with dates and shit.
+
+* Networking [0/13]
+  [ ] Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
+  [ ] When you die and re-join might be a good time to re-sync client tick if needed.
+  [ ] Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
   [ ] Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
-    [ ] Setting peer-data to id could help with this.
-  [ ] Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
-  [ ] Set channel on message definitions.
-  [ ] Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
-  [ ] Remove Client::active() and make some easier to understand checks instead.
-  [ ] Don't send gamestate of local player every time.
-  [ ] Set timeouts on both client and server.
-  [ ] Move BitStream to hlp, could be useful for binary files aswell.
-  [ ] Consider adding range checks on packet serialization.
+    ~ Setting peer-data to id could help with this.
   [ ] Check where peer->mtu is negotiated.
   [ ] Add some client side correcting if out of sync when needed.
     ~ Should only be needed in explosions or anything "external" that changes your physics state.
-  [ ] Make a class for the chatbox.
-  [ ] Move all the Client rendering to a separate class.
-  [ ] Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  [ ] Think how the event system should work. Consider some minimalistic ui system.
-  [X] Replace network.txt with config.cfg and move it to root directory.
-  [ ] Separate collision map from map rendering stuff.
-  [ ] Find collision bug and fix it, I FUCKING SAW IT.
-    [X] Run from bottom-left to the right until blocked by the "wall", then walk left.
-  [ ] Auto-record every fucking gameplay and store in new files with dates and shit.
+  [ ] Move BitStream to hlp, could be useful for binary files aswell.
+  [ ] Set timeouts on both client and server.
+  [ ] Consider adding range checks on packet serialization.
+  [ ] Don't send gamestate of local player every time.
+  [ ] Remove Client::active() and make some easier to understand checks instead.
+  [ ] Set channel on message definitions.
+  [ ] Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
 
-* Graphics [1/8]
+* Graphics [0/8]
   [ ] Avoid rendering invalid characters if possible.
   [ ] Add wrap width to gfx::Text.
   [ ] Double buffer vbos.
   [ ] Add ability to update specific sprites in SpriteBatch.
-  [X] Add text outlines.
   [ ] Add special case in text shader for black/white color. Fix blending.
   [ ] Add easy to draw rectangles.
   [ ] Text crashing with weird character 0x2584.
@@ -59,7 +56,7 @@
   [ ] Consider making each module a library to include into the game.
   [ ] Attempt to add iOS/iOS-simulator to makefile and get rid of xcode project.
 
-* System [0/1]
+* System [0/2]
   [ ] Cursor clipping.
   [ ] iOS: callbacks for touch/movement events.
 
@@ -68,7 +65,14 @@
   [ ] Consider using int64 in some functions if necessary.
   [ ] Move constants from fixed class to fpm namespace.
 
-* Archive [118/118]
+* Archive [130/130]
+  [X] Collision bug: run from bottom-left to the right until blocked by the "wall", then walk left.
+    ~ This was on the old map (first one used in the js stuff aswell)
+  [X] Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).
+    ~ Re-syncing client tick with server on certain times might be the trick.
+  [X] Replace network.txt with config.cfg and move it to root directory.
+  [X] Show nicknames somewhere.
+  [X] Add text outlines.
   [X] Change graphics interpolation method to account for acceleration.
     ~ This wasn't a problem actually. It was the camera's fault.
   [X] Store menu options (player name, host, port).

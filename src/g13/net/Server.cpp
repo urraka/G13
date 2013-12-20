@@ -335,17 +335,7 @@ void Server::onPlayerReady(Player *player, msg::Ready *ready)
 
 void Server::onPlayerInput(Player *player, msg::Input *input)
 {
-	if (input->tick > tick_)
-	{
-		#ifdef DEBUG
-			int t = input->tick;
-			int id = (int)player->id();
-
-			debug_log("input->tick > tick (" << t << " > " << tick_ << ") for player #" << id);
-		#endif
-
-		// return;
-	}
+	// TODO: check (input->tick - tick_), kill player if it's greater than some threshold
 
 	cmp::SoldierInput soldierInput;
 
