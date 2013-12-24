@@ -18,34 +18,6 @@
 namespace g13 {
 namespace net {
 
-/*
-static float luminosity(const gfx::Color &color)
-{
-	return 0.2126 * pow(color.r / 255.0f, 2.2f) +
-	       0.7152 * pow(color.g / 255.0f, 2.2f) +
-	       0.0722 * pow(color.b / 255.0f, 2.2f);
-}
-
-static float contrast(const gfx::Color &a, const gfx::Color &b)
-{
-	float la = luminosity(a);
-	float lb = luminosity(b);
-
-	if (la > lb)
-		return (la + 0.05f) / (lb + 0.05f);
-	else
-		return (lb + 0.05f) / (la + 0.05f);
-}
-
-static gfx::Color outline_color(const gfx::Color &textColor)
-{
-	static const gfx::Color black(0);
-	static const gfx::Color white(255);
-
-	return contrast(textColor, white) > contrast(textColor, black) ? white : black;
-}
-*/
-
 Client::Client()
 	:	state_(Disconnected),
 		peer_(0),
@@ -358,16 +330,7 @@ void Client::onServerInfo(msg::ServerInfo *info)
 	id_ = info->clientId;
 	tick_ = info->tick;
 
-	{
-		// gfx::Color outlineColor = outline_color(soldierColor_);
-
-		nicknamesText_[id_].value(hlp::utf8_decode(name_));
-		// nicknamesText_[id_].color(soldierColor_);
-		// nicknamesText_[id_].outlineColor(outlineColor);
-
-		// playersText_[id_].text->color(soldierColor_);
-		// playersText_[id_].text->outlineColor(outlineColor);
-	}
+	nicknamesText_[id_].value(hlp::utf8_decode(name_));
 
 	{
 		msg::Pong pong;
@@ -432,18 +395,7 @@ void Client::onPlayerConnect(msg::PlayerConnect *playerConnect)
 
 	assert(!player->connected());
 
-	{
-		int id = playerConnect->id;
-
-		// gfx::Color outlineColor = outline_color(color);
-
-		nicknamesText_[id].value(hlp::utf8_decode(name_));
-		// nicknamesText_[id].color(color);
-		// nicknamesText_[id].outlineColor(outlineColor);
-
-		// playersText_[id].text->color(color);
-		// playersText_[id].text->outlineColor(outlineColor);
-	}
+	nicknamesText_[playerConnect->id].value(hlp::utf8_decode(name_));
 
 	if (player->state() == Player::Connecting)
 	{

@@ -186,7 +186,7 @@
         }
 
 #define END                                                                                    \
-        return _w.bitpos() + (_w.bitpos() % 8 != 0);                                           \
+        return _w.bitpos() / 8 + (_w.bitpos() % 8 != 0);                                           \
     }
 
 #define Integer(x)                                                                             \
@@ -269,7 +269,7 @@
         }
 
 #define END                                                                                    \
-        if (_r.bitpos() + (_r.bitpos() % 8 != 0) < _length)                                    \
+        if (_r.bitpos() / 8 + (_r.bitpos() % 8 != 0) < _length)                                    \
             return false;                                                                      \
         return true;                                                                           \
     }
