@@ -14,7 +14,7 @@ namespace gfx {
 
 static const int hres = 100;
 static const int depth = 3;
-static const gfx::TexFilter tex_filter = gfx::Linear;
+static const gfx::Filter tex_filter = gfx::Linear;
 
 // -----------------------------------------------------------------------------
 // Font
@@ -348,7 +348,7 @@ Font::Atlas::Atlas(int size) : texture_(0), buffer_(0)
 	int width  = size;
 	int height = size;
 
-	texture_ = new Texture(width, height, depth, false);
+	texture_ = new Texture(width, height, depth);
 	texture_->filter(tex_filter);
 
 	if (texture_->id() == 0)
@@ -527,7 +527,7 @@ bool Font::Atlas::enlarge()
 	if (newWidth > context->maxTextureSize || newHeight > context->maxTextureSize)
 		return false;
 
-	Texture *tx = new Texture(newWidth, newHeight, depth, false);
+	Texture *tx = new Texture(newWidth, newHeight, depth);
 	tx->filter(tex_filter);
 
 	if (tx->id() == 0)

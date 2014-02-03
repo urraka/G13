@@ -66,7 +66,10 @@ void terminate()
 gfx::Texture *texture(TextureID id)
 {
 	if (textures[id].texture == 0)
-		textures[id].texture = new gfx::Texture(textures[id].filename, true);
+	{
+		textures[id].texture = new gfx::Texture(textures[id].filename);
+		textures[id].texture->generateMipmap();
+	}
 
 	return textures[id].texture;
 }

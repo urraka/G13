@@ -1,5 +1,8 @@
 #pragma once
 
+#include <g13/math.h>
+#include <vector>
+
 namespace g13 {
 namespace coll {
 

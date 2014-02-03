@@ -1,90 +1,121 @@
 #pragma once
 
-#include "Multiplayer.h"
-
 #include <g13/g13.h>
-#include <g13/ent/Camera.h>
-#include <g13/ui/Bar.h>
-#include <gfx/gfx.h>
+#include <g13/coll/World.h>
+#include <gfx/Color.h>
 #include <string>
+#include <vector>
+
+#include "Player.h"
+#include "LocalPlayer.h"
+#include "RemotePlayer.h"
+#include "Connection.h"
+#include "Renderer.h"
+#include "constants.h"
 
 namespace g13 {
 namespace net {
 
-class Client : public Multiplayer
+class Client : private Connection
 {
 public:
-	enum State { Disconnected, Connecting, Connected };
-
 	Client();
-	~Client();
 
-	bool connect(const char *host, int port);
-	void disconnect();
-	void update(Time dt);
-	void draw(const Frame &frame);
-	bool event(Event *evt);
+	// enums
 
-	bool active() const;
-	State state() const;
-
-	void nick(const string32_t &nick);
-	void soldierColor(const gfx::Color &color) { soldierColor_ = color; }
-
-private:
-	State state_;
-	ENetPeer *peer_;
-
-	uint8_t id_;
-	char name_[Player::MaxNameLength * 4 + 1];
-	gfx::Color soldierColor_;
-	cmp::SoldierInput input_;
-	vec2 target_;
-	vec2 cameraTarget_;
-
-	int connectingCount_;
-
-	ent::Camera camera_;
-	gfx::VBO *background_;
-	gfx::SpriteBatch *soldiersBatch_;
-	gfx::SpriteBatch *bulletsBatch_;
-	gfx::Text *chatText_;
-	gfx::VBO *chatBackground_;
-	gfx::Text connectingText_;
-
-	ui::Bar healthBar_;
-
-	bool textInputMode_;
-	string32_t chatString_;
-	string32_t caret_;
-
-	struct PlayerText
+	enum State
 	{
-		PlayerText() : time(0), text(0) {}
-		Time time;
-		gfx::Text *text;
+		Disconnected,
+		Connecting,
+		Connected,
+		Disconnecting
 	};
 
-	PlayerText playersText_[MaxPlayers];
-	gfx::Text nicknamesText_[MaxPlayers];
+	// methods
 
-	void onConnect(ENetPeer *peer);
-	void onDisconnect(ENetPeer *peer);
-	void onMessage(msg::Message *msg, ENetPeer *from);
+	void connect(const char *host, int port);
+	void disconnect();
+	void update(Time dt);
+	bool onEvent(const sys::Event &event);
+	void draw(const Frame &frame);
 
-	void onServerInfo(msg::ServerInfo *info);
-	void onPlayerConnect(msg::PlayerConnect *playerConnect);
-	void onPlayerDisconnect(msg::PlayerDisconnect *playerDisconnect);
-	void onPlayerJoin(msg::PlayerJoin *playerJoin);
-	void onPlayerChat(msg::Chat *chat);
-	void onGameState(msg::GameState *gameState);
-	void onBullet(msg::Bullet *bullet);
-	void onDamage(msg::Damage *damage);
+	void setNick(const char *nick)         { nickname_ = nick; }
+	void setNick(const std::string &nick)  { nickname_ = nick; }
+	void setColor(const gfx::Color &color) { color_ = color;   }
 
-	void onResize(int width, int height);
+	State state() const { return state_; }
 
-	void createBullet(void *data);
-	void playerBulletCollision(void *data);
+private:
+	int tick_;
+	State state_;
+
+	std::string nickname_;
+	gfx::Color  color_;
+
+	coll::World world_;
+
+	LocalPlayer *localPlayer_;
+	LocalPlayer  localPlayerStorage_;
+
+	std::vector<RemotePlayer*> remotePlayers_;
+	RemotePlayer remotePlayersStorage_[MaxPlayers];
+
+	Renderer renderer_;
+
+	struct ConnectingProgress
+	{
+		int remainingPlayers;
+		bool ready() { return remainingPlayers == 0; }
+	};
+
+	ConnectingProgress connectingProgress_;
+
+	bool joinRequestSent_;
+
+	// helper methods
+
+	void initialize();
+	void loadMap(const char *name);
+
+	void updateLocalPlayer(Time dt);
+	void updateRemotePlayers(Time dt);
+	void updateBullets(Time dt);
+
+	void sendInputMessage();
+	void sendLoginMessage();
+	void sendPongMessage();
+	void sendJoinRequestMessage();
+	void sendPlayerChatMessage(const string32_t &text);
+
+	Player *getPlayerById(int id);
+	bool isLocalPlayer(int id) const;
+	bool isLocalPlayer(const Player *player) const;
+
+	// local events/callbacks
+
+	void onSpawnBullet(void *data);
+	void onPlayerBulletCollision(void *data);
+
+	// net events
+
+	void onConnect(Peer);
+	void onDisconnect(Peer);
+	void onMessage(const msg::Message *msg, Peer);
+	void onStop() {}
+
+	void onConnectionReady();
+	void onServerInfo(const msg::ServerInfo &msg);
+	void onPlayerInfo(const msg::PlayerInfo &msg);
+	void onPlayerConnect(const msg::PlayerConnect &msg);
+	void onPlayerDisconnect(const msg::PlayerDisconnect &msg);
+	void onPlayerJoin(const msg::PlayerJoin &msg);
+	void onPlayerLeave(const msg::PlayerLeave &msg);
+	void onPlayerChat(const msg::PlayerChat &msg);
+	void onGameState(const msg::GameState &msg);
+	void onBullet(const msg::Bullet &msg);
+	void onDamage(const msg::Damage &msg);
+
+	friend class Renderer;
 };
 
 }} // g13::net

@@ -10,13 +10,13 @@ namespace stt {
 class Multiplayer : public State
 {
 public:
-	Multiplayer(const string32_t &name, const gfx::Color &color, int port);
-	Multiplayer(const string32_t &name, const gfx::Color &color, const char *host, int port);
+	Multiplayer(const char *nickname, const gfx::Color &color, int port);
+	Multiplayer(const char *nickname, const gfx::Color &color, const char *host, int port);
 	~Multiplayer();
 
 	void update(Time dt);
 	void draw(const Frame &frame);
-	bool event(Event *evt);
+	bool onEvent(const sys::Event &event);
 
 private:
 	enum State { Connecting, Connected, Disconnecting };
@@ -25,7 +25,7 @@ private:
 	net::Client *client_;
 	net::Server *server_;
 
-	bool onKeyPressed(const Event::KeyEvent &key);
+	bool onKeyPressed(const sys::Event::KeyEvent &key);
 };
 
 }} // g13::stt

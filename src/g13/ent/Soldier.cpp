@@ -1,6 +1,7 @@
 #include "Soldier.h"
 #include <g13/ent/Bullet.h>
 #include <g13/cmp/BulletParams.h>
+#include <g13/coll/World.h>
 
 namespace g13 {
 namespace ent {
@@ -8,18 +9,14 @@ namespace ent {
 Soldier::Soldier()
 	:	shootingTime_(0)
 {
-	physics.input = &input;
-
 	reset(fixvec2(0, 0));
 }
 
-void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
+void Soldier::update(Time dt, const coll::World &world, const cmp::SoldierInput &input)
 {
-	if (inpt != 0)
-		input = *inpt;
-
-	physics.update(dt);
-	graphics.update(dt, state());
+	physics.update(dt, world, input);
+	updateState(input);
+	graphics.update(dt, state_);
 
 	if (input.shoot)
 	{
@@ -41,12 +38,11 @@ void Soldier::update(Time dt, const cmp::SoldierInput *inpt)
 			if (!input.rightwards)
 				angle = -angle + pi;
 
-			const coll::World *world = physics.world;
 			const fixvec2 &position = physics.position;
 
 			fixvec2 spawnPoint = bulletSpawnPoint(position, angle);
 
-			if (!world->collision(position + bodyOffset(), spawnPoint, fixrect(0, 0, 1, 1)))
+			if (!world.collision(position + bodyOffset(), spawnPoint, fixrect(0, 0, 1, 1)))
 			{
 				cmp::BulletParams params(id, spawnPoint, 2000, angle);
 				createBulletCallback.fire(&params);
@@ -105,30 +101,24 @@ fixvec2 Soldier::bodyOffset() const
 void Soldier::reset(fixvec2 pos)
 {
 	physics.reset(pos);
-	graphics.position.set(from_fixed(pos));
-
-	input.rightwards = true;
-	input.angle = UINT16_MAX / 2;
+	updateState(cmp::SoldierInput());
+	graphics.update(0, state_);
 }
 
-void Soldier::world(const coll::World *world)
+const cmp::SoldierState &Soldier::state() const
 {
-	physics.world = world;
+	return state_;
 }
 
-cmp::SoldierState Soldier::state() const
+void Soldier::updateState(const cmp::SoldierInput &input)
 {
-	cmp::SoldierState state;
+	state_.position = physics.position;
+	state_.velocity = physics.velocity;
+	state_.duck  = physics.ducking();
+	state_.floor = physics.floor();
 
-	state.position = physics.position;
-	state.velocity = physics.velocity;
-	state.duck  = physics.ducking();
-	state.floor = physics.floor();
-
-	state.rightwards = input.rightwards;
-	state.angle = input.angle;
-
-	return state;
+	state_.rightwards = input.rightwards;
+	state_.angle = input.angle;
 }
 
 }} // g13::ent

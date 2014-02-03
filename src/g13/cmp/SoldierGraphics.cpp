@@ -53,24 +53,28 @@ static const Spritesheet &get_spritesheet()
 // SoldierGraphics
 // -----------------------------------------------------------------------------
 
+const vec2 SoldierGraphics::NoTarget;
+
 SoldierGraphics::SoldierGraphics()
-	:	target(0),
+	:	angle_(0),
+		prevAngle_(0),
+		currAngle_(0),
+		rightwards_(true),
 		running_(false),
 		air_(false),
 		runningTime_(0.0f),
 		speed_(0.0f),
-		angle_(1 << 15),
-		rightwards_(true)
+		bodyColor_(0)
 {
 }
 
 void SoldierGraphics::update(Time dt, const SoldierState &state)
 {
-	position.previous = position.current;
-	position.current = from_fixed(state.position);
+	prevPosition_ = currPosition_;
+	currPosition_ = from_fixed(state.position);
 
-	angle_.previous = angle_.current;
-	angle_.current = state.angle;
+	prevAngle_ = currAngle_;
+	currAngle_ = state.angle;
 
 	speed_      = state.velocity.x.to_float();
 	air_        = !state.floor;
@@ -78,7 +82,7 @@ void SoldierGraphics::update(Time dt, const SoldierState &state)
 	rightwards_ = state.rightwards;
 }
 
-void SoldierGraphics::frame(const Frame &frame)
+void SoldierGraphics::frame(const Frame &frame, const vec2 &target)
 {
 	gfx::Sprite *body   = &sprites_[Body];
 	gfx::Sprite *head   = &sprites_[Head];
@@ -87,12 +91,12 @@ void SoldierGraphics::frame(const Frame &frame)
 	gfx::Sprite *arms[2] = {&sprites_[ArmFront], &sprites_[ArmBack]};
 	gfx::Sprite *legs[2] = {&sprites_[Leg1], &sprites_[Leg2]};
 
-	position.interpolate(frame.percent);
-	angle_.interpolate(frame.percent);
+	position_ = glm::mix(prevPosition_, currPosition_, frame.percent);
+	angle_ = glm::mix(prevAngle_, currAngle_, frame.percent);
 
 	const Spritesheet &spritesheet = get_spritesheet();
 
-	const vec2 &worldpos = position;
+	const vec2 &worldpos = position_;
 	const vec2 scale = vec2(0.15f);
 	const int armsAngleInterval = 180 / (spritesheet.armsfront.size() - 1);
 
@@ -114,9 +118,9 @@ void SoldierGraphics::frame(const Frame &frame)
 
 		bool backwards = false;
 
-		if (target != 0)
+		if (&target != &NoTarget)
 		{
-			if (glm::sign(target->x - worldpos.x - bodyOffset.x) != glm::sign(speed_))
+			if (glm::sign(target.x - worldpos.x - bodyOffset.x) != glm::sign(speed_))
 				backwards = true;
 		}
 		else
@@ -198,21 +202,23 @@ void SoldierGraphics::frame(const Frame &frame)
 
 	float angle = 0.0f; // weapon angle in degrees [-90, 90]
 
-	if (target != 0)
+	if (&target != &NoTarget)
 	{
-		vec2 v = *target - worldpos - bodyOffset * scale;
+		vec2 v = target - worldpos - bodyOffset * scale;
 		angle = glm::atan(v.y, v.x) * (180.0f / M_PI);
 
 		angle = angle < -90.0f ? -180.0f - angle :
 		        angle >  90.0f ?  180.0f - angle :
 		        angle;
 
-		angle_.set((uint16_t)(((angle + 90.0f) / 180.0f) * UINT16_MAX));
 		rightwards_ = v.x >= 0.0f;
+
+		targetInfo_.rightwards = rightwards_;
+		targetInfo_.angle = (uint16_t)(((angle + 90.0f) / 180.0f) * UINT16_MAX);
 	}
 	else
 	{
-		angle = ((uint16_t)angle_ / (float)UINT16_MAX) * 180.0f - 90.0f;
+		angle = (angle_ / (float)UINT16_MAX) * 180.0f - 90.0f;
 	}
 
 	int armIndex = glm::floor((angle + 90.0f) / armsAngleInterval);
@@ -222,7 +228,7 @@ void SoldierGraphics::frame(const Frame &frame)
 
 	{
 		weapon->color = gfx::Color(0x4C, 0x4C, 0x4C);
-		body->color   = bodyColor;
+		body->color   = bodyColor_;
 		head->color   = gfx::Color(0xFF, 0xCC, 0x99);
 	}
 

@@ -1,385 +1,385 @@
 #include "Server.h"
-#include "msg.h"
-
-#include <g13/Map.h>
-#include <g13/callback.h>
-#include <hlp/countof.h>
+#include "msg/msg.h"
+#include <hlp/read.h>
 #include <hlp/assign.h>
-#include <vector>
+#include <json/json.h>
 #include <assert.h>
-#include <iostream>
-
-#define LOG(x) std::cout << "[Server] " << x << std::endl
+#include <algorithm>
 
 namespace g13 {
 namespace net {
 
-Server::Server() : state_(Stopped)
-{
-	for (int i = 0; i < MaxPlayers; i++)
-		players_[i].soldier()->createBulletCallback = make_callback(this, Server, createBullet);
-}
-
 bool Server::start(int port)
 {
-	assert(state_ == Stopped);
+	initialize();
 
-	ENetAddress address;
-	address.host = ENET_HOST_ANY;
-	address.port = port;
-
-	connection_ = enet_host_create(&address, MaxPlayers, ChannelsCount, 0, 0);
-
-	if (connection_ == 0)
-	{
-		LOG("Failed to start connection.");
+	if (!Connection::listen(port, ChannelCount, MaxPlayers))
 		return false;
-	}
 
-	enet_host_compress_with_range_coder(connection_);
-
-	tick_ = 1;
 	state_ = Running;
 
-	loadMap();
-
-	for (int i = 0; i < MaxPlayers; i++)
-		players_[i].initialize();
-
-	LOG("Listening on port " << port << "...");
-
-	return true;
+	return false;
 }
 
 void Server::stop()
 {
-	if (state_ != Running)
-		return;
+	Connection::stop();
 
 	state_ = Stopping;
-
-	LOG("Disconnecting...");
-
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		Player *player = &players_[i];
-
-		if (player->state() != Player::Disconnected)
-			enet_peer_disconnect(player->peer(), 0);
-	}
 }
 
 void Server::update(Time dt)
 {
-	if (state_ == Stopped)
-		return;
-
-	pollEvents();
-
-	int activePlayers = 0;
-
-	for (int i = 0; i < MaxPlayers; i++)
+	switch (state_)
 	{
-		Player *player = &players_[i];
-
-		if (player->state() != Player::Disconnected)
+		case Running:
 		{
-			player->updateServer(dt, tick_);
-			activePlayers++;
+			Connection::poll();
+
+			updatePlayers(dt);
+			updateBullets(dt);
+			updateConnectingPlayers();
+			updateDisconnectingPlayers();
+
+			sendBullets();
+
+			if (tick_ & 0x01)
+				sendGameState();
+
+			Connection::flush();
+
+			tick_++;
+		}
+		break;
+
+		case Stopping:
+			Connection::poll();
+			break;
+
+		case Stopped:
+			break;
+	}
+}
+
+void Server::initialize()
+{
+	Connection::reset();
+
+	tick_ = 0;
+	state_ = Stopped;
+
+	loadMap(0);
+
+	players_.clear();
+	freePlayers_.clear();
+	connectingPlayers_.clear();
+	disconnectingPlayers_.clear();
+
+	for (size_t i = 0; i < countof(playersStorage_); i++)
+	{
+		playersStorage_[i].initialize();
+		playersStorage_[i].id = i;
+		playersStorage_[i].soldier.id = i;
+		playersStorage_[i].soldier.createBulletCallback = make_callback(this, Server, onSpawnBullet);
+
+		freePlayers_.push_back(&playersStorage_[i]);
+	}
+
+	bulletQueue_.clear();
+}
+
+void Server::loadMap(const char *name)
+{
+	Json::Value data;
+	Json::Reader json(Json::Features::strictMode());
+	json.parse(hlp::read("data/map_test2.json"), data);
+
+	world_.load(data);
+}
+
+void Server::updatePlayers(Time dt)
+{
+	for (size_t i = 0; i < players_.size(); i++)
+	{
+		if (players_[i]->state == Player::Playing)
+			players_[i]->update(dt, tick_, world_);
+	}
+}
+
+void Server::updateBullets(Time dt)
+{
+	for (size_t i = 0; i < players_.size(); i++)
+		updatePlayerBullets(dt, players_[i]);
+}
+
+void Server::updateConnectingPlayers()
+{
+	for (size_t i = 0; i < connectingPlayers_.size(); i++)
+	{
+		ServerPlayer *player = connectingPlayers_[i];
+
+		if (tick_ - player->connectTick >= TimeoutTicks)
+		{
+			player->peer.disconnect(false);
+			player->state = Player::Disconnected;
+
+			connectingPlayers_.erase(connectingPlayers_.begin() + i--);
+			freePlayers_.push_back(player);
+		}
+	}
+}
+
+void Server::updateDisconnectingPlayers()
+{
+	for (size_t i = 0; i < disconnectingPlayers_.size(); i++)
+	{
+		ServerPlayer *player = disconnectingPlayers_[i];
+
+		if (player->bullets.size() == 0)
+		{
+			if (player->disconnectCountdown == -1)
+			{
+				player->disconnectCountdown = CountdownTicks;
+			}
+			else if (--player->disconnectCountdown == 0)
+			{
+				disconnectingPlayers_.erase(disconnectingPlayers_.begin() + i--);
+				players_.erase(std::find(players_.begin(), players_.end(), player));
+
+				freePlayers_.push_back(player);
+
+				sendPlayerDisconnectMessage(player);
+			}
+		}
+	}
+}
+
+void Server::updatePlayerBullets(Time dt, ServerPlayer *player)
+{
+	int initialRTT = 0;
+	int currentRTT = player->peer.rtt() / (int)sys::to_milliseconds(dt);
+
+	if (player->pongTick != -1)
+		initialRTT = player->pongTick - player->pingTick;
+
+	int lag = std::max(InterpolationTicks + initialRTT / 2, currentRTT / 2);
+
+	world_.clear();
+
+	for (size_t i = 0; i < players_.size(); i++)
+	{
+		if (players_[i]->state == Player::Playing)
+		{
+			if (player->id == players_[i]->id)
+				world_.add(players_[i]->entity(tick_));
+			else
+				world_.add(players_[i]->entity(tick_ - lag));
 		}
 	}
 
-	if (state_ == Stopping && activePlayers == 0)
+	player->updateBullets(dt, world_);
+}
+
+void Server::sendBullets()
+{
+	for (size_t i = 0; i < players_.size(); i++)
 	{
-		// TODO: call some terminate() instead
-
-		LOG("Disconnected.");
-		state_ = Stopped;
-		enet_host_destroy(connection_);
-		connection_ = 0;
-		createdBullets_.clear();
-
-		return;
+		if (players_[i]->connected())
+			sendBulletsTo(players_[i]);
 	}
 
-	for (int i = 0; i < MaxPlayers; i++)
+	bulletQueue_.clear();
+}
+
+void Server::sendBulletsTo(const ServerPlayer *targetPlayer)
+{
+	msg::Bullet msg;
+	msg.tick = tick_;
+
+	int k = 0;
+
+	const size_t N = bulletQueue_.size();
+
+	for (size_t i = 0; i < N; i++)
 	{
-		if (!players_[i].connected())
-			continue;
-
-		int initialRTT = players_[i].pongTick - players_[i].pingTick;
-		int currentRTT = players_[i].peer()->roundTripTime / (int)sys::to_milliseconds(dt);
-
-		int lag = std::max(InterpolationTicks + initialRTT / 2, currentRTT / 2);
-
-		map_->world()->clear();
-
-		for (int j = 0; j < MaxPlayers; j++)
+		if (bulletQueue_[i].data.playerid != targetPlayer->id)
 		{
-			if (players_[j].state() != Player::Playing)
-				continue;
+			assert(tick_ >= targetPlayer->tick);
 
-			players_[j].setCollisionTick(tick_ - (i != j ? lag : 0));
-			map_->world()->add(&(players_[j].soldier()->collisionEntity));
-		}
+			const int offset = tick_ - bulletQueue_[i].tick;
 
-		players_[i].updateBullets(dt);
-	}
+			msg.bullets[k].tickOffset = std::min<int>(offset, MaxTickOffset);
+			msg.bullets[k].params = bulletQueue_[i].data;
 
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (players_[i].state() == Player::Disconnected)
-			continue;
-
-		msg::Bullet msg;
-		msg.tick = tick_;
-
-		int k = 0;
-
-		const int N = createdBullets_.size();
-
-		for (int j = 0; j < N; j++)
-		{
-			if (createdBullets_[j].data.playerid == players_[i].id())
-				continue;
-
-			assert(tick_ >= players_[i].tick());
-
-			const int offset = tick_ - createdBullets_[j].tick;
-
-			msg.bullets[k].tickOffset = std::min<int>(offset, Player::MaxTickOffset);
-			msg.bullets[k].params = createdBullets_[j].data;
-
-			if (++k == countof(msg.bullets) || j == N - 1)
+			if (++k == countof(msg.bullets) || i == N - 1)
 			{
 				msg.nBullets = k;
-				send(&msg, players_[i].peer());
 				k = 0;
+
+				Connection::send(msg, targetPlayer->peer);
 			}
 		}
 	}
-
-	createdBullets_.clear();
-
-	if (tick_ & 1)
-	{
-		msg::GameState gameState;
-		gameState.tick = tick_;
-		gameState.nSoldiers = 0;
-
-		for (int i = 0; i < MaxPlayers; i++)
-		{
-			if (players_[i].state() == Player::Playing)
-			{
-				int iSoldier = gameState.nSoldiers;
-				msg::GameState::SoldierState *s = &gameState.soldiers[iSoldier];
-
-				s->tickOffset = std::min<int>(Player::MaxTickOffset, tick_ - players_[i].tick());
-				s->playerId = i;
-				s->state = players_[i].soldier()->state();
-
-				gameState.nSoldiers++;
-			}
-		}
-
-		send(&gameState);
-	}
-
-	#if defined(DEBUG) && 0
-		if (tick_ % 3 == 0)
-		{
-			for (int i = 0; i < MaxPlayers; i++)
-			{
-				if (players_[i].peer() == 0)
-					continue;
-
-				LOG("Player #" << i << " roundTripTime: " << players_[i].peer()->roundTripTime);
-				LOG("Player #" << i << " lastRoundTripTime: " << players_[i].peer()->lastRoundTripTime);
-			}
-		}
-	#endif
-
-	if (connection_ != 0)
-		enet_host_flush(connection_);
-
-	tick_++;
 }
 
-Server::State Server::state() const
+void Server::sendGameState()
 {
-	return state_;
+	for (size_t i = 0; i < players_.size(); i++)
+	{
+		if (players_[i]->connected())
+			sendGameStateTo(players_[i]);
+	}
 }
 
-void Server::onConnect(ENetPeer *peer)
+void Server::sendGameStateTo(const ServerPlayer *targetPlayer)
 {
-	if (state_ == Stopping)
-	{
-		enet_peer_reset(peer);
-		return;
-	}
+	msg::GameState msg;
+	msg.tick = tick_;
+	msg.nSoldiers = 0;
 
-	Player *player = 0;
-
-	for (int i = 0; i < MaxPlayers; i++)
+	for (size_t i = 0; i < players_.size(); i++)
 	{
-		if (players_[i].state() == Player::Disconnected)
+		const ServerPlayer *player = players_[i];
+
+		if (player != targetPlayer && player->state == Player::Playing)
 		{
-			player = &players_[i];
-			break;
+			msg::GameState::SoldierState &soldier = msg.soldiers[msg.nSoldiers];
+
+			soldier.tickOffset = std::min<int>(MaxTickOffset, tick_ - player->tick);
+			soldier.playerId = player->id;
+			soldier.state = player->soldier.state();
+
+			msg.nSoldiers++;
 		}
 	}
 
-	assert(player != 0);
-
-	peer->data = player;
-	player->onConnecting(peer);
-
-	LOG("Player #" << (int)player->id() << " connecting...");
+	Connection::send(msg, targetPlayer->peer);
 }
 
-void Server::onDisconnect(ENetPeer *peer)
+void Server::sendLeaveMessage(const ServerPlayer *player)
 {
-	Player *player = (Player*)peer->data;
-	player->onDisconnect(tick_);
+	msg::PlayerLeave msg;
+	msg.tick = tick_;
+	msg.id = player->id;
 
+	sendToConnectedPlayers(msg, player);
+}
+
+void Server::sendDamageMessage(const ServerPlayer *player, uint16_t amount)
+{
+	msg::Damage msg;
+
+	msg.tick = tick_;
+	msg.playerId = player->id;
+	msg.amount = amount;
+
+	sendToConnectedPlayers(msg);
+}
+
+void Server::sendServerInfoMessage(const ServerPlayer *player)
+{
+	msg::ServerInfo msg;
+
+	msg.tick = tick_;
+	msg.clientId = player->id;
+	msg.nPlayers = players_.size();
+
+	Connection::send(msg, player->peer);
+}
+
+void Server::sendPlayerInfoMessages(const ServerPlayer *targetPlayer)
+{
+	for (size_t i = 0; i < players_.size(); i++)
+	{
+		const ServerPlayer *player = players_[i];
+
+		msg::PlayerInfo msg;
+
+		msg.id           = player->id;
+		msg.color[0]     = player->color.r;
+		msg.color[1]     = player->color.g;
+		msg.color[2]     = player->color.b;
+		msg.playing      = player->state == Player::Playing;
+		msg.health       = player->health;
+		msg.connectTick  = player->connectTick;
+		msg.currentTick  = player->tick;
+		msg.soldierState = player->soldier.state();
+
+		hlp::assign(msg.name, player->nickname.c_str());
+
+		Connection::send(msg, targetPlayer->peer);
+	}
+}
+
+void Server::sendBulletInfoMessages(const ServerPlayer *player)
+{
+	// TODO: implement this
+}
+
+void Server::sendPlayerConnectMessage(const ServerPlayer *player)
+{
+	msg::PlayerConnect msg;
+
+	msg.tick = player->connectTick;
+	msg.id = player->id;
+	msg.color[0] = player->color.r;
+	msg.color[1] = player->color.g;
+	msg.color[2] = player->color.b;
+
+	hlp::assign(msg.name, player->nickname.c_str());
+
+	sendToConnectedPlayers(msg, player);
+}
+
+void Server::sendPlayerDisconnectMessage(const ServerPlayer *player)
+{
 	msg::PlayerDisconnect msg;
-	msg.id = player->id();
-	send(&msg);
+	msg.tick = tick_;
+	msg.id = player->id;
 
-	LOG("Player #" << (int)player->id() << " disconnected.");
+	sendToConnectedPlayers(msg, player);
 }
 
-void Server::onMessage(msg::Message *msg, ENetPeer *from)
+void Server::sendPlayerJoinMessage(const ServerPlayer *player, const fixvec2 &position)
 {
-	Player *player = (Player*)from->data;
+	msg::PlayerJoin msg;
 
-	switch (msg->type())
+	msg.id = player->id;
+	msg.tick = tick_;
+	msg.position = position;
+
+	sendToConnectedPlayers(msg);
+}
+
+template<typename T> void Server::sendToConnectedPlayers(const T &msg, const ServerPlayer *exception)
+{
+	for (size_t i = 0; i < players_.size(); i++)
 	{
-		case msg::Login::Type: onPlayerLogin(player, (msg::Login*)msg); break;
-		case msg::Pong::Type:  onPlayerPong (player, (msg::Pong*) msg); break;
-		case msg::Ready::Type: onPlayerReady(player, (msg::Ready*)msg); break;
-		case msg::Input::Type: onPlayerInput(player, (msg::Input*)msg); break;
-		case msg::Chat::Type:  onPlayerChat (player, (msg::Chat*) msg); break;
-
-		default: break;
+		if (players_[i]->connected() && players_[i] != exception)
+			Connection::send(msg, players_[i]->peer);
 	}
 }
 
-void Server::onPlayerLogin(Player *player, msg::Login *login)
+ServerPlayer *Server::getPlayerById(int id)
 {
-	player->onConnect(login->name, gfx::Color(login->color[0], login->color[1], login->color[2]));
+	assert(id >= 0 && id < (int)countof(playersStorage_));
 
-	ENetPeer *peer = player->peer();
-	uint8_t id = player->id();
-
-	// send ServerInfo message
-	msg::ServerInfo info;
-	info.tick = tick_;
-	info.clientId = id;
-	info.nPlayers = 0;
-
-	for (int i = 0; i < MaxPlayers; i++)
-		if (i != id && players_[i].connected())
-			info.players[info.nPlayers++] = i;
-
-	player->pingTick = tick_;
-
-	send(&info, peer);
-	enet_host_flush(connection_);
-
-	// broadcast PlayerConnect event
-	msg::PlayerConnect playerConnect;
-	playerConnect.id = id;
-	playerConnect.color[0] = login->color[0];
-	playerConnect.color[1] = login->color[1];
-	playerConnect.color[2] = login->color[2];
-	hlp::assign(playerConnect.name, login->name);
-	send(&playerConnect);
-
-	// send the connecting player a PlayerConnect event for each other connected player
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (i != id && players_[i].connected())
-		{
-			playerConnect.id = i;
-			playerConnect.color[0] = players_[i].soldier()->graphics.bodyColor.r;
-			playerConnect.color[1] = players_[i].soldier()->graphics.bodyColor.g;
-			playerConnect.color[2] = players_[i].soldier()->graphics.bodyColor.b;
-			hlp::assign(playerConnect.name, players_[i].name());
-			send(&playerConnect, peer);
-		}
-	}
-
-	LOG("Player #" << (int)player->id() << " connected. Name: " << player->name());
+	return &playersStorage_[id];
 }
 
-void Server::onPlayerPong(Player *player, msg::Pong *pong)
-{
-	if (player->pongTick == -1)
-		player->pongTick = tick_;
-}
-
-void Server::onPlayerReady(Player *player, msg::Ready *ready)
-{
-	msg::PlayerJoin join;
-	const std::vector<fixvec2> &spawnpoints = map_->world()->spawnpoints();
-
-	join.tick = tick_;
-	join.id = player->id();
-	join.position = spawnpoints[rand() % spawnpoints.size()];
-
-	player->onJoin(tick_, map_, join.position);
-
-	send(&join);
-}
-
-void Server::onPlayerInput(Player *player, msg::Input *input)
-{
-	// TODO: check (input->tick - tick_), kill player if it's greater than some threshold
-
-	cmp::SoldierInput soldierInput;
-
-	soldierInput.rightwards = input->rightwards;
-	soldierInput.angle      = input->angle;
-	soldierInput.left       = input->left;
-	soldierInput.right      = input->right;
-	soldierInput.jump       = input->jump;
-	soldierInput.run        = input->run;
-	soldierInput.duck       = input->duck;
-	soldierInput.shoot      = input->shoot;
-
-	player->onInput(input->tick, soldierInput);
-}
-
-void Server::onPlayerChat(Player *player, msg::Chat *chat)
-{
-	LOG(player->name() << ": " << chat->text);
-
-	chat->id = player->id();
-
-	for (int i = 0; i < chat->id; i++)
-	{
-		if (players_[i].connected())
-			send(chat, players_[i].peer());
-	}
-
-	for (int i = chat->id + 1; i < MaxPlayers; i++)
-	{
-		if (players_[i].connected())
-			send(chat, players_[i].peer());
-	}
-}
-
-void Server::createBullet(void *data)
+void Server::onSpawnBullet(void *data)
 {
 	const cmp::BulletParams &params = *(cmp::BulletParams*)data;
-	Player *player = &players_[params.playerid];
+	ServerPlayer *player = getPlayerById(params.playerid);
 
-	player->createBullet(params, make_callback(this, Server, playerBulletCollision));
-	createdBullets_.push_back(BulletParams(player->tick(), params));
+	ent::Bullet bullet(params, &player->soldier.entity);
+	bullet.collisionCallback = make_callback(this, Server, onPlayerBulletCollision);
+
+	player->bullets.push_back(bullet);
+	bulletQueue_.push_back(make_ticked(player->tick, params));
 }
 
-void Server::playerBulletCollision(void *data)
+void Server::onPlayerBulletCollision(void *data)
 {
 	struct params_t
 	{
@@ -388,19 +388,153 @@ void Server::playerBulletCollision(void *data)
 	};
 
 	params_t *params = (params_t*)data;
-	Player   *victim = (Player*)params->entity->data;
+	ServerPlayer *player = (ServerPlayer*)params->entity->data;
 
-	uint16_t amount = Player::MaxHealth / 20;
+	int amount = MaxHealth / (20 + rand() % 5);
 
-	victim->onDamage(tick_, amount);
+	player->health -= amount;
 
-	msg::Damage damage;
+	if (player->health <= 0)
+	{
+		player->health = 0;
+		player->state = Player::Spectator;
+	}
 
-	damage.tick = tick_;
-	damage.playerId = victim->id();
-	damage.amount = amount;
+	sendDamageMessage(player, amount);
+}
 
-	send(&damage);
+void Server::onConnect(Peer peer)
+{
+	if (freePlayers_.size() == 0)
+	{
+		peer.disconnect(false);
+		return;
+	}
+
+	ServerPlayer *player = freePlayers_.back();
+	freePlayers_.pop_back();
+
+	peer.setData(player);
+
+	player->initialize();
+	player->state = Player::Connecting;
+	player->peer = peer;
+
+	connectingPlayers_.push_back(player);
+}
+
+void Server::onDisconnect(Peer peer)
+{
+	ServerPlayer *player = (ServerPlayer*)peer.data();
+
+	player->disconnectTick = tick_;
+	player->state = Player::Disconnected;
+
+	sendLeaveMessage(player);
+
+	disconnectingPlayers_.push_back(player);
+}
+
+void Server::onMessage(const msg::Message *msg, Peer from)
+{
+	#define CASE(T) case msg::T::Type: on ## T((ServerPlayer*)from.data(), *(const msg::T*)msg); break
+
+	switch (msg->type)
+	{
+		CASE(Login);
+		CASE(Pong);
+		CASE(JoinRequest);
+		CASE(Input);
+		CASE(PlayerChat);
+
+		default:
+			assert(false);
+			break;
+	}
+
+	#undef CASE
+}
+
+void Server::onStop()
+{
+	state_ = Stopped;
+}
+
+void Server::onLogin(ServerPlayer *player, const msg::Login &msg)
+{
+	if (player->state != Player::Connecting)
+		return;
+
+	player->state = Player::Spectator;
+	player->color = gfx::Color(msg.color[0], msg.color[1], msg.color[2]);
+	player->nickname = msg.name;
+	player->pingTick = tick_;
+
+	sendServerInfoMessage(player);
+	sendPlayerInfoMessages(player);
+	sendBulletInfoMessages(player);
+	sendPlayerConnectMessage(player);
+
+	std::vector<ServerPlayer*>::iterator i;
+	i = std::find(connectingPlayers_.begin(), connectingPlayers_.end(), player);
+
+	assert(i != connectingPlayers_.end());
+
+	connectingPlayers_.erase(std::find(connectingPlayers_.begin(), connectingPlayers_.end(), player));
+	players_.push_back(player);
+}
+
+void Server::onPong(ServerPlayer *player, const msg::Pong &msg)
+{
+	if (player->pongTick == -1)
+		player->pongTick = tick_;
+}
+
+void Server::onJoinRequest(ServerPlayer *player, const msg::JoinRequest &msg)
+{
+	if (player->state != Player::Spectator)
+		return;
+
+	size_t N = world_.spawnpoints().size();
+	const fixvec2 &spawnpoint = world_.spawnpoints()[rand() % N];
+
+	player->state = Player::Playing;
+	player->soldier.reset(spawnpoint);
+	player->tick = tick_;
+	player->inputTick = tick_;
+	player->boundsbufTick = tick_;
+	player->boundsbuf.clear();
+	player->boundsbuf.push(player->soldier.physics.bounds() + player->soldier.physics.position);
+	player->inputs.clear();
+	player->health = MaxHealth;
+
+	sendPlayerJoinMessage(player, spawnpoint);
+}
+
+void Server::onInput(ServerPlayer *player, const msg::Input &msg)
+{
+	if (player->state == Player::Playing && player->inputTick == msg.tick)
+	{
+		cmp::SoldierInput input;
+
+		input.rightwards = msg.rightwards;
+		input.angle      = msg.angle;
+		input.left       = msg.left;
+		input.right      = msg.right;
+		input.jump       = msg.jump;
+		input.run        = msg.run;
+		input.duck       = msg.duck;
+		input.shoot      = msg.shoot;
+
+		player->inputs.push_back(make_ticked(msg.tick, input));
+		player->inputTick++;
+	}
+}
+
+void Server::onPlayerChat(ServerPlayer *player, const msg::PlayerChat &msg)
+{
+	if (player->id == msg.id)
+		sendToConnectedPlayers(msg, player);
 }
 
 }} // g13::net

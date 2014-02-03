@@ -9,11 +9,11 @@ MESSAGES_BEGIN()
 // Client <-> Server
 //******************************************************************************
 
-MESSAGE(Chat)
+MESSAGE(PlayerChat, ChatChannel)
 	uint8_t id;
 	char    text[1024];
 BEGIN
-	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	Bits(id, MINBITS(MaxPlayers - 1))
 	String(text, 1)
 END
 
@@ -21,25 +21,25 @@ END
 // Client -> Server
 //******************************************************************************
 
-MESSAGE(Login)
-	char name[Player::MaxNameLength * 4 + 1];
+MESSAGE(Login, ReliableChannel)
+	char name[MaxNickLength * 4 + 1];
 	uint8_t color[3];
 BEGIN
-	String(name, Player::MinNameLength)
+	String(name, MinNickLength)
 	Integer(color[0])
 	Integer(color[1])
 	Integer(color[2])
 END
 
-MESSAGE(Pong)
+MESSAGE(Pong, ReliableChannel)
 BEGIN
 END
 
-MESSAGE(Ready)
+MESSAGE(JoinRequest, ReliableChannel)
 BEGIN
 END
 
-MESSAGE(Input)
+MESSAGE(Input, ReliableChannel)
 	int32_t tick;
 	uint16_t angle;
 	bool rightwards;
@@ -65,55 +65,89 @@ END
 // Server -> Client
 //******************************************************************************
 
-LIST(PlayerIds, item)
-	Bits(item, MINBITS(Multiplayer::MaxPlayers - 1))
-LISTEND
-
-MESSAGE(ServerInfo)
+MESSAGE(ServerInfo, ReliableChannel)
 	int32_t tick;
 	uint8_t clientId;
-	int     nPlayers;
-	uint8_t players[Multiplayer::MaxPlayers];
+	uint8_t nPlayers;
 BEGIN
 	Integer(tick)
-	Bits(clientId, MINBITS(Multiplayer::MaxPlayers - 1))
-	List(PlayerIds, players, nPlayers, 0)
+	Bits(clientId, MINBITS(MaxPlayers - 1))
+	Bits(nPlayers, MINBITS(MaxPlayers - 1))
 END
 
-MESSAGE(PlayerConnect)
+MESSAGE(PlayerInfo, ReliableChannel)
+	uint8_t  id;
+	char     name[MaxNickLength * 4 + 1];
+	uint8_t  color[3];
+	bool     playing;
+	uint16_t health;
+	uint32_t connectTick;
+	uint32_t currentTick;
+	cmp::SoldierState soldierState;
+BEGIN
+	Bits(id, MINBITS(MaxPlayers - 1))
+	String(name, MinNickLength)
+	Integer(color[0])
+	Integer(color[1])
+	Integer(color[2])
+	Bool(playing)
+	Integer(health)
+	Integer(connectTick)
+	Integer(currentTick)
+	Fixed(soldierState.position.x)
+	Fixed(soldierState.position.y)
+	Fixed(soldierState.velocity.x)
+	Fixed(soldierState.velocity.y)
+	Integer(soldierState.angle)
+	Bool(soldierState.rightwards)
+	Bool(soldierState.duck)
+	Bool(soldierState.floor)
+END
+
+MESSAGE(PlayerConnect, ReliableChannel)
+	int32_t tick;
 	uint8_t id;
-	char    name[Player::MaxNameLength * 4 + 1];
+	char    name[MaxNickLength * 4 + 1];
 	uint8_t color[3];
 BEGIN
-	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
-	String(name, Player::MinNameLength)
+	Integer(tick)
+	Bits(id, MINBITS(MaxPlayers - 1))
+	String(name, MinNickLength)
 	Integer(color[0])
 	Integer(color[1])
 	Integer(color[2])
 END
 
-MESSAGE(PlayerDisconnect)
-	uint8_t id;
+MESSAGE(PlayerDisconnect, ReliableChannel)
 	int32_t tick;
+	uint8_t id;
 BEGIN
-	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
 	Integer(tick)
+	Bits(id, MINBITS(MaxPlayers - 1))
 END
 
-MESSAGE(PlayerJoin)
+MESSAGE(PlayerJoin, ReliableChannel)
 	int32_t tick;
 	uint8_t id;
 	fixvec2 position;
 BEGIN
 	Integer(tick)
-	Bits(id, MINBITS(Multiplayer::MaxPlayers - 1))
+	Bits(id, MINBITS(MaxPlayers - 1))
 	Fixed(position.x)
 	Fixed(position.y)
 END
 
+MESSAGE(PlayerLeave, ReliableChannel)
+	int32_t tick;
+	uint8_t id;
+BEGIN
+	Integer(tick)
+	Bits(id, MINBITS(MaxPlayers - 1))
+END
+
 LIST(SoldierState, soldier)
-	Bits(soldier.tickOffset, MINBITS(Player::MaxTickOffset))
-	Bits(soldier.playerId, MINBITS(Multiplayer::MaxPlayers - 1))
+	Bits(soldier.tickOffset, MINBITS(MaxTickOffset))
+	Bits(soldier.playerId, MINBITS(MaxPlayers - 1))
 	Fixed(soldier.state.position.x)
 	Fixed(soldier.state.position.y)
 	Fixed(soldier.state.velocity.x)
@@ -124,7 +158,7 @@ LIST(SoldierState, soldier)
 	Bool(soldier.state.floor)
 LISTEND
 
-MESSAGE(GameState)
+MESSAGE(GameState, UnsequencedChannel)
 	struct SoldierState {
 		int tickOffset;
 		uint8_t playerId;
@@ -133,22 +167,22 @@ MESSAGE(GameState)
 
 	int32_t tick;
 	int nSoldiers;
-	SoldierState soldiers[Multiplayer::MaxPlayers];
+	SoldierState soldiers[MaxPlayers];
 BEGIN
 	Integer(tick)
 	List(SoldierState, soldiers, nSoldiers, 0)
 END
 
 LIST(BulletInfo, bullet)
-	Bits(bullet.tickOffset, MINBITS(Player::MaxTickOffset))
-	Bits(bullet.params.playerid, MINBITS(Multiplayer::MaxPlayers - 1))
+	Bits(bullet.tickOffset, MINBITS(MaxTickOffset))
+	Bits(bullet.params.playerid, MINBITS(MaxPlayers - 1))
 	Fixed(bullet.params.position.x)
 	Fixed(bullet.params.position.y)
 	Fixed(bullet.params.speed)
 	Fixed(bullet.params.angle)
 LISTEND
 
-MESSAGE(Bullet)
+MESSAGE(Bullet, UnsequencedChannel)
 	struct BulletInfo {
 		int tickOffset;
 		cmp::BulletParams params;
@@ -162,13 +196,13 @@ BEGIN
 	List(BulletInfo, bullets, nBullets, 1)
 END
 
-MESSAGE(Damage)
+MESSAGE(Damage, ReliableChannel)
 	int32_t  tick;
 	uint8_t  playerId;
 	uint16_t amount;
 BEGIN
 	Integer(tick)
-	Bits(playerId, MINBITS(Multiplayer::MaxPlayers - 1))
+	Bits(playerId, MINBITS(MaxPlayers - 1))
 	Integer(amount)
 END
 

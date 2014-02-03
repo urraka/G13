@@ -1,6 +1,6 @@
 #include "msg.h"
-#include "BitStream.h"
 
+#include <hlp/BitStream.h>
 #include <hlp/utf8.h>
 
 namespace g13 {

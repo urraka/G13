@@ -1,6 +1,6 @@
 #include "Bullet.h"
 #include <g13/cmp/BulletParams.h>
-#include <g13/coll/collision.h>
+#include <g13/coll/World.h>
 
 namespace g13 {
 namespace ent {
@@ -23,7 +23,7 @@ Bullet::Bullet(const cmp::BulletParams &params, coll::Entity *ownerEntity)
 	ownerEntity_ = ownerEntity;
 }
 
-void Bullet::update(Time dt, const coll::World *world)
+void Bullet::update(Time dt, const coll::World &world)
 {
 	if (state == Impact)
 		state = Dead;
@@ -71,10 +71,10 @@ void Bullet::update(Time dt, const coll::World *world)
 			state = Dead;
 	}
 
-	if (!fpm::contains(world->bounds(), physics.position))
+	if (!fpm::contains(world.bounds(), physics.position))
 		state = Dead;
 
-	graphics.update(dt, &physics);
+	graphics.update(dt, physics);
 }
 
 }} // g13::ent

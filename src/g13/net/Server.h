@@ -1,46 +1,100 @@
 #pragma once
 
-#include "Multiplayer.h"
 #include <g13/g13.h>
+#include <g13/coll/World.h>
 #include <g13/cmp/BulletParams.h>
+#include <vector>
 
+#include "Connection.h"
+#include "Player.h"
+#include "ServerPlayer.h"
 #include "Ticked.h"
+#include "constants.h"
 
 namespace g13 {
 namespace net {
 
-class Server : public Multiplayer
+class Server : private Connection
 {
 public:
-	enum State { Running, Stopping, Stopped };
-
-	Server();
+	enum State
+	{
+		Running,
+		Stopping,
+		Stopped
+	};
 
 	bool start(int port);
 	void stop();
 	void update(Time dt);
 
-	State state() const;
+	State state() const
+	{
+		return state_;
+	}
 
 private:
-	typedef Ticked<cmp::BulletParams> BulletParams;
-
+	int tick_;
 	State state_;
 
-	std::vector<BulletParams> createdBullets_;
+	coll::World world_;
 
-	void onConnect   (ENetPeer *peer);
-	void onDisconnect(ENetPeer *peer);
-	void onMessage   (msg::Message *msg, ENetPeer *from);
+	std::vector<ServerPlayer*> players_;
+	std::vector<ServerPlayer*> connectingPlayers_;
+	std::vector<ServerPlayer*> disconnectingPlayers_; // already disconnected, but wait for bullets, etc
+	std::vector<ServerPlayer*> freePlayers_;
 
-	void onPlayerLogin(Player *player, msg::Login *login);
-	void onPlayerPong (Player *player, msg::Pong  *pong);
-	void onPlayerReady(Player *player, msg::Ready *ready);
-	void onPlayerInput(Player *player, msg::Input *input);
-	void onPlayerChat (Player *player, msg::Chat  *chat);
+	ServerPlayer playersStorage_[MaxPlayers];
 
-	void createBullet(void *data);
-	void playerBulletCollision(void *data);
+	typedef std::vector<Ticked<cmp::BulletParams> > BulletQueue;
+
+	BulletQueue bulletQueue_; // used to broadcast bullet messages
+
+	// helper methods
+
+	void initialize();
+	void loadMap(const char *name);
+
+	void updatePlayers(Time dt);
+	void updateBullets(Time dt);
+	void updateConnectingPlayers();
+	void updateDisconnectingPlayers();
+	void updatePlayerBullets(Time dt, ServerPlayer *player);
+
+	void sendBullets();
+	void sendBulletsTo(const ServerPlayer *targetPlayer);
+	void sendGameState();
+	void sendGameStateTo(const ServerPlayer *targetPlayer);
+	void sendLeaveMessage(const ServerPlayer *player);
+	void sendDamageMessage(const ServerPlayer *player, uint16_t amount);
+	void sendServerInfoMessage(const ServerPlayer *player);
+	void sendPlayerInfoMessages(const ServerPlayer *player);
+	void sendBulletInfoMessages(const ServerPlayer *player);
+	void sendPlayerConnectMessage(const ServerPlayer *player);
+	void sendPlayerDisconnectMessage(const ServerPlayer *player);
+	void sendPlayerJoinMessage(const ServerPlayer *player, const fixvec2 &position);
+
+	template<typename T> void sendToConnectedPlayers(const T &msg, const ServerPlayer *exception = 0);
+
+	ServerPlayer *getPlayerById(int id);
+
+	// local events/callbacks
+
+	void onSpawnBullet(void *data);
+	void onPlayerBulletCollision(void *data);
+
+	// net events
+
+	void onConnect(Peer peer);
+	void onDisconnect(Peer peer);
+	void onMessage(const msg::Message *msg, Peer from);
+	void onStop();
+
+	void onLogin(ServerPlayer *player, const msg::Login &msg);
+	void onPong(ServerPlayer *player, const msg::Pong &msg);
+	void onJoinRequest(ServerPlayer *player, const msg::JoinRequest &msg);
+	void onInput(ServerPlayer *player, const msg::Input &msg);
+	void onPlayerChat(ServerPlayer *player, const msg::PlayerChat &msg);
 };
 
-}} // net
+}} // g13::net

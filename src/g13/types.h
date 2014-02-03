@@ -2,9 +2,10 @@
 
 namespace g13
 {
+	class Callback;
 	class Frame;
 	class Map;
-	class Callback;
+	class Camera;
 
 	namespace stt
 	{
@@ -15,27 +16,31 @@ namespace g13
 
 	namespace net
 	{
-		class BitStream;
-		class BitReader;
-		class BitWriter;
-		class Multiplayer;
+		class Peer;
+		class Connection;
 		class Client;
 		class Server;
 		class Player;
+		class ServerPlayer;
+		class RemotePlayer;
+		class LocalPlayer;
+		class Renderer;
 
 		namespace msg
 		{
 			class Storage;
 			class Message;
-			class Chat;
 			class Login;
 			class Pong;
-			class Ready;
+			class JoinRequest;
 			class Input;
 			class ServerInfo;
+			class PlayerInfo;
 			class PlayerConnect;
 			class PlayerDisconnect;
 			class PlayerJoin;
+			class PlayerLeave;
+			class PlayerChat;
 			class GameState;
 			class Bullet;
 			class Damage;
@@ -44,7 +49,6 @@ namespace g13
 
 	namespace ent
 	{
-		class Camera;
 		class Soldier;
 		class Bullet;
 	}
@@ -73,4 +77,9 @@ namespace g13
 	{
 		class Bar;
 	}
+}
+
+namespace Json
+{
+	class Value;
 }

@@ -16,7 +16,7 @@ public:
 	Bullet();
 	Bullet(const cmp::BulletParams &params, coll::Entity *ownerEntity);
 
-	void update(Time dt, const coll::World *world);
+	void update(Time dt, const coll::World &world);
 
 	cmp::BulletPhysics physics;
 	cmp::BulletGraphics graphics;

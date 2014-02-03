@@ -18,12 +18,12 @@
         static const size_t type_count = __COUNTER__ - type_base;                              \
     }} // msg::_
 
-#define MESSAGE(T)                                                                             \
+#define MESSAGE(T, Channel)                                                                    \
     class T : public Message                                                                   \
     {                                                                                          \
     public:                                                                                    \
-        static const uint8_t Type = __COUNTER__ - _::type_base;                                \
-        uint8_t type() const { return Type; }                                                  \
+        static const int Type = __COUNTER__ - _::type_base;                                    \
+        T() : Message(Type, Channel) {}                                                        \
         bool read(const uint8_t *data, size_t length);                                         \
         size_t serialize(uint8_t *data, size_t length) const;
 
@@ -55,7 +55,7 @@
         Message *create(const uint8_t *data, size_t length)                                    \
         {                                                                                      \
             uint8_t type;                                                                      \
-            BitReader r(data, length);                                                         \
+            hlp::BitReader r(data, length);                                                    \
                                                                                                \
             if (!r.has(MINBITS(_::type_count - 1)))                                            \
                 return 0;                                                                      \
@@ -71,7 +71,7 @@
         }                                                                                      \
     }
 
-#define MESSAGE(T)                                                                             \
+#define MESSAGE(T, C)                                                                          \
     case T::Type: return _::create<T>(data, length);                                           \
         {                                                                                      \
             struct {
@@ -107,7 +107,7 @@
         {                                                                                      \
             if (msg == 0) return;                                                              \
                                                                                                \
-            switch (msg->type())                                                               \
+            switch (msg->type)                                                                 \
             {
 
 #define MESSAGES_END()                                                                         \
@@ -116,7 +116,7 @@
         }                                                                                      \
     }
 
-#define MESSAGE(T)                                                                             \
+#define MESSAGE(T, C)                                                                          \
     case T::Type: _::destroy<T>((T*)msg); return;                                              \
         {                                                                                      \
             struct {
@@ -156,7 +156,7 @@
     namespace                                                                                  \
     {                                                                                          \
         template<class T>                                                                      \
-        static void _w_ ## ListType (BitWriter &_w, const T *_list, int _count,                \
+        static void _w_ ## ListType (hlp::BitWriter &_w, const T *_list, int _count,           \
                                     const size_t _sizeBits)                                    \
         {                                                                                      \
             _w.write(_count, _sizeBits);                                                       \
@@ -170,11 +170,11 @@
         }                                                                                      \
     }
 
-#define MESSAGE(T)                                                                             \
+#define MESSAGE(T, C)                                                                          \
     size_t T::serialize(uint8_t *_data, size_t _length) const                                  \
     {                                                                                          \
-        BitWriter _w(_data, _length);                                                          \
-        _w.write(Type, MINBITS(_::type_count - 1));                                            \
+        hlp::BitWriter _w(_data, _length);                                                     \
+        _w.write((uint8_t)Type, MINBITS(_::type_count - 1));                                   \
                                                                                                \
         {                                                                                      \
             struct                                                                             \
@@ -186,7 +186,7 @@
         }
 
 #define END                                                                                    \
-        return _w.bitpos() / 8 + (_w.bitpos() % 8 != 0);                                           \
+        return _w.bitpos() / 8 + (_w.bitpos() % 8 != 0);                                       \
     }
 
 #define Integer(x)                                                                             \
@@ -230,7 +230,7 @@
     namespace                                                                                  \
     {                                                                                          \
         template<class T>                                                                      \
-        static bool _r_ ## ListType (BitReader &_r, T *_list, int &_count,                     \
+        static bool _r_ ## ListType (hlp::BitReader &_r, T *_list, int &_count,                \
                                     int _min, const size_t _sizeBits)                          \
         {                                                                                      \
             if (!_r.has(_sizeBits))                                                            \
@@ -252,10 +252,10 @@
         }                                                                                      \
     }
 
-#define MESSAGE(T)                                                                             \
+#define MESSAGE(T, C)                                                                          \
     bool T::read(const uint8_t *_data, size_t _length)                                         \
     {                                                                                          \
-        BitReader _r(_data, _length);                                                          \
+        hlp::BitReader _r(_data, _length);                                                     \
                                                                                                \
         _r.skip(MINBITS(_::type_count - 1));                                                   \
                                                                                                \
@@ -269,7 +269,7 @@
         }
 
 #define END                                                                                    \
-        if (_r.bitpos() / 8 + (_r.bitpos() % 8 != 0) < _length)                                    \
+        if (_r.bitpos() / 8 + (_r.bitpos() % 8 != 0) < _length)                                \
             return false;                                                                      \
         return true;                                                                           \
     }

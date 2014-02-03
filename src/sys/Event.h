@@ -4,6 +4,23 @@
 
 namespace sys {
 
+enum EventType
+{
+	Close,
+	FocusChange,
+	Resize,
+	KeyPress,
+	KeyRelease,
+	KeyRepeat,
+	Text,
+	MouseButtonPress,
+	MouseButtonRelease,
+	MouseMove,
+	MouseWheelMove,
+	MouseEnter,
+	MouseLeave
+};
+
 class Event
 {
 public:
@@ -52,22 +69,9 @@ public:
 		double yoffset;
 	};
 
-	enum EventType
+	struct FocusEvent
 	{
-		Closed,
-		FocusGained,
-		FocusLost,
-		Resized,
-		KeyPressed,
-		KeyReleased,
-		KeyRepeat,
-		TextEntered,
-		MouseButtonPressed,
-		MouseButtonReleased,
-		MouseMoved,
-		MouseWheelMoved,
-		MouseEntered,
-		MouseLeft
+		bool focused;
 	};
 
 	EventType type;
@@ -80,6 +84,7 @@ public:
 		MouseButtonEvent mouseButton;
 		MouseMoveEvent   mouseMove;
 		MouseWheelEvent  mouseWheel;
+		FocusEvent       focus;
 	};
 };
 

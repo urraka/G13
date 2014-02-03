@@ -1,6 +1,12 @@
 #pragma once
 
+#include <g13/g13.h>
+#include <g13/math.h>
 #include <vector>
+
+#include "Grid.h"
+#include "Segment.h"
+#include "Entity.h"
 
 namespace g13 {
 namespace coll {
@@ -17,27 +23,23 @@ typedef const Entity *entity_t;
 class World
 {
 public:
-	World(const fixrect &bounds);
+	World();
 	~World();
 
-	typedef std::vector<fixvec2> Linestrip;
-
-	void create(const std::vector<Linestrip> &linestrips);
-
+	void load(const Json::Value &data);
+	void unload();
 	void add(const entity_t &entity);
 	void clear();
 
 	Result collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox, Mode mode = Static) const;
 
-	const fixed &gravity() const { return gravity_; }
-	const fixrect &bounds() const { return bounds_; }
-
-	void gravity(fixed value);
-
-	void addSpawnPoint(const fixvec2 &position) { spawnpoints_.push_back(position); }
+	const fixed                &gravity()     const { return gravity_;     }
+	const fixrect              &bounds()      const { return bounds_;      }
 	const std::vector<fixvec2> &spawnpoints() const { return spawnpoints_; }
 
 private:
+	typedef std::vector<fixvec2> Linestrip;
+
 	Grid<Segment> *segmentsGrid_;
 	Grid<entity_t> *entitiesGrid_;
 
@@ -53,6 +55,8 @@ private:
 	template<typename T> std::vector<const T*> &retrieve(const fixrect &bounds) const;
 	template<typename T> inline std::vector<const T*> &cache() const;
 	template<typename T> inline const Grid<T> &grid() const;
+
+	void create(const std::vector<Linestrip> &linestrips);
 };
 
 // World methods specialization

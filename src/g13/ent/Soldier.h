@@ -17,13 +17,12 @@ class Soldier
 public:
 	Soldier();
 
-	void update(Time dt, const cmp::SoldierInput *inpt = 0);
+	void update(Time dt, const coll::World &world, const cmp::SoldierInput &input);
+
 	void reset(fixvec2 pos);
-	void world(const coll::World *world);
-	cmp::SoldierState state() const;
+	const cmp::SoldierState &state() const;
 	fixvec2 bodyOffset() const;
 
-	cmp::SoldierInput input;
 	cmp::SoldierPhysics physics;
 	cmp::SoldierGraphics graphics;
 
@@ -31,12 +30,14 @@ public:
 
 	Callback createBulletCallback;
 
-	coll::Entity collisionEntity;
+	coll::Entity entity;
 
 private:
 	Time shootingTime_;
+	cmp::SoldierState state_;
 
 	fixvec2 bulletSpawnPoint(const fixvec2 &position, const fixed &angle) const;
+	void updateState(const cmp::SoldierInput &input);
 };
 
 }} // g13::ent

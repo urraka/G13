@@ -17,7 +17,7 @@ public:
 
 	void update(Time dt) {}
 	void draw(const Frame &frame);
-	bool event(Event *evt);
+	bool onEvent(const sys::Event &event);
 
 private:
 	void setMenu(int menu);
@@ -25,8 +25,8 @@ private:
 	bool isTextOption(int menu, int option);
 	bool isColorOption(int menu, int option);
 	void command();
-	void onKeyPressed(const Event::KeyEvent &key);
-	void onText(const Event::TextEvent &text);
+	void onKeyPressed(const sys::Event::KeyEvent &key);
+	void onText(const sys::Event::TextEvent &text);
 
 	const string32_t *label(int menu, int option);
 	string32_t *value(int menu, int option);

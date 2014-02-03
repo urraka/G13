@@ -11,8 +11,8 @@ namespace cmp {
 class BulletGraphics
 {
 public:
-	void update(Time dt, const BulletPhysics *physics);
-	void frame(Frame frame);
+	void update(Time dt, const BulletPhysics &physics);
+	void frame(const Frame &frame);
 	gfx::Sprite sprite() const;
 
 	vec2 initialPosition;

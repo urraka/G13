@@ -1,18 +1,14 @@
 #pragma once
 
 #include <g13/g13.h>
+#include <g13/math.h>
 #include <g13/ent/Soldier.h>
 #include <g13/ent/Bullet.h>
-#include <g13/cmp/BulletParams.h>
-
 #include <gfx/Color.h>
-#include <hlp/ring.h>
-#include <stdint.h>
 #include <vector>
-#include <deque>
-#include <enet/enet.h>
+#include <string>
 
-#include "Ticked.h"
+#include "constants.h"
 
 namespace g13 {
 namespace net {
@@ -20,90 +16,34 @@ namespace net {
 class Player
 {
 public:
+	Player();
+
+	// enums
+
 	enum State
 	{
 		Disconnected,
 		Connecting,
-		Connected,
-		Playing,
-		Dead
+		Spectator,
+		Playing
 	};
 
-	enum
-	{
-		InvalidId     = 0xFF,
-		MaxNameLength = 20,
-		MinNameLength = 1,
-		MaxTickOffset = 63,
-		MaxHealth     = UINT16_MAX
-	};
-
-	Player();
+	// methods
 
 	void initialize();
-	void updateLocal(Time dt);
-	void updateRemote(Time dt, int tick);
-	void updateServer(Time dt, int tick);
-	void updateBullets(Time dt);
-	void createBullet(const cmp::BulletParams &params, Callback collisionCallback);
-	void setCollisionTick(int tick);
+	bool connected() { return state == Spectator || state == Playing; }
+	void updateBullets(Time dt, const coll::World &world);
 
-	void onConnecting(ENetPeer *peer = 0);
-	void onConnect(const char *name, const gfx::Color &color);
-	void onDisconnect(int tick);
-	void onJoin(int tick, const Map *map, const fixvec2 &position);
-	void onSoldierState(int tick, const cmp::SoldierState &soldierState);
-	void onInput(int tick, const cmp::SoldierInput &input);
-	void onBulletCreated(int tick, const cmp::BulletParams &params);
-	void onDamage(int tick, int amount);
+	// member variables
 
-	State       state    () const;
-	bool        connected() const;
-	uint8_t     id       () const;
-	ENetPeer   *peer     () const;
-	const char *name     () const;
-	int         tick     () const;
-	int         health   () const;
+	int id;
+	std::string nickname;
+	gfx::Color color;
 
-	ent::Soldier *soldier();
-
-	std::vector<ent::Bullet> &bullets() { return bullets_; }
-
-	// ping/pong used to calculate initial RTT (for lag compensation)
-	// used by server
-	int pingTick;
-	int pongTick;
-
-private:
-	typedef Ticked<cmp::BulletParams> BulletParams;
-	typedef Ticked<cmp::SoldierState> SoldierState;
-	typedef Ticked<cmp::SoldierInput> SoldierInput;
-
-	uint8_t id_;
-	State state_;
-	char name_[MaxNameLength * 4 + 1];
-	ent::Soldier soldier_;
-	int joinTick_;
-	int disconnectTick_;
-	int lastInputTick_;
-	std::vector<SoldierInput> inputs_;
-	int tick_;
-	hlp::ring<SoldierState, 10> stateBuffer_;
-	ENetPeer *peer_;
-	Time connectTimeout_;
-	int health_;
-
-	std::deque<BulletParams> bulletsQueue_;
-	std::vector<ent::Bullet> bullets_;
-
-	int boundsBufferTick_;
-	hlp::ring<fixrect, 40> boundsBuffer_;
-
-	friend class Multiplayer;
-
-	#ifdef DEBUG
-		friend class g13::Debugger;
-	#endif
+	State state;
+	int health;
+	ent::Soldier soldier;
+	std::vector<ent::Bullet> bullets;
 };
 
 }} // g13::net

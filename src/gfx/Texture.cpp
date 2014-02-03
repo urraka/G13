@@ -3,46 +3,66 @@
 #include "Context.h"
 #include "gfx.h"
 
+#if defined(GL_ALPHA)
+	#define FORMAT1 GL_ALPHA
+#elif defined(GL_RED)
+	#define FORMAT1 GL_RED
+#endif
+
+#define FORMAT3 GL_RGB
+#define FORMAT4 GL_RGBA
+
+#if defined(GL_ALPHA8)
+	#define INTERNAL1 GL_ALPHA8
+#elif defined(GL_R8)
+	#define INTERNAL1 GL_R8
+#else
+	#define INTERNAL1 FORMAT1
+#endif
+
+#if defined(GL_RGB8)
+	#define INTERNAL3 GL_RGB8
+#else
+	#define INTERNAL3 GL_RGB
+#endif
+
+#if defined(GL_RGBA8)
+	#define INTERNAL4 GL_RGBA8
+#else
+	#define INTERNAL4 GL_RGBA
+#endif
+
+#define FORMAT(channels) \
+	(\
+		channels == 1 ? FORMAT1 :   \
+		channels == 3 ? FORMAT3 :   \
+		channels == 4 ? FORMAT4 : 0 \
+	)
+
+#define INTERNAL_FORMAT(channels) \
+	(\
+		channels == 1 ? INTERNAL1 :   \
+		channels == 3 ? INTERNAL3 :   \
+		channels == 4 ? INTERNAL4 : 0 \
+	)
+
 namespace gfx {
 
-Texture::Texture(const char *filename, bool mipmap)
-	:	id_(0),
-		width_(0),
-		height_(0),
-		channels_(0),
-		mipmap_(mipmap),
-		format_(0)
+Texture::Texture() : id_(0), width_(0), height_(0), channels_(0) {}
+
+Texture::Texture(const char *filename)
 {
-	Image image(filename);
-
-	width_ = image.width();
-	height_ = image.height();
-	channels_ = image.format() == RGB ? 3 : 4;
-	format_ = format();
-
-	create(image.data());
+	load(filename);
 }
 
-Texture::Texture(Image *image, bool mipmap)
-	:	id_(0),
-		width_(image->width()),
-		height_(image->height()),
-		channels_(image->format() == RGB ? 3 : 4),
-		mipmap_(mipmap),
-		format_(format())
+Texture::Texture(const Image &image)
 {
-	create(image->data());
+	load(image);
 }
 
-Texture::Texture(int width, int height, int channels, bool mipmap)
-	:	id_(0),
-		width_(width),
-		height_(height),
-		channels_(channels),
-		mipmap_(mipmap),
-		format_(format())
+Texture::Texture(int width, int height, int channels)
 {
-	create(0);
+	create(width, height, channels);
 }
 
 Texture::~Texture()
@@ -51,102 +71,28 @@ Texture::~Texture()
 		glDeleteTextures(1, &id_);
 }
 
-void Texture::filter(uint8_t filter, TexFilterType type)
+void Texture::load(const char *filename)
 {
-	gfx::bind(this);
-
-	GLint value = 0;
-
-	if (type & MinFilter)
-	{
-		switch (filter)
-		{
-			case Nearest                : value = GL_NEAREST;                break;
-			case Linear                 : value = GL_LINEAR;                 break;
-			case Nearest | NearestMipmap: value = GL_NEAREST_MIPMAP_NEAREST; break;
-			case Linear  | NearestMipmap: value = GL_LINEAR_MIPMAP_NEAREST;  break;
-			case Nearest | LinearMipmap : value = GL_NEAREST_MIPMAP_LINEAR;  break;
-			case Linear  | LinearMipmap : value = GL_LINEAR_MIPMAP_LINEAR;   break;
-			default                     : assert(false);                     break;
-		}
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, value);
-	}
-
-	if (type & MagFilter)
-	{
-		value = (filter & Nearest ? GL_NEAREST : Linear);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, value);
-	}
+	load(Image(filename));
 }
 
-void Texture::wrap(TexWrap wrap, TexWrapAxis axis)
+void Texture::load(const Image &image)
 {
-	gfx::bind(this);
-
-	GLint value = (wrap == Repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-
-	if (axis & WrapX)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, value);
-
-	if (axis & WrapY)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, value);
+	initialize(image.width(), image.height(), image.format() == RGBA ? 4 : 3, image.data());
 }
 
-GLuint Texture::id() const
+void Texture::create(int width, int height, int channels)
 {
-	return id_;
+	initialize(width, height, channels, 0);
 }
 
-int Texture::width() const
-{
-	return width_;
-}
-
-int Texture::height() const
-{
-	return height_;
-}
-
-int Texture::channels() const
-{
-	return channels_;
-}
-
-void Texture::update(int x, int y, int width, int height, uint8_t *data)
+void Texture::update(int x, int y, int width, int height, const uint8_t *data)
 {
 	assert(id_ != 0);
-
 	gfx::bind(this);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format_, GL_UNSIGNED_BYTE, data);
-
-	if (mipmap_)
-		generateMipmap();
-}
-
-void Texture::create(uint8_t *data)
-{
-	assert(id_ == 0);
-
-	glGenTextures(1, &id_);
-	glBindTexture(GL_TEXTURE_2D, id_);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap_ ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_, GL_UNSIGNED_BYTE, data);
-
-	// TODO: detect failure?
-
-	if (mipmap_)
-		generateMipmap();
-
-	context->texture[context->unit] = this;
+	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, FORMAT(channels_), GL_UNSIGNED_BYTE, data);
 }
 
 void Texture::generateMipmap()
@@ -160,16 +106,79 @@ void Texture::generateMipmap()
 	#endif
 }
 
-GLenum Texture::format() const
+void Texture::filter(Filter filter)
 {
-	switch (channels_)
-	{
-		case 1: return GL_ALPHA;
-		case 3: return GL_RGB;
-		case 4: return GL_RGBA;
+	assert(id_ != 0);
+	gfx::bind(this);
 
-		default: assert(false);
-	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+}
+
+void Texture::filterMin(Filter filter)
+{
+	assert(id_ != 0);
+	gfx::bind(this);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+}
+
+void Texture::filterMag(Filter filter)
+{
+	assert(id_ != 0);
+	gfx::bind(this);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+}
+
+void Texture::wrap(WrapMode mode)
+{
+	assert(id_ != 0);
+	gfx::bind(this);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+}
+
+void Texture::wrapX(WrapMode mode)
+{
+	assert(id_ != 0);
+	gfx::bind(this);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+}
+
+void Texture::wrapY(WrapMode mode)
+{
+	assert(id_ != 0);
+	gfx::bind(this);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+}
+
+void Texture::initialize(int width, int height, int channels, const uint8_t *data)
+{
+	width_    = width;
+	height_   = height;
+	channels_ = channels;
+
+	if (id_ == 0)
+		glGenTextures(1, &id_);
+
+	glBindTexture(GL_TEXTURE_2D, id_);
+	context->texture[context->unit] = this;
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	GLint internalFormat = INTERNAL_FORMAT(channels);
+	GLenum format = FORMAT(channels);
+	GLenum type = GL_UNSIGNED_BYTE;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
 }
 
 } // gfx

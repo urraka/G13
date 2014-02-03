@@ -22,10 +22,26 @@ enum DrawMode
 	Triangles     = GL_TRIANGLES
 };
 
-enum ImageFormat   { RGB, RGBA };
-enum TexFilterType { MinFilter = 1, MagFilter = 2, MinMagFilter = (MinFilter | MagFilter) };
-enum TexFilter     { Linear = 1, Nearest = 2, NearestMipmap = 4, LinearMipmap = 8 };
-enum TexWrapAxis   { WrapX = 1, WrapY = 2, WrapBoth = (WrapX | WrapY) };
-enum TexWrap       { Repeat, Clamp };
+enum Filter
+{
+	Nearest              = GL_NEAREST,
+	Linear               = GL_LINEAR,
+	NearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
+	NearestMipmapLinear  = GL_NEAREST_MIPMAP_LINEAR,
+	LinearMipmapNearest  = GL_LINEAR_MIPMAP_NEAREST,
+	LinearMipmapLinear   = GL_LINEAR_MIPMAP_LINEAR
+};
+
+enum WrapMode
+{
+	Clamp  = GL_CLAMP_TO_EDGE,
+	Repeat = GL_REPEAT
+};
+
+enum ImageFormat
+{
+	RGB,
+	RGBA
+};
 
 } //gfx

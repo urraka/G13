@@ -1,12 +1,13 @@
 #include "SoldierInput.h"
-
-#include <sys/sys.h>
+#include <g13/ent/Soldier.h>
 
 namespace g13 {
 namespace cmp {
 
 SoldierInput::SoldierInput()
-	:	left(false),
+	:	angle(0),
+		rightwards(true),
+		left(false),
 		right(false),
 		realLeft(false),
 		realRight(false),
@@ -15,6 +16,20 @@ SoldierInput::SoldierInput()
 		duck(false),
 		shoot(false)
 {
+}
+
+void SoldierInput::onEvent(const sys::Event &event)
+{
+	switch (event.type)
+	{
+		case sys::KeyPress:           onKeyPress(event.key);             break;
+		case sys::KeyRelease:         onKeyRelease(event.key);           break;
+		case sys::MouseButtonPress:   onMousePress(event.mouseButton);   break;
+		case sys::MouseButtonRelease: onMouseRelease(event.mouseButton); break;
+		case sys::MouseMove:          onMouseMove(event.mouseMove);      break;
+
+		default: break;
+	}
 }
 
 void SoldierInput::onKeyPress(const sys::Event::KeyEvent &event)
@@ -63,6 +78,20 @@ void SoldierInput::onMouseRelease(const sys::Event::MouseButtonEvent &event)
 	{
 		case sys::MouseLeft: shoot = false; break;
 	}
+}
+
+void SoldierInput::onMouseMove(const sys::Event::MouseMoveEvent &event)
+{
+	mousex = event.x;
+	mousey = event.y;
+}
+
+void SoldierInput::updateTargetAngle(const ent::Soldier &soldier)
+{
+	const SoldierGraphics::TargetInfo &info = soldier.graphics.targetInfo();
+
+	angle = info.angle;
+	rightwards = info.rightwards;
 }
 
 }} // g13::cmp

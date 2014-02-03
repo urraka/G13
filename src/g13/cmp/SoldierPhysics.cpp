@@ -1,6 +1,8 @@
 #include "SoldierPhysics.h"
 #include "SoldierInput.h"
 
+#include <g13/coll/World.h>
+#include <g13/coll/Result.h>
 #include <assert.h>
 
 namespace g13 {
@@ -9,41 +11,36 @@ namespace cmp {
 SoldierPhysics::SoldierPhysics()
 	:	bboxNormal(-17, -66, 17, 0),
 		bboxDucked(-17, -50, 17, 0),
-		input(0),
-		world(0),
 		ducked_(false),
 		segment_(0)
 {
 }
 
-void SoldierPhysics::update(Time dt)
+void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInput &input)
 {
-	assert(world != 0);
-	assert(input != 0);
-
 	fixed dts = fixed((int)dt / 1000) / fixed(1000);
-	const fixed kGravity = world->gravity();
+	const fixed kGravity = world.gravity();
 	const fixed kJumpVel = fixed(-550);
 	const fixed kWalkVel = fixed(500);
 	const fixed kDuckVel = fixed(150);
 	const fixed kRunVel  = fixed(1000);
 
-	if (ducked_ && !input->duck)
+	if (ducked_ && !input.duck)
 	{
 		fixvec2 offset = fixvec2(0, bboxDucked.height() - bboxNormal.height());
-		ducked_ = (world->collision(position, position + offset, bboxDucked).segment != 0);
+		ducked_ = (world.collision(position, position + offset, bboxDucked).segment != 0);
 	}
 	else
 	{
-		ducked_ = input->duck;
+		ducked_ = input.duck;
 	}
 
 	const fixrect &bbox = bounds();
 
-	if (input->jump && floor())
+	if (input.jump && floor())
 	{
 		const fixvec2 offset = fixvec2(0, -1);
-		coll::Result collision = world->collision(position, position + offset, bbox);
+		coll::Result collision = world.collision(position, position + offset, bbox);
 
 		if (!collision.segment || fpm::fabs(fpm::slope(collision.segment->line)) > 1)
 		{
@@ -58,10 +55,10 @@ void SoldierPhysics::update(Time dt)
 	velocity.x = 0;
 	velocity.y += acceleration.y * dts;
 
-	if (input->right || input->left)
+	if (input.right || input.left)
 	{
-		fixed vel = (ducked_ && floor()) ? kDuckVel : input->run ? kRunVel : kWalkVel;
-		velocity.x = input->left ? -vel : vel;
+		fixed vel = (ducked_ && floor()) ? kDuckVel : input.run ? kRunVel : kWalkVel;
+		velocity.x = input.left ? -vel : vel;
 	}
 
 	fixvec2 nextDelta = velocity * dts;
@@ -106,7 +103,7 @@ void SoldierPhysics::update(Time dt)
 					delta.y = (dest->x - position.x) * delta.y / delta.x;
 					delta.x = dest->x - position.x;
 
-					if (false && input->run && !ducked_)
+					if (false && input.run && !ducked_)
 					{
 						segment_ = 0;
 					}
@@ -156,7 +153,7 @@ void SoldierPhysics::update(Time dt)
 
 		if (delta != fixvec2(0, 0))
 		{
-			coll::Result collision = world->collision(position, position + delta, bbox);
+			coll::Result collision = world.collision(position, position + delta, bbox);
 			position = collision.position;
 
 			if (collision.segment)

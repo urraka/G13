@@ -45,6 +45,21 @@ void draw(SpriteBatch *spriteBatch, size_t offset, size_t count);
 void draw(const Sprite &sprite);
 void draw(Text *text);
 
+inline void bind(Shader &shader) { bind(&shader); }
+inline void bind(Texture &texture, int unit = 0) { bind(&texture, unit); }
+inline void bind(VBO &vbo) { bind(&vbo); }
+inline void bind(IBO &ibo) { bind(&ibo); }
+
+inline void draw(VBO &vbo) { draw(&vbo); }
+inline void draw(VBO &vbo, size_t count) { draw(&vbo, count); }
+inline void draw(VBO &vbo, size_t offset, size_t count) { draw(&vbo, offset, count); }
+
+inline void draw(SpriteBatch &batch) { draw(&batch); }
+inline void draw(SpriteBatch &batch, size_t count) { draw(&batch, count); }
+inline void draw(SpriteBatch &batch, size_t offset, size_t count) { draw(&batch, offset, count); }
+
+inline void draw(Text &text) { draw(&text); }
+
 void matrix(const mat2d &matrix);
 const mat2d &matrix();
 

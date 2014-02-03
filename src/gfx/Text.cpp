@@ -50,6 +50,8 @@ void Text::value(const char *str)
 			equal = false;
 			break;
 		}
+
+		i++;
 	}
 
 	if (value_.size() != i)

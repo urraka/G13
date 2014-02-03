@@ -11,7 +11,7 @@
 namespace g13 {
 namespace stt {
 
-Multiplayer::Multiplayer(const string32_t &name, const gfx::Color &color, int port)
+Multiplayer::Multiplayer(const char *nickname, const gfx::Color &color, int port)
 	:	state_(Connecting),
 		client_(0),
 		server_(0)
@@ -20,19 +20,19 @@ Multiplayer::Multiplayer(const string32_t &name, const gfx::Color &color, int po
 	server_->start(port);
 
 	client_ = new net::Client();
-	client_->nick(name);
-	client_->soldierColor(color);
+	client_->setNick(nickname);
+	client_->setColor(color);
 	client_->connect("localhost", port);
 }
 
-Multiplayer::Multiplayer(const string32_t &name, const gfx::Color &color, const char *host, int port)
+Multiplayer::Multiplayer(const char *nickname, const gfx::Color &color, const char *host, int port)
 	:	state_(Connecting),
 		client_(0),
 		server_(0)
 {
 	client_ = new net::Client();
-	client_->nick(name);
-	client_->soldierColor(color);
+	client_->setNick(nickname);
+	client_->setColor(color);
 	client_->connect(host, port);
 }
 
@@ -112,18 +112,18 @@ void Multiplayer::draw(const Frame &frame)
 	client_->draw(frame);
 }
 
-bool Multiplayer::event(Event *evt)
+bool Multiplayer::onEvent(const sys::Event &event)
 {
-	if (!client_->event(evt))
+	if (!client_->onEvent(event))
 		return false;
 
-	if (evt->type == Event::KeyPressed)
-		return onKeyPressed(evt->key);
+	if (event.type == sys::KeyPress)
+		return onKeyPressed(event.key);
 
 	return true;
 }
 
-bool Multiplayer::onKeyPressed(const Event::KeyEvent &key)
+bool Multiplayer::onKeyPressed(const sys::Event::KeyEvent &key)
 {
 	switch (key.code)
 	{

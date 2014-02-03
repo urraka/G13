@@ -3,7 +3,7 @@
 namespace hlp {
 
 struct countof_check {
-	class Is_pointer;
+	class Is_pointer; // incomplete
 	class Is_array {};
 	template <typename T>
 	static Is_pointer check_type(const T*, const T* const*);

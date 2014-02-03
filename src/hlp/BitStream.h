@@ -4,8 +4,7 @@
 #include <stddef.h>
 #include <assert.h>
 
-namespace g13 {
-namespace net {
+namespace hlp {
 
 // this class assumes that signed integers are represented the same way in every system
 
@@ -127,4 +126,4 @@ private:
 	}
 };
 
-}} // g13::net
+} // hlp

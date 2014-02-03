@@ -652,7 +652,7 @@ void cb_orientation()
 {
 	Event event;
 
-	event.type = Event::Resized;
+	event.type = Resize;
 	event.size.rotation = window_rotation();
 
 	window_size(&event.size.width, &event.size.height);
@@ -669,7 +669,7 @@ void cb_size(GLFWwindow *window, int width, int height)
 {
 	Event event;
 
-	event.type = Event::Resized;
+	event.type = Resize;
 	event.size.rotation = 0;
 	event.size.width = width;
 	event.size.height = height;
@@ -683,7 +683,7 @@ void cb_framebuffer(GLFWwindow *window, int width, int height)
 {
 	Event event;
 
-	event.type = Event::Resized;
+	event.type = Resize;
 	event.size.rotation = 0;
 	event.size.fboWidth = width;
 	event.size.fboHeight = height;
@@ -699,9 +699,9 @@ void cb_keyboard(GLFWwindow *window, int key, int scancode, int action, int mods
 
 	switch (action)
 	{
-		case GLFW_PRESS  : event.type = Event::KeyPressed;  break;
-		case GLFW_RELEASE: event.type = Event::KeyReleased; break;
-		case GLFW_REPEAT : event.type = Event::KeyRepeat;   break;
+		case GLFW_PRESS  : event.type = KeyPress;   break;
+		case GLFW_RELEASE: event.type = KeyRelease; break;
+		case GLFW_REPEAT : event.type = KeyRepeat;  break;
 		default: return;
 	}
 
@@ -721,8 +721,8 @@ void cb_mouse(GLFWwindow *window, int button, int action, int mods)
 
 	switch (action)
 	{
-		case GLFW_PRESS  : event.type = Event::MouseButtonPressed;  break;
-		case GLFW_RELEASE: event.type = Event::MouseButtonReleased; break;
+		case GLFW_PRESS  : event.type = MouseButtonPress;   break;
+		case GLFW_RELEASE: event.type = MouseButtonRelease; break;
 		default: return;
 	}
 
@@ -739,7 +739,7 @@ void cb_char(GLFWwindow *window, unsigned int ch)
 {
 	Event event;
 
-	event.type = Event::TextEntered;
+	event.type = Text;
 	event.text.ch = ch;
 
 	push_event(event);
@@ -749,7 +749,7 @@ void cb_mousemove(GLFWwindow *window, double x, double y)
 {
 	Event event;
 
-	event.type = Event::MouseMoved;
+	event.type = MouseMove;
 	event.mouseMove.x = x;
 	event.mouseMove.y = y;
 
@@ -759,7 +759,9 @@ void cb_mousemove(GLFWwindow *window, double x, double y)
 void cb_mouseenter(GLFWwindow *window, int entered)
 {
 	Event event;
-	event.type = entered == GL_TRUE ? Event::MouseEntered : Event::MouseLeft;
+
+	event.type = (entered == GL_TRUE ? MouseEnter : MouseLeave);
+
 	push_event(event);
 }
 
@@ -767,7 +769,7 @@ void cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
 {
 	Event event;
 
-	event.type = Event::MouseWheelMoved;
+	event.type = MouseWheelMove;
 	event.mouseWheel.xoffset = xoffset;
 	event.mouseWheel.yoffset = yoffset;
 
@@ -777,14 +779,17 @@ void cb_scroll(GLFWwindow *window, double xoffset, double yoffset)
 void cb_focus(GLFWwindow *window, int focused)
 {
 	Event event;
-	event.type = focused == GL_TRUE ? Event::FocusGained : Event::FocusLost;
+
+	event.type = FocusChange;
+	event.focus.focused = (focused == GL_TRUE);
+
 	push_event(event);
 }
 
 void cb_close(GLFWwindow *window)
 {
 	Event event;
-	event.type = Event::Closed;
+	event.type = Close;
 	push_event(event);
 }
 

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <g13/math.h>
+#include "Segment.h"
+
 namespace g13 {
 namespace coll {
 

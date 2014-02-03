@@ -12,32 +12,38 @@ class Image;
 class Texture
 {
 public:
-	Texture(const char *filename, bool mipmap = true);
-	Texture(Image *image, bool mipmap = true);
-	Texture(int width, int height, int channels, bool mipmap = true);
+	Texture();
+	Texture(const char *filename);
+	Texture(const Image &image);
+	Texture(int width, int height, int channels);
 	~Texture();
 
-	void filter(uint8_t filter, TexFilterType type = MinMagFilter);
-	void wrap(TexWrap wrap, TexWrapAxis axis = WrapBoth);
+	void load(const char *filename);
+	void load(const Image &image);
+	void create(int width, int height, int channels);
+	void update(int x, int y, int width, int height, const uint8_t *data);
+	void generateMipmap();
 
-	void update(int x, int y, int width, int height, uint8_t *data);
+	void filter(Filter filter);
+	void filterMin(Filter filter);
+	void filterMag(Filter filter);
 
-	GLuint id() const;
-	int width() const;
-	int height() const;
-	int channels() const;
+	void wrap(WrapMode mode);
+	void wrapX(WrapMode mode);
+	void wrapY(WrapMode mode);
+
+	GLuint id()       const { return id_;       }
+	int    width()    const { return width_;    }
+	int    height()   const { return height_;   }
+	int    channels() const { return channels_; }
 
 private:
 	GLuint id_;
 	int width_;
 	int height_;
 	int channels_;
-	bool mipmap_;
-	GLenum format_;
 
-	void create(uint8_t *data);
-	void generateMipmap();
-	GLenum format() const;
+	void initialize(int width, int height, int channels, const uint8_t *data);
 };
 
 } // gfx

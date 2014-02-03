@@ -17,11 +17,12 @@ class Shader;
 class SpriteBatch
 {
 public:
+	SpriteBatch();
 	SpriteBatch(size_t maxSize, Usage usage = Dynamic);
 	~SpriteBatch();
 
 	void clear();
-	void resize(size_t maxSize);
+	void resize(size_t maxSize, Usage usage = Dynamic);
 	void add(const Sprite &sprite);
 	void add(const Sprite *sprites, size_t count);
 	void texture(Texture *texture);
@@ -36,22 +37,23 @@ public:
 		for (size_t i = 0; i < N; i++)
 			sprites[i].vertices(v[i]);
 
-		vbo_->set(&v[0][0], 4 * size_, 4 * N);
+		vbo_.set(&v[0][0], 4 * size_, 4 * N);
 		size_ += N;
 	}
 
-	Texture *texture() const;
-	size_t size() const;
-	size_t capacity() const;
+	Texture *texture()  const { return texture_; }
+	size_t   size()     const { return size_;    }
+	size_t   capacity() const { return maxSize_; }
 
 private:
-	VBO *vbo_;
+	VBO vbo_;
 	Texture *texture_;
 	size_t size_;
 	size_t maxSize_;
 	Usage usage_;
 
 	// ibo is shared across instances, released when refcount is 0
+	// TODO:  better move this crap to gfx::context
 	static IBO *ibo_;
 	static int refcount_;
 

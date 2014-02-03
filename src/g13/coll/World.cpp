@@ -1,5 +1,9 @@
-#include <g13/g13.h>
-#include "collision.h"
+#include "World.h"
+#include "Hull.h"
+#include "Result.h"
+
+#include <g13/math.h>
+#include <json/json.h>
 #include <map>
 
 namespace g13 {
@@ -9,32 +13,99 @@ typedef std::map<const Segment*, Grid<Segment>::Location> locationmap_t;
 
 static void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &map);
 static void check_collision(const Segment &seg, const fixline &path, const fixrect &bbox, Result &res);
+
 static const fixed epsilon = fixed::from_value(2048); // 0,03125 = 1 / 32
 
 template std::vector<const Segment*> &World::retrieve<Segment>(const fixrect &bounds) const;
 template std::vector<const entity_t*> &World::retrieve<entity_t>(const fixrect &bounds) const;
 
+static inline bool is_floor(const fixline &line)
+{
+	// winding: is_floor(vec2(10,0), vec2(0,0)) = true
+
+	return line.p1.x != line.p2.x && fpm::fabs(fpm::slope(line)) <= 2 &&
+		fpm::dot(fixvec2(0, -1), fpm::normal(line)) > 0;
+}
+
+static inline bool is_floor(const fixvec2 &a, const fixvec2 &b)
+{
+	return is_floor(fixline(a, b));
+}
+
 // World
 
-World::World(const fixrect &bounds)
-	:	segmentsGrid_(0),
-		entitiesGrid_(0),
-		bounds_(bounds),
-		gravity_(1470)
-{
-	const fixvec2 cellsize(200);
-
-	const int cols = fpm::ceil(bounds.width()  / cellsize.x).to_int();
-	const int rows = fpm::ceil(bounds.height() / cellsize.y).to_int();
-
-	segmentsGrid_ = new Grid<Segment>(cols, rows, bounds);
-	entitiesGrid_ = new Grid<entity_t>(cols, rows, bounds);
-}
+World::World() : segmentsGrid_(0), entitiesGrid_(0) { unload(); }
 
 World::~World()
 {
-	delete segmentsGrid_;
-	delete entitiesGrid_;
+	unload();
+}
+
+void World::load(const Json::Value &data)
+{
+	unload();
+
+	gravity_ = 1470;
+
+	{
+		const fixvec2 cellsize(200); // arbitrary...
+
+		const fixed W = fixed(data["width"].asFloat());
+		const fixed H = fixed(data["height"].asFloat());
+
+		const int cols = fpm::ceil(W / cellsize.x).to_int();
+		const int rows = fpm::ceil(H / cellsize.y).to_int();
+
+		bounds_ = fixrect(-W / 2, -H / 2, W / 2, H / 2);
+
+		segmentsGrid_ = new Grid<Segment>(cols, rows, bounds_);
+		entitiesGrid_ = new Grid<entity_t>(cols, rows, bounds_);
+	}
+
+	const Json::Value &spawnpoints = data["spawnpoints"];
+
+	for (Json::ArrayIndex i = 0; i < spawnpoints.size(); i++)
+	{
+		spawnpoints_.push_back(fixvec2(
+			fixed::from_value(spawnpoints[i]["x"].asInt()),
+			fixed::from_value(spawnpoints[i]["y"].asInt())
+		));
+	}
+
+	const Json::Value &collisionData = data["collision"];
+
+	std::vector<Linestrip> linestrips(collisionData.size());
+
+	for (Json::ArrayIndex i = 0; i < collisionData.size(); i++)
+	{
+		const Json::Value &linestripData = collisionData[i];
+		coll::World::Linestrip &linestrip = linestrips[i];
+
+		linestrip.resize(linestripData.size());
+
+		for (Json::ArrayIndex j = 0; j < linestripData.size(); j++)
+		{
+			const Json::Value &p = linestripData[j];
+
+			linestrip[j].x = fixed::from_value(p["x"].asInt());
+			linestrip[j].y = fixed::from_value(p["y"].asInt());
+		}
+	}
+
+	create(linestrips);
+}
+
+void World::unload()
+{
+	if (segmentsGrid_ != 0) delete segmentsGrid_;
+	if (entitiesGrid_ != 0) delete entitiesGrid_;
+
+	segmentsGrid_ = 0;
+	entitiesGrid_ = 0;
+
+	gravity_ = 0;
+	bounds_ = fixrect();
+	spawnpoints_.clear();
 }
 
 void World::create(const std::vector<Linestrip> &linestrips)

@@ -7,7 +7,7 @@
 #include <hlp/split.h>
 #include <hlp/to_int.h>
 
-#include <g13/net/Player.h>
+#include <g13/net/constants.h>
 
 namespace g13 {
 namespace stt {
@@ -143,14 +143,14 @@ void MainMenu::draw(const Frame &frame)
 	}
 }
 
-bool MainMenu::event(Event *evt)
+bool MainMenu::onEvent(const sys::Event &event)
 {
-	switch (evt->type)
+	switch (event.type)
 	{
-		case Event::KeyPressed:  onKeyPressed(evt->key); break;
-		case Event::KeyRepeat:   onKeyPressed(evt->key); break;
-		case Event::TextEntered: onText(evt->text);      break;
-		default:                                         break;
+		case sys::KeyPress:  onKeyPressed(event.key); break;
+		case sys::KeyRepeat: onKeyPressed(event.key); break;
+		case sys::Text:      onText(event.text);      break;
+		default:                                      break;
 	}
 
 	return true;
@@ -247,10 +247,15 @@ void MainMenu::command()
 				{
 					saveConfig();
 
+					std::string nick;
 					std::string port;
-					hlp::utf8_encode(port_, port);
 
-					g13::set_state(new Multiplayer(name_, player_colors[color_], hlp::to_int(port)));
+					hlp::utf8_encode(port_, port);
+					hlp::utf8_encode(name_, nick);
+
+					const gfx::Color &color = player_colors[color_];
+
+					g13::set_state(new Multiplayer(nick.c_str(), color, hlp::to_int(port)));
 
 					delete this;
 				}
@@ -271,14 +276,19 @@ void MainMenu::command()
 				{
 					saveConfig();
 
+					std::string nick;
 					std::string addr;
+
+					hlp::utf8_encode(name_, nick);
 					hlp::utf8_encode(address_, addr);
 					hlp::strvector parts = hlp::split(addr, ':');
 
 					const char *host = parts[0].c_str();
 					int port = hlp::to_int(parts[1]);
 
-					g13::set_state(new Multiplayer(name_, player_colors[color_], host, port));
+					const gfx::Color &color = player_colors[color_];
+
+					g13::set_state(new Multiplayer(nick.c_str(), color, host, port));
 
 					delete this;
 				}
@@ -289,7 +299,7 @@ void MainMenu::command()
 	}
 }
 
-void MainMenu::onKeyPressed(const Event::KeyEvent &key)
+void MainMenu::onKeyPressed(const sys::Event::KeyEvent &key)
 {
 	switch (key.code)
 	{
@@ -390,8 +400,8 @@ void MainMenu::onKeyPressed(const Event::KeyEvent &key)
 
 					*value += hlp::utf8_decode(clipboard);
 
-					if (value == &name_ && value->size() > net::Player::MaxNameLength)
-						value->resize(net::Player::MaxNameLength);
+					if (value == &name_ && value->size() > net::MaxNickLength)
+						value->resize(net::MaxNickLength);
 
 					currentOptions_[selected_].value(*label + *value + caret);
 				}
@@ -401,7 +411,7 @@ void MainMenu::onKeyPressed(const Event::KeyEvent &key)
 	}
 }
 
-void MainMenu::onText(const Event::TextEvent &text)
+void MainMenu::onText(const sys::Event::TextEvent &text)
 {
 	if (isTextOption(menu_, selected_))
 	{
@@ -409,7 +419,7 @@ void MainMenu::onText(const Event::TextEvent &text)
 		const string32_t *label = MainMenu::label(menu_, selected_);
 		string32_t *value = MainMenu::value(menu_, selected_);
 
-		if (value != &name_ || value->size() < net::Player::MaxNameLength)
+		if (value != &name_ || value->size() < net::MaxNickLength)
 		{
 			*value += text.ch;
 			currentOptions_[selected_].value(*label + *value + caret);

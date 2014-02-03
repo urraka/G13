@@ -14,4 +14,9 @@ public:
 	T   data;
 };
 
+template<typename T> Ticked<T> make_ticked(int tick, const T &data)
+{
+	return Ticked<T>(tick, data);
+}
+
 }} // g13::net

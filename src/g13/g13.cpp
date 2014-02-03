@@ -6,13 +6,10 @@
 
 #include <gfx/gfx.h>
 #include <enet/enet.h>
+#include <hlp/enet_callbacks.h>
 #include <fstream>
 
 namespace g13 {
-
-#ifdef DEBUG
-	Debugger *dbg = 0;
-#endif
 
 static stt::State *state = 0;
 
@@ -31,10 +28,6 @@ static const Time frame_max = sys::time<sys::Milliseconds>(250);
 
 void initialize()
 {
-	#ifdef DEBUG
-		dbg = new Debugger();
-	#endif
-
 	bool fullscreen = false;
 
 	sys::samples(4);
@@ -100,7 +93,7 @@ void initialize()
 	sys::framebuffer_size(&width, &height);
 	gfx::viewport(width, height, sys::window_rotation());
 
-	if (enet_initialize() != 0)
+	if (enet_initialize_with_callbacks(ENET_VERSION, hlp::enet_callbacks) != 0)
 		error_log("Failed to initialize enet.");
 
 	state = new stt::MainMenu();
@@ -116,7 +109,7 @@ void initialize()
 void terminate()
 {
 	#ifdef DEBUG
-		delete dbg;
+		hlp::enet_callbacks_counters();
 	#endif
 
 	if (state != 0)
@@ -133,23 +126,18 @@ void terminate()
 
 void display()
 {
-	while (Event *event = sys::poll_events())
+	while (const sys::Event *event = sys::poll_events())
 	{
-		#ifdef DEBUG
-			if (!dbg->event(event))
-				continue;
-		#endif
-
-		if (!state->event(event))
+		if (!state->onEvent(*event))
 			continue;
 
 		switch (event->type)
 		{
-			case Event::Resized:
+			case sys::Resize:
 				gfx::viewport(event->size.fboWidth, event->size.fboHeight, event->size.rotation);
 				break;
 
-			case Event::Closed:
+			case sys::Close:
 				return;
 
 			default: break;
@@ -164,11 +152,6 @@ void display()
 
 	if (fps_time >= sec)
 	{
-		#ifdef DEBUG
-			if (dbg->showFPS)
-				debug_log("FPS: " << fps_count << " - Frame time: " << frameTime);
-		#endif
-
 		fps_time -= sec;
 		fps_count = 0;
 	}
@@ -184,10 +167,6 @@ void display()
 	Frame frame = {time, frameTime, float(accumulator / (double)dt)};
 
 	state->draw(frame);
-
-	// #ifdef DEBUG
-	// 	dbg->drawConsole();
-	// #endif
 
 	accumulator += frameTime;
 

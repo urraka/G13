@@ -1,7 +1,13 @@
 #pragma once
 
+#include <g13/math.h>
+#include "Hull.h"
+
 namespace g13 {
 namespace coll {
+
+class Segment;
+class Entity;
 
 class Result
 {

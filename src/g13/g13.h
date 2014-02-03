@@ -11,12 +11,7 @@ namespace g13 {
 
 typedef std::basic_string<uint32_t> string32_t;
 
-typedef sys::Time  Time;
-typedef sys::Event Event;
-
-#ifdef DEBUG
-	extern Debugger *dbg;
-#endif
+typedef sys::Time Time;
 
 class Frame
 {

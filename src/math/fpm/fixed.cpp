@@ -45,13 +45,13 @@ bool fixed::operator< (fixed const & rhs) const { return value_ <  rhs.value_; }
 bool fixed::operator> (fixed const & rhs) const { return value_ >  rhs.value_; }
 
 fixed fixed::operator- ()                  const { return from_value(-value_);                       }
-fixed fixed::operator++(int)               const { return from_value(fix16_add(value_, fixed::one.value_)); }
-fixed fixed::operator--(int)               const { return from_value(fix16_sub(value_, fixed::one.value_)); }
-fixed fixed::operator+ (fixed const & rhs) const { return from_value(fix16_add(value_, rhs.value_));        }
-fixed fixed::operator- (fixed const & rhs) const { return from_value(fix16_sub(value_, rhs.value_));        }
-fixed fixed::operator* (fixed const & rhs) const { return from_value(fix16_mul(value_, rhs.value_));        }
-fixed fixed::operator/ (fixed const & rhs) const { return from_value(fix16_div(value_, rhs.value_));        }
+fixed fixed::operator+ (fixed const & rhs) const { return from_value(fix16_add(value_, rhs.value_)); }
+fixed fixed::operator- (fixed const & rhs) const { return from_value(fix16_sub(value_, rhs.value_)); }
+fixed fixed::operator* (fixed const & rhs) const { return from_value(fix16_mul(value_, rhs.value_)); }
+fixed fixed::operator/ (fixed const & rhs) const { return from_value(fix16_div(value_, rhs.value_)); }
 
+fixed  fixed::operator++(int)               { fixed result = *this; ++(*this); return result; }
+fixed  fixed::operator--(int)               { fixed result = *this; --(*this); return result; }
 fixed& fixed::operator++()                  { value_ = fix16_add(value_, fixed::one.value_); return *this; }
 fixed& fixed::operator--()                  { value_ = fix16_sub(value_, fixed::one.value_); return *this; }
 fixed& fixed::operator+=(fixed const & rhs) { value_ = fix16_add(value_, rhs.value_);        return *this; }

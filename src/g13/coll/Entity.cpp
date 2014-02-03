@@ -1,5 +1,5 @@
-#include "collision.h"
-#include <g13/math.h>
+#include "Entity.h"
+#include "Segment.h"
 #include <algorithm>
 #include <assert.h>
 

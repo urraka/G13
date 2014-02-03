@@ -2,7 +2,7 @@
 
 #include <g13/g13.h>
 #include <g13/math.h>
-#include <g13/coll/collision.h>
+#include <g13/coll/Hull.h>
 
 namespace g13 {
 namespace cmp {
@@ -12,7 +12,7 @@ class SoldierPhysics
 public:
 	SoldierPhysics();
 
-	void update(Time dt);
+	void update(Time dt, const coll::World &world, const SoldierInput &input);
 	void reset(fixvec2 pos);
 	bool ducking() const;
 	bool floor() const;
@@ -27,9 +27,6 @@ public:
 	fixvec2 position;
 	fixvec2 velocity;
 	fixvec2 acceleration;
-
-	const SoldierInput *input;
-	const coll::World *world;
 
 private:
 	bool ducked_;

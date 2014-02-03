@@ -11,34 +11,26 @@ namespace gfx {
 IBO *SpriteBatch::ibo_ = 0;
 int SpriteBatch::refcount_ = 0;
 
-SpriteBatch::SpriteBatch(size_t maxSize, Usage usage)
-	:	vbo_(new VBO()),
-		texture_(0),
-		size_(0),
-		maxSize_(maxSize),
-		usage_(usage)
+SpriteBatch::SpriteBatch() : texture_(0), size_(0), maxSize_(0), usage_(Dynamic)
 {
-	if (ibo_ == 0)
-		ibo_ = new IBO();
-
-	vbo_ = new VBO(ibo_);
-
-	resize(maxSize);
-
 	refcount_++;
+}
+
+SpriteBatch::SpriteBatch(size_t maxSize, Usage usage) : texture_(0), size_(0)
+{
+	refcount_++;
+	resize(maxSize, usage);
 }
 
 SpriteBatch::~SpriteBatch()
 {
 	refcount_--;
 
-	if (refcount_ == 0)
+	if (refcount_ == 0 && ibo_ != 0)
 	{
 		delete ibo_;
 		ibo_ = 0;
 	}
-
-	delete vbo_;
 }
 
 void SpriteBatch::clear()
@@ -46,9 +38,12 @@ void SpriteBatch::clear()
 	size_ = 0;
 }
 
-void SpriteBatch::resize(size_t maxSize)
+void SpriteBatch::resize(size_t maxSize, Usage usage)
 {
 	clear();
+
+	if (ibo_ == 0)
+		ibo_ = new IBO();
 
 	if (ibo_->size() < maxSize * 6)
 	{
@@ -65,10 +60,13 @@ void SpriteBatch::resize(size_t maxSize)
 		}
 	}
 
-	if (vbo_->size() < maxSize * 4)
-		vbo_->allocate<SpriteVertex>(maxSize * 4, usage_);
+	vbo_.ibo(ibo_);
+
+	if (vbo_.size() < maxSize * 4)
+		vbo_.allocate<SpriteVertex>(maxSize * 4, usage);
 
 	maxSize_ = maxSize;
+	usage_ = usage;
 }
 
 void SpriteBatch::add(const Sprite &sprite)
@@ -77,7 +75,7 @@ void SpriteBatch::add(const Sprite &sprite)
 
 	SpriteVertex v[4];
 	sprite.vertices(v);
-	vbo_->set(v, 4 * size_, 4);
+	vbo_.set(v, 4 * size_, 4);
 	size_++;
 }
 
@@ -88,6 +86,7 @@ void SpriteBatch::add(const Sprite *sprites, size_t count)
 	const size_t N = 128;
 	size_t uploaded = 0;
 
+	// TODO: keep some buffer in context instead, resize it as needed
 	SpriteVertex v[N][4];
 
 	while (uploaded < count)
@@ -97,7 +96,7 @@ void SpriteBatch::add(const Sprite *sprites, size_t count)
 		for (size_t i = 0; i < n; i++)
 			sprites[uploaded + i].vertices(v[i]);
 
-		vbo_->set(&v[0][0], 4 * size_, 4 * n);
+		vbo_.set(&v[0][0], 4 * size_, 4 * n);
 
 		uploaded += n;
 		size_ += n;
@@ -111,22 +110,7 @@ void SpriteBatch::texture(Texture *texture)
 
 void SpriteBatch::shader(Shader *shader)
 {
-	vbo_->shader(shader);
-}
-
-Texture *SpriteBatch::texture() const
-{
-	return texture_;
-}
-
-size_t SpriteBatch::size() const
-{
-	return size_;
-}
-
-size_t SpriteBatch::capacity() const
-{
-	return maxSize_;
+	vbo_.shader(shader);
 }
 
 void SpriteBatch::draw(size_t offset, size_t count)
@@ -137,7 +121,7 @@ void SpriteBatch::draw(size_t offset, size_t count)
 		return;
 
 	gfx::bind(texture_);
-	gfx::draw(vbo_, 6 * offset, 6 * count);
+	gfx::draw(&vbo_, 6 * offset, 6 * count);
 }
 
 } // gfx

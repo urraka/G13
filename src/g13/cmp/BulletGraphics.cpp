@@ -5,20 +5,20 @@
 namespace g13 {
 namespace cmp {
 
-void BulletGraphics::update(Time dt, const BulletPhysics *physics)
+void BulletGraphics::update(Time dt, const BulletPhysics &physics)
 {
 	position.previous = position.current;
 	velocity.previous = velocity.current;
 	angle.previous = angle.current;
 
-	position.current = from_fixed(physics->position);
-	velocity.current = glm::length(from_fixed(physics->velocity));
+	position.current = from_fixed(physics.position);
+	velocity.current = glm::length(from_fixed(physics.velocity));
 
 	vec2 delta = position.current - position.previous;
 	angle.current = glm::atan(delta.y, delta.x);
 }
 
-void BulletGraphics::frame(Frame frame)
+void BulletGraphics::frame(const Frame &frame)
 {
 	position.interpolate(frame.percent);
 	velocity.interpolate(frame.percent);

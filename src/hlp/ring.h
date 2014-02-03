@@ -57,6 +57,12 @@ public:
 		return buffer_[(head_ + index) % N];
 	}
 
+	const T &front() const { return (*this)[0]; }
+	const T &back() const { return (*this)[size_ - 1]; }
+
+	T &front() { return (*this)[0]; }
+	T &back() { return (*this)[size_ - 1]; }
+
 private:
 	T buffer_[N];
 	size_t head_;

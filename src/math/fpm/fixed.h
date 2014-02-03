@@ -59,13 +59,13 @@ public:
 	bool operator> (fixed const & rhs) const;
 
 	fixed operator- ()                  const;
-	fixed operator++(int)               const;
-	fixed operator--(int)               const;
 	fixed operator+ (fixed const & rhs) const;
 	fixed operator- (fixed const & rhs) const;
 	fixed operator* (fixed const & rhs) const;
 	fixed operator/ (fixed const & rhs) const;
 
+	fixed  operator++(int);
+	fixed  operator--(int);
 	fixed& operator++();
 	fixed& operator--();
 	fixed& operator+=(fixed const & rhs);
