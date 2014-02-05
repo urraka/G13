@@ -317,14 +317,20 @@ void Renderer::onPlayerDie(Player *player)
 
 void Renderer::onPlayerChat(Player *player, const char *text)
 {
-	chat[player->id].time = 0;
-	chat[player->id].text.value(hlp::utf8_decode(text));
+	if (player->state == Player::Playing)
+	{
+		chat[player->id].time = 0;
+		chat[player->id].text.value(hlp::utf8_decode(text));
+	}
 }
 
 void Renderer::onPlayerChat(Player *player, const string32_t &text)
 {
-	chat[player->id].time = 0;
-	chat[player->id].text.value(text);
+	if (player->state == Player::Playing)
+	{
+		chat[player->id].time = 0;
+		chat[player->id].text.value(text);
+	}
 }
 
 void Renderer::onPlayerDamage(Player *player)
