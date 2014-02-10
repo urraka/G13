@@ -227,10 +227,8 @@ void Renderer::draw(const Frame &frame)
 			gfx::identity();
 			health.draw();
 
-			if (localPlayer->state != Player::Playing)
+			if (localPlayer->state != Player::Playing && client->matchInfo_.playing)
 			{
-				// TODO: click to play
-
 				const gfx::Text::Bounds &bounds = clickToPlay.bounds();
 
 				float x = -bounds.x + 0.5f * (camera.viewportWidth() - bounds.width);
@@ -307,11 +305,17 @@ void Renderer::onPlayerJoin(Player *player)
 	}
 }
 
-void Renderer::onPlayerDie(Player *player)
+void Renderer::onPlayerDamage(Player *attacker, Player *victim)
 {
-	chat[player->id].time = MaxChatTime;
+	if (client->isLocalPlayer(victim))
+		health.setPercent(victim->health / (float)MaxHealth);
+}
 
-	if (client->isLocalPlayer(player))
+void Renderer::onPlayerKill(Player *attacker, Player *victim)
+{
+	chat[victim->id].time = MaxChatTime;
+
+	if (client->isLocalPlayer(victim))
 		sys::set_cursor(0);
 }
 
@@ -333,10 +337,9 @@ void Renderer::onPlayerChat(Player *player, const string32_t &text)
 	}
 }
 
-void Renderer::onPlayerDamage(Player *player)
+void Renderer::onMatchStart()
 {
-	if (client->isLocalPlayer(player))
-		health.setPercent(player->health / (float)MaxHealth);
+	sys::set_cursor(0);
 }
 
 

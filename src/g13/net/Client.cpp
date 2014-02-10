@@ -149,6 +149,9 @@ void Client::initialize()
 
 	renderer_.initialize();
 
+	matchInfo_.playing = false;
+	matchInfo_.start = 0;
+
 	joinRequestSent_ = false;
 }
 
@@ -233,7 +236,7 @@ void Client::sendPongMessage()
 
 void Client::sendJoinRequestMessage()
 {
-	if (!joinRequestSent_)
+	if (!joinRequestSent_ && matchInfo_.playing)
 	{
 		Connection::send(msg::JoinRequest());
 		joinRequestSent_ = true;
@@ -308,6 +311,8 @@ void Client::onMessage(const msg::Message *msg, Peer)
 		CASE(GameState);
 		CASE(Bullet);
 		CASE(Damage);
+		CASE(MatchStart);
+		CASE(MatchEnd);
 
 		default:
 			assert(false);
@@ -337,6 +342,9 @@ void Client::onServerInfo(const msg::ServerInfo &msg)
 	localPlayerStorage_.soldier.id = msg.clientId;
 	localPlayer_ = &localPlayerStorage_;
 
+	matchInfo_.playing = msg.matchPlaying;
+	matchInfo_.start = msg.matchStartTick;
+
 	loadMap(0);
 
 	connectingProgress_.remainingPlayers = msg.nPlayers;
@@ -356,6 +364,8 @@ void Client::onPlayerInfo(const msg::PlayerInfo &msg)
 	player->nickname    = msg.name;
 	player->color       = gfx::Color(msg.color[0], msg.color[1], msg.color[2]);
 	player->health      = msg.health;
+	player->kills       = msg.kills;
+	player->deaths      = msg.deaths;
 	player->connectTick = msg.connectTick;
 	player->spawnTick   = msg.currentTick;
 
@@ -380,6 +390,8 @@ void Client::onPlayerConnect(const msg::PlayerConnect &msg)
 	player->nickname    = msg.name;
 	player->color       = gfx::Color(msg.color[0], msg.color[1], msg.color[2]);
 	player->connectTick = msg.tick;
+	player->kills       = 0;
+	player->deaths      = 0;
 
 	remotePlayers_.push_back(player);
 
@@ -461,26 +473,61 @@ void Client::onBullet(const msg::Bullet &msg)
 
 		int tick = msg.tick - msg.bullets[i].tickOffset;
 
-		if (player->connected() && tick >= player->connectTick)
+		if (player->connected() && tick >= player->connectTick && tick >= matchInfo_.start)
 			player->onBullet(tick, msg.bullets[i].params);
 	}
 }
 
 void Client::onDamage(const msg::Damage &msg)
 {
-	Player *player = getPlayerById(msg.playerId);
+	Player *attacker = msg.hasAttacker ? getPlayerById(msg.attacker) : 0;
+	Player *victim = getPlayerById(msg.victim);
 
-	player->health -= msg.amount;
+	victim->health -= msg.amount;
 
-	if (player->health <= 0)
+	if (victim->health <= 0)
 	{
-		player->state = Player::Spectator;
-		player->health = 0;
+		victim->state = Player::Spectator;
+		victim->health = 0;
+		victim->deaths++;
 
-		renderer_.onPlayerDie(player);
+		if (attacker != 0)
+			attacker->kills++;
+
+		renderer_.onPlayerKill(attacker, victim);
 	}
 
-	renderer_.onPlayerDamage(player);
+	renderer_.onPlayerDamage(attacker, victim);
+}
+
+void Client::onMatchStart(const msg::MatchStart &msg)
+{
+	matchInfo_.playing = true;
+	matchInfo_.start = msg.tick;
+
+	joinRequestSent_ = false;
+
+	localPlayer_->state = Player::Spectator;
+	localPlayer_->bullets.clear();
+	localPlayer_->kills = 0;
+	localPlayer_->deaths = 0;
+
+	for (size_t i = 0; i < remotePlayers_.size(); i++)
+	{
+		RemotePlayer *player = remotePlayers_[i];
+
+		player->state = Player::Spectator;
+		player->bullets.clear();
+		player->kills = 0;
+		player->deaths = 0;
+	}
+
+	renderer_.onMatchStart();
+}
+
+void Client::onMatchEnd(const msg::MatchEnd &msg)
+{
+	matchInfo_.playing = false;
 }
 
 }} // g13::net

@@ -46,6 +46,22 @@ public:
 	State state() const { return state_; }
 
 private:
+	// internal structs
+
+	struct ConnectingProgress
+	{
+		int remainingPlayers;
+		bool ready() { return remainingPlayers == 0; }
+	};
+
+	struct MatchInfo
+	{
+		int  start;
+		bool playing;
+	};
+
+	// member variables
+
 	int tick_;
 	State state_;
 
@@ -61,14 +77,8 @@ private:
 	RemotePlayer remotePlayersStorage_[MaxPlayers];
 
 	Renderer renderer_;
-
-	struct ConnectingProgress
-	{
-		int remainingPlayers;
-		bool ready() { return remainingPlayers == 0; }
-	};
-
 	ConnectingProgress connectingProgress_;
+	MatchInfo matchInfo_;
 
 	bool joinRequestSent_;
 
@@ -114,6 +124,8 @@ private:
 	void onGameState(const msg::GameState &msg);
 	void onBullet(const msg::Bullet &msg);
 	void onDamage(const msg::Damage &msg);
+	void onMatchStart(const msg::MatchStart &msg);
+	void onMatchEnd(const msg::MatchEnd &msg);
 
 	friend class Renderer;
 };

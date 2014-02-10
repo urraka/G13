@@ -1,4 +1,7 @@
 Game
+  - Show scores (kills/deaths).
+  x Keep updating the game even after match ends. Reset everything when it starts.
+  - Add net::GameMode base class (linked to net::Server).
   - Count kills/deaths etc.
   - Match start/end.
   - Some kind of rope (like in teeworlds).
@@ -14,33 +17,33 @@ Game
   - Maybe get rid of the interpolable object.
   - Pick different font sizes depending window width.
   - Use font size to calculate chatbox height.
-  - There's no reason to have all gfx objects as pointers in net::Client.
+  x There's no reason to have all gfx objects as pointers in net::Client.
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
     ~ This is an intersection precision problem, when endpoint is very near the line.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
   - Make a class for the chatbox.
-  - Move all the Client rendering to a separate class.
+  x Move all the Client rendering to a separate class.
   - Think how the event system should work. Consider some minimalistic ui system.
-  - Separate collision map from map rendering stuff.
+  x Separate collision map from map rendering stuff.
   - Find ultimate solution for the collision bugs.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Networking
-  - msg::PlayerConnect should tell state, health, etc.
-  - Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
+  x msg::PlayerConnect should tell state, health, etc.
+  x Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
   - When you die and re-join might be a good time to re-sync client tick if needed.
-  - Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  - Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
+  x Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
+  x Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
     ~ Setting peer-data to id could help with this.
-  - Check where peer->mtu is negotiated.
+  x Check where peer->mtu is negotiated.
   - Add some client side correcting if out of sync when needed.
     ~ Should only be needed in explosions or anything "external" that changes your physics state.
-  - Move BitStream to hlp, could be useful for binary files aswell.
-  - Set timeouts on both client and server.
+  x Move BitStream to hlp, could be useful for binary files aswell.
+  x Set timeouts on both client and server.
   - Consider adding range checks on packet serialization.
-  - Don't send gamestate of local player every time.
-  - Remove Client::active() and make some easier to understand checks instead.
-  - Set channel on message definitions.
+  x Don't send gamestate of local player every time.
+  x Remove Client::active() and make some easier to understand checks instead.
+  x Set channel on message definitions.
   - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
 
 Graphics

@@ -27,10 +27,11 @@ public:
 
 	void onPlayerConnect(Player *player);
 	void onPlayerJoin(Player *player);
-	void onPlayerDie(Player *player);
+	void onPlayerDamage(Player *attacker, Player *victim);
+	void onPlayerKill(Player *attacker, Player *victim);
 	void onPlayerChat(Player *player, const char *text);
 	void onPlayerChat(Player *player, const string32_t &text);
-	void onPlayerDamage(Player *player);
+	void onMatchStart();
 
 	// structs
 

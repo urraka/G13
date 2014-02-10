@@ -44,6 +44,9 @@ public:
 	int health;
 	ent::Soldier soldier;
 	std::vector<ent::Bullet> bullets;
+
+	int kills;
+	int deaths;
 };
 
 }} // g13::net

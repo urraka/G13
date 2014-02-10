@@ -44,6 +44,8 @@ namespace g13
 			class GameState;
 			class Bullet;
 			class Damage;
+			class MatchStart;
+			class MatchEnd;
 		}
 	}
 

@@ -11,7 +11,6 @@ void ServerPlayer::initialize()
 	peer = Peer(0);
 	tick = 0;
 	connectTick = 0;
-	disconnectTick = 0;
 	disconnectCountdown = -1;
 	inputTick = 0;
 

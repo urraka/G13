@@ -32,7 +32,6 @@ public:
 
 	int tick;
 	int connectTick;
-	int disconnectTick;
 	int disconnectCountdown; // unset = -1;
 	int inputTick;
 

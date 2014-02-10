@@ -10,6 +10,12 @@
 #define WRAPPER_PTR(data, T) (wrapper_t<T>*)((char*)data - WRAPPER_OFFSET(T))
 #define MALLOC_OFFSET        (offsetof(struct {char a; ::hlp::structures_t b;}, b))
 
+#ifdef DEBUG
+	#define INC(x) callbacks.x++
+#else
+	#define INC(x)
+#endif
+
 namespace hlp {
 
 static void *cb_malloc(size_t size);
@@ -50,7 +56,9 @@ enum
 struct callbacks_t
 {
 	callbacks_t()
-		:	enet(),
+		:	enet()
+#ifdef DEBUG
+			,
 			pckCount(0),
 			outCount(0),
 			incCount(0),
@@ -58,6 +66,7 @@ struct callbacks_t
 			bufsCount(),
 			otherCount(0),
 			otherCounts()
+#endif
 	{
 		enet.malloc = cb_malloc;
 		enet.free = cb_free;
@@ -77,14 +86,15 @@ struct callbacks_t
 	hlp::pool<wrapper_t<static_buffer1024>,    2> buf1024Pool;
 	hlp::pool<wrapper_t<static_buffer2048>,    1> buf2048Pool;
 
+#ifdef DEBUG
 	int pckCount;
 	int outCount;
 	int incCount;
 	int ackCount;
 	int bufsCount[7];
 	int otherCount;
-
 	int otherCounts[32];
+#endif
 };
 
 // This is to calculate memory alignment.. just in case. ENetRangeCoder couldn't make it here,
@@ -117,8 +127,7 @@ void *cb_malloc(size_t size)
 			type = Packet;
 			wrapper_t<ENetPacket> *storage = callbacks.pckPool.alloc();
 			result = &storage->data;
-
-			callbacks.pckCount++;
+			INC(pckCount);
 		}
 		break;
 
@@ -127,8 +136,7 @@ void *cb_malloc(size_t size)
 			type = OutgoingCommand;
 			wrapper_t<ENetOutgoingCommand> *storage = callbacks.outPool.alloc();
 			result = &storage->data;
-
-			callbacks.outCount++;
+			INC(outCount);
 		}
 		break;
 
@@ -137,8 +145,7 @@ void *cb_malloc(size_t size)
 			type = IncomingCommand;
 			wrapper_t<ENetIncomingCommand> *storage = callbacks.incPool.alloc();
 			result = &storage->data;
-
-			callbacks.incCount++;
+			INC(incCount);
 		}
 		break;
 
@@ -147,8 +154,7 @@ void *cb_malloc(size_t size)
 			type = Acknowledgement;
 			wrapper_t<ENetAcknowledgement> *storage = callbacks.ackPool.alloc();
 			result = &storage->data;
-
-			callbacks.ackCount++;
+			INC(ackCount);
 		}
 		break;
 
@@ -161,61 +167,63 @@ void *cb_malloc(size_t size)
 				type = StaticBuffer32;
 				wrapper_t<static_buffer32> *storage = callbacks.buf32Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[0]++;
+				INC(bufsCount[0]);
 			}
 			else if (size <= sizeof(static_buffer64))
 			{
 				type = StaticBuffer64;
 				wrapper_t<static_buffer64> *storage = callbacks.buf64Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[1]++;
+				INC(bufsCount[1]);
 			}
 			else if (size <= sizeof(static_buffer128))
 			{
 				type = StaticBuffer128;
 				wrapper_t<static_buffer128> *storage = callbacks.buf128Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[2]++;
+				INC(bufsCount[2]);
 			}
 			else if (size <= sizeof(static_buffer256))
 			{
 				type = StaticBuffer256;
 				wrapper_t<static_buffer256> *storage = callbacks.buf256Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[3]++;
+				INC(bufsCount[3]);
 			}
 			else if (size <= sizeof(static_buffer512))
 			{
 				type = StaticBuffer512;
 				wrapper_t<static_buffer512> *storage = callbacks.buf512Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[4]++;
+				INC(bufsCount[4]);
 			}
 			else if (size <= sizeof(static_buffer1024))
 			{
 				type = StaticBuffer1024;
 				wrapper_t<static_buffer1024> *storage = callbacks.buf1024Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[5]++;
+				INC(bufsCount[5]);
 			}
 			else if (size <= sizeof(static_buffer2048))
 			{
 				type = StaticBuffer2048;
 				wrapper_t<static_buffer2048> *storage = callbacks.buf2048Pool.alloc();
 				result = &storage->data;
-				callbacks.bufsCount[6]++;
+				INC(bufsCount[6]);
 			}
 			else
 			{
 				type = Other;
 				result = (char*)malloc(size + MALLOC_OFFSET) + MALLOC_OFFSET;
 
-				size_t i = 0;
-				while ((1u << i) < size) i++;
-				assert(i < countof(callbacks.otherCounts));
+				#ifdef DEBUG
+					size_t i = 0;
+					while ((1u << i) < size) i++;
+					assert(i < countof(callbacks.otherCounts));
 
-				callbacks.otherCounts[i]++;
-				callbacks.otherCount++;
+					callbacks.otherCounts[i]++;
+					callbacks.otherCount++;
+				#endif
 			}
 		}
 		break;
@@ -292,6 +300,7 @@ void cb_free(void *data)
 
 void enet_callbacks_counters()
 {
+#ifdef DEBUG
 	std::cout << std::endl << "ENet allocation counters:" << std::endl;
 
 	std::cout << "ENetPacket:          " << callbacks.pckCount     << std::endl;
@@ -311,6 +320,7 @@ void enet_callbacks_counters()
 
 	for (size_t i = 0; i < countof(callbacks.otherCounts); i++)
 		std::cout << "otherCounts[" << i << "]: " << callbacks.otherCounts[i] << std::endl;
+#endif
 }
 
 } // hlp

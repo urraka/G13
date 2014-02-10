@@ -28,10 +28,7 @@ public:
 	void stop();
 	void update(Time dt);
 
-	State state() const
-	{
-		return state_;
-	}
+	State state() const { return state_; }
 
 private:
 	int tick_;
@@ -39,9 +36,14 @@ private:
 
 	coll::World world_;
 
+	// Note on disconnectingPlayers_: They are already disconnected, but we still update their
+	// bullets. After their bullets are gone, we wait CountdownTicks before sending PlayerDisconnect
+	// to compensate a bit for clients lag. Also, they are still present in the players_ vector, but
+	// with state set to Disconnected.
+
 	std::vector<ServerPlayer*> players_;
 	std::vector<ServerPlayer*> connectingPlayers_;
-	std::vector<ServerPlayer*> disconnectingPlayers_; // already disconnected, but wait for bullets, etc
+	std::vector<ServerPlayer*> disconnectingPlayers_;
 	std::vector<ServerPlayer*> freePlayers_;
 
 	ServerPlayer playersStorage_[MaxPlayers];
@@ -50,10 +52,16 @@ private:
 
 	BulletQueue bulletQueue_; // used to broadcast bullet messages
 
+	bool matchPlaying_;
+	int  matchStartTick_;
+	int  matchEndTick_;
+
 	// helper methods
 
 	void initialize();
 	void loadMap(const char *name);
+	void startMatch();
+	void endMatch();
 
 	void updatePlayers(Time dt);
 	void updateBullets(Time dt);
@@ -61,20 +69,22 @@ private:
 	void updateDisconnectingPlayers();
 	void updatePlayerBullets(Time dt, ServerPlayer *player);
 
+	template<typename T>
+	void sendToConnectedPlayers(const T &msg, const ServerPlayer *exception = 0);
 	void sendBullets();
 	void sendBulletsTo(const ServerPlayer *targetPlayer);
 	void sendGameState();
 	void sendGameStateTo(const ServerPlayer *targetPlayer);
-	void sendLeaveMessage(const ServerPlayer *player);
-	void sendDamageMessage(const ServerPlayer *player, uint16_t amount);
+	void sendDamageMessage(const ServerPlayer *attacker, const ServerPlayer *victim, uint16_t amount);
 	void sendServerInfoMessage(const ServerPlayer *player);
 	void sendPlayerInfoMessages(const ServerPlayer *player);
 	void sendBulletInfoMessages(const ServerPlayer *player);
 	void sendPlayerConnectMessage(const ServerPlayer *player);
 	void sendPlayerDisconnectMessage(const ServerPlayer *player);
 	void sendPlayerJoinMessage(const ServerPlayer *player, const fixvec2 &position);
-
-	template<typename T> void sendToConnectedPlayers(const T &msg, const ServerPlayer *exception = 0);
+	void sendPlayerLeaveMessage(const ServerPlayer *player);
+	void sendMatchStartMessage();
+	void sendMatchEndMessage();
 
 	ServerPlayer *getPlayerById(int id);
 
@@ -82,6 +92,7 @@ private:
 
 	void onSpawnBullet(void *data);
 	void onPlayerBulletCollision(void *data);
+	void onPlayerKill(ServerPlayer *attacker, ServerPlayer *victim);
 
 	// net events
 

@@ -69,10 +69,14 @@ MESSAGE(ServerInfo, ReliableChannel)
 	int32_t tick;
 	uint8_t clientId;
 	uint8_t nPlayers;
+	int32_t matchStartTick;
+	bool    matchPlaying;
 BEGIN
 	Integer(tick)
 	Bits(clientId, MINBITS(MaxPlayers - 1))
 	Bits(nPlayers, MINBITS(MaxPlayers - 1))
+	Integer(matchStartTick)
+	Bool(matchPlaying)
 END
 
 MESSAGE(PlayerInfo, ReliableChannel)
@@ -81,6 +85,8 @@ MESSAGE(PlayerInfo, ReliableChannel)
 	uint8_t  color[3];
 	bool     playing;
 	uint16_t health;
+	uint16_t kills;
+	uint16_t deaths;
 	uint32_t connectTick;
 	uint32_t currentTick;
 	cmp::SoldierState soldierState;
@@ -92,6 +98,8 @@ BEGIN
 	Integer(color[2])
 	Bool(playing)
 	Integer(health)
+	Integer(kills)
+	Integer(deaths)
 	Integer(connectTick)
 	Integer(currentTick)
 	Fixed(soldierState.position.x)
@@ -198,12 +206,26 @@ END
 
 MESSAGE(Damage, ReliableChannel)
 	int32_t  tick;
-	uint8_t  playerId;
+	bool     hasAttacker;
+	uint8_t  attacker;
+	uint8_t  victim;
 	uint16_t amount;
 BEGIN
 	Integer(tick)
-	Bits(playerId, MINBITS(MaxPlayers - 1))
+	Bool(hasAttacker)
+	Bits(attacker, MINBITS(MaxPlayers - 1))
+	Bits(victim, MINBITS(MaxPlayers - 1))
 	Integer(amount)
+END
+
+MESSAGE(MatchStart, ReliableChannel)
+	int32_t tick;
+BEGIN
+END
+
+MESSAGE(MatchEnd, ReliableChannel)
+	int32_t tick;
+BEGIN
 END
 
 MESSAGES_END()

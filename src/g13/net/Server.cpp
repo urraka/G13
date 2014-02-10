@@ -9,6 +9,10 @@
 namespace g13 {
 namespace net {
 
+//******************************************************************************
+// General
+//******************************************************************************
+
 bool Server::start(int port)
 {
 	initialize();
@@ -26,39 +30,6 @@ void Server::stop()
 	Connection::stop();
 
 	state_ = Stopping;
-}
-
-void Server::update(Time dt)
-{
-	switch (state_)
-	{
-		case Running:
-		{
-			Connection::poll();
-
-			updatePlayers(dt);
-			updateBullets(dt);
-			updateConnectingPlayers();
-			updateDisconnectingPlayers();
-
-			sendBullets();
-
-			if (tick_ & 0x01)
-				sendGameState();
-
-			Connection::flush();
-
-			tick_++;
-		}
-		break;
-
-		case Stopping:
-			Connection::poll();
-			break;
-
-		case Stopped:
-			break;
-	}
 }
 
 void Server::initialize()
@@ -86,6 +57,10 @@ void Server::initialize()
 	}
 
 	bulletQueue_.clear();
+
+	matchPlaying_ = false;
+	matchStartTick_ = 0;
+	matchEndTick_ = 0;
 }
 
 void Server::loadMap(const char *name)
@@ -95,6 +70,83 @@ void Server::loadMap(const char *name)
 	json.parse(hlp::read("data/map_test2.json"), data);
 
 	world_.load(data);
+}
+
+void Server::startMatch()
+{
+	matchPlaying_ = true;
+	matchStartTick_ = tick_;
+
+	bulletQueue_.clear();
+
+	for (size_t i = 0; i < players_.size(); i++)
+	{
+		ServerPlayer *player = players_[i];
+
+		player->state = Player::Spectator;
+		player->bullets.clear();
+	}
+
+	for (size_t i = 0; i < disconnectingPlayers_.size(); i++)
+		disconnectingPlayers_[i]->disconnectCountdown = 1;
+
+	sendMatchStartMessage();
+}
+
+void Server::endMatch()
+{
+	matchPlaying_ = false;
+	matchEndTick_ = tick_;
+	sendMatchEndMessage();
+}
+
+ServerPlayer *Server::getPlayerById(int id)
+{
+	assert(id >= 0 && id < (int)countof(playersStorage_));
+
+	return &playersStorage_[id];
+}
+
+//******************************************************************************
+// Update methods
+//******************************************************************************
+
+void Server::update(Time dt)
+{
+	const float dts = sys::to_seconds(dt);
+
+	switch (state_)
+	{
+		case Running:
+		{
+			Connection::poll();
+
+			updateConnectingPlayers();
+			updateDisconnectingPlayers();
+			updatePlayers(dt);
+			updateBullets(dt);
+
+			sendBullets();
+
+			if (tick_ & 0x01)
+				sendGameState();
+
+			if (!matchPlaying_ && players_.size() > 0 && (tick_ - matchEndTick_) * dts >= 3.0f)
+				startMatch();
+
+			Connection::flush();
+
+			tick_++;
+		}
+		break;
+
+		case Stopping:
+			Connection::poll();
+			break;
+
+		case Stopped:
+			break;
+	}
 }
 
 void Server::updatePlayers(Time dt)
@@ -180,6 +232,19 @@ void Server::updatePlayerBullets(Time dt, ServerPlayer *player)
 	player->updateBullets(dt, world_);
 }
 
+//******************************************************************************
+// Send methods
+//******************************************************************************
+
+template<typename T> void Server::sendToConnectedPlayers(const T &msg, const ServerPlayer *exception)
+{
+	for (size_t i = 0; i < players_.size(); i++)
+	{
+		if (players_[i]->connected() && players_[i] != exception)
+			Connection::send(msg, players_[i]->peer);
+	}
+}
+
 void Server::sendBullets()
 {
 	for (size_t i = 0; i < players_.size(); i++)
@@ -256,21 +321,14 @@ void Server::sendGameStateTo(const ServerPlayer *targetPlayer)
 	Connection::send(msg, targetPlayer->peer);
 }
 
-void Server::sendLeaveMessage(const ServerPlayer *player)
-{
-	msg::PlayerLeave msg;
-	msg.tick = tick_;
-	msg.id = player->id;
-
-	sendToConnectedPlayers(msg, player);
-}
-
-void Server::sendDamageMessage(const ServerPlayer *player, uint16_t amount)
+void Server::sendDamageMessage(const ServerPlayer *attacker, const ServerPlayer *victim, uint16_t amount)
 {
 	msg::Damage msg;
 
 	msg.tick = tick_;
-	msg.playerId = player->id;
+	msg.hasAttacker = (attacker != 0);
+	msg.attacker = (attacker != 0 ? attacker->id : 0);
+	msg.victim = victim->id;
 	msg.amount = amount;
 
 	sendToConnectedPlayers(msg);
@@ -283,6 +341,8 @@ void Server::sendServerInfoMessage(const ServerPlayer *player)
 	msg.tick = tick_;
 	msg.clientId = player->id;
 	msg.nPlayers = players_.size();
+	msg.matchPlaying = matchPlaying_;
+	msg.matchStartTick = matchStartTick_;
 
 	Connection::send(msg, player->peer);
 }
@@ -351,21 +411,34 @@ void Server::sendPlayerJoinMessage(const ServerPlayer *player, const fixvec2 &po
 	sendToConnectedPlayers(msg);
 }
 
-template<typename T> void Server::sendToConnectedPlayers(const T &msg, const ServerPlayer *exception)
+void Server::sendPlayerLeaveMessage(const ServerPlayer *player)
 {
-	for (size_t i = 0; i < players_.size(); i++)
-	{
-		if (players_[i]->connected() && players_[i] != exception)
-			Connection::send(msg, players_[i]->peer);
-	}
+	msg::PlayerLeave msg;
+	msg.tick = tick_;
+	msg.id = player->id;
+
+	sendToConnectedPlayers(msg, player);
 }
 
-ServerPlayer *Server::getPlayerById(int id)
+void Server::sendMatchStartMessage()
 {
-	assert(id >= 0 && id < (int)countof(playersStorage_));
+	msg::MatchStart msg;
+	msg.tick = tick_;
 
-	return &playersStorage_[id];
+	sendToConnectedPlayers(msg);
 }
+
+void Server::sendMatchEndMessage()
+{
+	msg::MatchEnd msg;
+	msg.tick = tick_;
+
+	sendToConnectedPlayers(msg);
+}
+
+//******************************************************************************
+// Internal events
+//******************************************************************************
 
 void Server::onSpawnBullet(void *data)
 {
@@ -381,6 +454,9 @@ void Server::onSpawnBullet(void *data)
 
 void Server::onPlayerBulletCollision(void *data)
 {
+	if (!matchPlaying_)
+		return;
+
 	struct params_t
 	{
 		uint8_t bulletOwner;
@@ -388,20 +464,40 @@ void Server::onPlayerBulletCollision(void *data)
 	};
 
 	params_t *params = (params_t*)data;
-	ServerPlayer *player = (ServerPlayer*)params->entity->data;
+
+	ServerPlayer *attacker = getPlayerById(params->bulletOwner);
+	ServerPlayer *victim = (ServerPlayer*)params->entity->data;
 
 	int amount = MaxHealth / (20 + rand() % 5);
 
-	player->health -= amount;
+	victim->health -= amount;
 
-	if (player->health <= 0)
+	if (victim->health <= 0)
 	{
-		player->health = 0;
-		player->state = Player::Spectator;
+		victim->health = 0;
+		victim->state = Player::Spectator;
+
+		onPlayerKill(attacker, victim);
 	}
 
-	sendDamageMessage(player, amount);
+	sendDamageMessage(attacker, victim, amount);
 }
+
+void Server::onPlayerKill(ServerPlayer *attacker, ServerPlayer *victim)
+{
+	if (matchPlaying_)
+	{
+		attacker->kills++;
+		victim->deaths++;
+
+		if (attacker->kills >= 5)
+			endMatch();
+	}
+}
+
+//******************************************************************************
+// Network events
+//******************************************************************************
 
 void Server::onConnect(Peer peer)
 {
@@ -426,13 +522,13 @@ void Server::onConnect(Peer peer)
 void Server::onDisconnect(Peer peer)
 {
 	ServerPlayer *player = (ServerPlayer*)peer.data();
-
-	player->disconnectTick = tick_;
 	player->state = Player::Disconnected;
 
-	sendLeaveMessage(player);
-
+	sendPlayerLeaveMessage(player);
 	disconnectingPlayers_.push_back(player);
+
+	if (players_.size() == 1)
+		endMatch();
 }
 
 void Server::onMessage(const msg::Message *msg, Peer from)
@@ -482,6 +578,9 @@ void Server::onLogin(ServerPlayer *player, const msg::Login &msg)
 
 	connectingPlayers_.erase(std::find(connectingPlayers_.begin(), connectingPlayers_.end(), player));
 	players_.push_back(player);
+
+	if (players_.size() == 1)
+		startMatch();
 }
 
 void Server::onPong(ServerPlayer *player, const msg::Pong &msg)
@@ -492,7 +591,7 @@ void Server::onPong(ServerPlayer *player, const msg::Pong &msg)
 
 void Server::onJoinRequest(ServerPlayer *player, const msg::JoinRequest &msg)
 {
-	if (player->state != Player::Spectator)
+	if (!matchPlaying_ || player->state != Player::Spectator)
 		return;
 
 	size_t N = world_.spawnpoints().size();

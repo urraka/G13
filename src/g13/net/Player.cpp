@@ -19,6 +19,9 @@ void Player::initialize()
 
 	soldier.reset(fixvec2(0, 0));
 	bullets.clear();
+
+	kills = 0;
+	deaths = 0;
 }
 
 void Player::updateBullets(Time dt, const coll::World &world)

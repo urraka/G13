@@ -48,11 +48,7 @@ public:
 private:
 	struct pool_item
 	{
-		pool_item()
-		{
-			next = 0;
-		}
-
+		pool_item() : next(0) {}
 		pool_item *next;
 		T data;
 	};
