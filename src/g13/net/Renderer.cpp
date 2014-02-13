@@ -81,6 +81,17 @@ Renderer::Renderer(Client *client)
 	health.setSize(100.0f, 15.0f);
 	health.setOutline(1.0f, gfx::Color(0));
 	health.setOpacity(0.7f);
+
+	kills.font(font);
+	kills.size(14);
+	kills.color(gfx::Color(0xFF));
+	kills.outlineColor(gfx::Color(0x00));
+	kills.outlineWidth(0.8f);
+	kills.value("Kills 0");
+
+	damageTime = 0.0f;
+	damageOverlay.allocate<gfx::ColorVertex>(6, gfx::Stream);
+	damageOverlay.mode(gfx::TriangleFan);
 }
 
 Renderer::~Renderer()
@@ -227,6 +238,12 @@ void Renderer::draw(const Frame &frame)
 			gfx::identity();
 			health.draw();
 
+			{
+				const gfx::Text::Bounds &bounds = kills.bounds();
+				gfx::matrix(mat2d::translate(camera.viewportWidth() - bounds.width - 20.0f, 30.0f));
+				gfx::draw(kills);
+			}
+
 			if (localPlayer->state != Player::Playing && client->matchInfo_.playing)
 			{
 				const gfx::Text::Bounds &bounds = clickToPlay.bounds();
@@ -240,6 +257,30 @@ void Renderer::draw(const Frame &frame)
 
 			gfx::identity();
 			chatbox.draw(frame);
+
+			// damage overlay
+
+			if (damageTime > 0.0f)
+			{
+				const uint8_t alpha = (uint8_t)(128 * damageTime);
+
+				gfx::ColorVertex vertices[] = {
+					gfx::color_vertex(0.5f, 0.5f, gfx::Color(0xFF, 0, 0,     0)),
+					gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xFF, 0, 0, alpha)),
+					gfx::color_vertex(1.0f, 0.0f, gfx::Color(0xFF, 0, 0, alpha)),
+					gfx::color_vertex(1.0f, 1.0f, gfx::Color(0xFF, 0, 0, alpha)),
+					gfx::color_vertex(0.0f, 1.0f, gfx::Color(0xFF, 0, 0, alpha)),
+					gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xFF, 0, 0, alpha))
+				};
+
+				damageOverlay.set(vertices, 0, countof(vertices));
+
+				damageTime -= sys::to_seconds(frame.delta) * 2.0f;
+
+				gfx::identity();
+				gfx::scale(camera.viewportWidth(), camera.viewportHeight());
+				gfx::draw(damageOverlay);
+			}
 		}
 		break;
 
@@ -316,7 +357,15 @@ void Renderer::onPlayerKill(Player *attacker, Player *victim)
 	chat[victim->id].time = MaxChatTime;
 
 	if (client->isLocalPlayer(victim))
+	{
 		sys::set_cursor(0);
+	}
+	else if (client->isLocalPlayer(attacker))
+	{
+		char str[32];
+		sprintf(str, "Kills %d", attacker->kills);
+		kills.value(hlp::utf8_decode(str));
+	}
 }
 
 void Renderer::onPlayerChat(Player *player, const char *text)
@@ -340,6 +389,13 @@ void Renderer::onPlayerChat(Player *player, const string32_t &text)
 void Renderer::onMatchStart()
 {
 	sys::set_cursor(0);
+	kills.value("Kills 0");
+}
+
+void Renderer::onPlayerHit(Player *player)
+{
+	if (client->isLocalPlayer(player))
+		damageTime = 1.0f;
 }
 
 

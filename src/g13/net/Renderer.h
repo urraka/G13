@@ -32,6 +32,7 @@ public:
 	void onPlayerChat(Player *player, const char *text);
 	void onPlayerChat(Player *player, const string32_t &text);
 	void onMatchStart();
+	void onPlayerHit(Player *player);
 
 	// structs
 
@@ -75,6 +76,10 @@ public:
 	gfx::Text  nicknames[MaxPlayers];
 
 	ui::Bar health;
+	gfx::Text kills;
+
+	gfx::VBO damageOverlay;
+	float damageTime;
 };
 
 }} // g13::net

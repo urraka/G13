@@ -282,6 +282,15 @@ void Client::onSpawnBullet(void *data)
 void Client::onPlayerBulletCollision(void *data)
 {
 	// TODO: show blood, etc
+
+	struct params_t
+	{
+		uint8_t bulletOwner;
+		const coll::Entity *entity;
+	};
+
+	params_t *params = (params_t*)data;
+	renderer_.onPlayerHit((Player*)params->entity->data);
 }
 
 void Client::onConnect(Peer)
