@@ -265,12 +265,12 @@ void Renderer::draw(const Frame &frame)
 				const uint8_t alpha = (uint8_t)(128 * damageTime);
 
 				gfx::ColorVertex vertices[] = {
-					gfx::color_vertex(0.5f, 0.5f, gfx::Color(0xFF, 0, 0,     0)),
-					gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xFF, 0, 0, alpha)),
-					gfx::color_vertex(1.0f, 0.0f, gfx::Color(0xFF, 0, 0, alpha)),
-					gfx::color_vertex(1.0f, 1.0f, gfx::Color(0xFF, 0, 0, alpha)),
-					gfx::color_vertex(0.0f, 1.0f, gfx::Color(0xFF, 0, 0, alpha)),
-					gfx::color_vertex(0.0f, 0.0f, gfx::Color(0xFF, 0, 0, alpha))
+					gfx::color_vertex(0.5f, 0.5f, gfx::Color(255, 0, 0,     0)),
+					gfx::color_vertex(0.0f, 0.0f, gfx::Color(255, 0, 0, alpha)),
+					gfx::color_vertex(1.0f, 0.0f, gfx::Color(255, 0, 0, alpha)),
+					gfx::color_vertex(1.0f, 1.0f, gfx::Color(255, 0, 0, alpha)),
+					gfx::color_vertex(0.0f, 1.0f, gfx::Color(255, 0, 0, alpha)),
+					gfx::color_vertex(0.0f, 0.0f, gfx::Color(255, 0, 0, alpha))
 				};
 
 				damageOverlay.set(vertices, 0, countof(vertices));
