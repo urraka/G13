@@ -27,6 +27,7 @@ public:
 	fixvec2 position;
 	fixvec2 velocity;
 	fixvec2 acceleration;
+	fixed   walkvel;
 
 private:
 	bool ducked_;

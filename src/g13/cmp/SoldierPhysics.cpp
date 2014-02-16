@@ -20,10 +20,10 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 {
 	fixed dts = fixed((int)dt / 1000) / fixed(1000);
 	const fixed kGravity = world.gravity();
-	const fixed kJumpVel = fixed(-550);
+	const fixed kJumpVel = fixed(-700);
 	const fixed kWalkVel = fixed(500);
-	const fixed kDuckVel = fixed(150);
-	const fixed kRunVel  = fixed(1000);
+	// const fixed kDuckVel = fixed(150);
+	const fixed kRunVel  = fixed(800);
 
 	if (ducked_ && !input.duck)
 	{
@@ -46,20 +46,55 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 		{
 			velocity.y = kJumpVel;
 			segment_ = 0;
+
+			if (input.right || input.left)
+			{
+				const fixed direction = (input.left ? -1 : 1);
+
+				if (walkvel == 0 || (direction == fpm::sign(walkvel) && fpm::fabs(walkvel) < kWalkVel))
+					walkvel = kWalkVel * direction;
+			}
 		}
+	}
+
+	if (input.right || input.left)
+	{
+		const fixed limit = floor() ? (input.run ? kRunVel : kWalkVel) : kWalkVel;
+		const fixed direction = (input.left ? -1 : 1);
+
+		bool dirchange = fpm::sign(walkvel) != direction;
+
+		if (fpm::fabs(walkvel) < limit || dirchange)
+		{
+			const fixed acc = floor() ? (dirchange ? 2200 : 1800) : 800;
+			walkvel += acc * direction * dts;
+			walkvel = fpm::max(-limit, fpm::min(limit, walkvel));
+		}
+		else if (floor())
+		{
+			fixed wv = walkvel - fixed(800) * fpm::sign(walkvel) * dts;
+
+			if (fpm::sign(wv) != fpm::sign(walkvel) || fpm::fabs(wv) < limit)
+				wv = limit * direction;
+
+			walkvel = wv;
+		}
+	}
+	else if (walkvel != 0)
+	{
+		fixed wv = walkvel - fixed(floor() ? 2200 : 800) * fpm::sign(walkvel) * dts;
+
+		if (fpm::sign(wv) != fpm::sign(walkvel))
+			wv = 0;
+
+		walkvel = wv;
 	}
 
 	acceleration.x = 0;
 	acceleration.y = kGravity;
 
-	velocity.x = 0;
+	velocity.x = walkvel;
 	velocity.y += acceleration.y * dts;
-
-	if (input.right || input.left)
-	{
-		fixed vel = (ducked_ && floor()) ? kDuckVel : input.run ? kRunVel : kWalkVel;
-		velocity.x = input.left ? -vel : vel;
-	}
 
 	fixvec2 nextDelta = velocity * dts;
 	fixvec2 lastCollisionValue;
@@ -148,6 +183,8 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 					velocity = vel;
 
 				delta = vel * dts;
+
+				walkvel = vel.x;
 			}
 		}
 
@@ -160,6 +197,7 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 			{
 				if (wasInFloor && !collision.hull.segments[collision.index].floor)
 				{
+					walkvel = 0;
 					velocity.x = 0;
 					nextDelta.x = 0;
 
@@ -254,6 +292,7 @@ void SoldierPhysics::reset(fixvec2 pos)
 	velocity.y = 0;
 	acceleration.x = 0;
 	acceleration.y = 0;
+	walkvel = 0;
 
 	ducked_ = false;
 	segment_ = 0;

@@ -2,8 +2,8 @@ Game
   - Show scores (kills/deaths).
   x Keep updating the game even after match ends. Reset everything when it starts.
   - Add net::GameMode base class (linked to net::Server).
-  - Count kills/deaths etc.
-  - Match start/end.
+  x Count kills/deaths etc.
+  x Match start/end.
   - Some kind of rope (like in teeworlds).
   - Chat box (with history and crap).
   - Terminal falling velocity.
