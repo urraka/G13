@@ -1,14 +1,6 @@
 #pragma once
 
 #include "fixed.h"
-#include <iosfwd>
-
-namespace math {
-namespace fpm {
-	class vec2;
-}}
-
-std::ostream& operator<<(std::ostream & stream, math::fpm::vec2 const & x);
 
 namespace math {
 namespace fpm {
@@ -21,11 +13,11 @@ public:
 
 	vec2() : x(0), y(0) {}
 
-	vec2(fixed X, fixed Y) : x(X), y(Y) {}
-	vec2(int X, int Y)     : x(X), y(Y) {}
+	vec2(fixed x, fixed y) : x(x), y(y) {}
+	vec2(int x, int y)     : x(x), y(y) {}
 
-	vec2(fixed X) : x(X), y(X) {}
-	vec2(int X)   : x(X), y(X) {}
+	vec2(fixed x) : x(x), y(x) {}
+	vec2(int x)   : x(x), y(x) {}
 
 	vec2 operator- ()                  const { return vec2(-x,        -y);         }
 	vec2 operator+ (vec2  const & rhs) const { return vec2( x + rhs.x, y + rhs.y); }

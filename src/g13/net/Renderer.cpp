@@ -83,10 +83,10 @@ Renderer::Renderer(Client *client)
 	health.setOpacity(0.7f);
 
 	kills.font(font);
-	kills.size(14);
-	kills.color(gfx::Color(0xFF));
-	kills.outlineColor(gfx::Color(0x00));
-	kills.outlineWidth(0.8f);
+	kills.size(16);
+	kills.color(gfx::Color(255, 255, 0));
+	kills.outlineColor(gfx::Color(255, 0, 0));
+	kills.outlineWidth(1.2f);
 	kills.value("Kills 0");
 
 	damageTime = 0.0f;
@@ -215,7 +215,7 @@ void Renderer::draw(const Frame &frame)
 
 					vec2 pos = graph.position();
 					pos += vec2(2.0f, -20.0f);
-					pos.y -= physics.bboxNormal.height().to_float();
+					pos.y -= fpm::to_float(physics.bboxNormal.height());
 					pos = camera.matrix() * pos;
 
 					gfx::identity();
@@ -293,7 +293,7 @@ void Renderer::drawNickname(Player *player, const vec2 &target)
 	if (player->state != Player::Playing)
 		return;
 
-	const float radius = player->soldier.physics.bboxNormal.height().to_float();
+	const float radius = fpm::to_float(player->soldier.physics.bboxNormal.height());
 	const vec2 &position = player->soldier.graphics.position();
 	const vec2 center = position + from_fixed(player->soldier.bodyOffset());
 

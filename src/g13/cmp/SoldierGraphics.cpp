@@ -76,7 +76,7 @@ void SoldierGraphics::update(Time dt, const SoldierState &state)
 	prevAngle_ = currAngle_;
 	currAngle_ = state.angle;
 
-	speed_      = state.velocity.x.to_float();
+	speed_      = fpm::to_float(state.velocity.x);
 	air_        = !state.floor;
 	running_    = state.floor && state.velocity.x != 0;
 	rightwards_ = state.rightwards;

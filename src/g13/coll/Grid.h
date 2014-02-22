@@ -41,10 +41,10 @@ public:
 		const fixed &w = cellWidth_;
 		const fixed &h = cellHeight_;
 
-		int x0 = std::max(    0, fpm::floor(bounds.tl.x / w).to_int());
-		int y0 = std::max(    0, fpm::floor(bounds.tl.y / h).to_int());
-		int x1 = std::min(cols_, fpm::ceil (bounds.br.x / w).to_int());
-		int y1 = std::min(rows_, fpm::ceil (bounds.br.y / h).to_int());
+		int x0 = std::max(    0, fpm::to_int(fpm::floor(bounds.tl.x / w)));
+		int y0 = std::max(    0, fpm::to_int(fpm::floor(bounds.tl.y / h)));
+		int x1 = std::min(cols_, fpm::to_int(fpm::ceil (bounds.br.x / w)));
+		int y1 = std::min(rows_, fpm::to_int(fpm::ceil (bounds.br.y / h)));
 
 		int N = (x1 - x0) * (y1 - y0);
 

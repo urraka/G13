@@ -14,26 +14,31 @@ public:
 
 	void update(Time dt, const coll::World &world, const SoldierInput &input);
 	void reset(fixvec2 pos);
-	bool ducking() const;
-	bool floor() const;
 
-	const fixrect &bounds() const
-	{
-		return ducked_ ? bboxDucked : bboxNormal;
-	}
+	bool ducking() const { return ducked; }
+	bool floor() const { return segment != 0 && segment->floor; }
 
-	fixrect bboxNormal;
-	fixrect bboxDucked;
+	const fixrect &bounds() const { return ducked ? bboxDucked : bboxNormal; }
+
+	const fixrect bboxNormal;
+	const fixrect bboxDucked;
+
 	fixvec2 position;
 	fixvec2 velocity;
 	fixvec2 acceleration;
 	fixed   walkvel;
 
 private:
-	bool ducked_;
+	enum Mode { Normal, Rope };
 
-	coll::Hull hull_;
-	const coll::Segment *segment_;
+	Mode mode;
+	bool ducked;
+	coll::Hull hull;
+	const coll::Segment *segment;
+	fixvec2 ropeHook;
+
+	void updateNormal(Time dt, const coll::World &world, const SoldierInput &input);
+	void updateRope(Time dt, const coll::World &world, const SoldierInput &input);
 };
 
 }} // g13::cmp

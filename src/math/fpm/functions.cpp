@@ -1,15 +1,53 @@
 #include <fix16.h>
+#include <ostream>
 
 #include "fixed.h"
 #include "vec2.h"
 #include "rect.h"
 #include "line.h"
 #include "functions.h"
+#include "constants.h"
 
 #include <assert.h>
 
 namespace math {
 namespace fpm {
+
+// conversion
+
+fixed from_value(int32_t value)
+{
+	fixed x;
+	x.value_ = value;
+	return x;
+}
+
+fixed from_string(const char *str)
+{
+	return from_value(fix16_from_str(str));
+}
+
+const char *to_string(const fixed &x, int precision)
+{
+	static char buffer[16];
+	fix16_to_str(x.value_, buffer, precision);
+	return buffer;
+}
+
+int to_int(const fixed &x)
+{
+	return fix16_to_int(x.value_);
+}
+
+float to_float(const fixed &x)
+{
+	return fix16_to_float(x.value_);
+}
+
+double to_double(const fixed &x)
+{
+	return fix16_to_dbl(x.value_);
+}
 
 // fixed functions
 
@@ -20,87 +58,92 @@ fixed sign(const fixed &x)
 
 fixed fabs(const fixed &x)
 {
-	return fixed::from_value(fix16_abs(x.value_));
+	return from_value(fix16_abs(x.value_));
 }
 
 fixed ceil(const fixed &x)
 {
-	return fixed::from_value(fix16_ceil(x.value_));
+	return from_value(fix16_ceil(x.value_));
 }
 
 fixed floor(const fixed &x)
 {
-	return fixed::from_value(fix16_floor(x.value_));
+	return from_value(fix16_floor(x.value_));
 }
 
 fixed sqrt(const fixed &x)
 {
-	return fixed::from_value(fix16_sqrt(x.value_));
+	return from_value(fix16_sqrt(x.value_));
 }
 
 fixed exp(const fixed &x)
 {
-	return fixed::from_value(fix16_exp(x.value_));
+	return from_value(fix16_exp(x.value_));
 }
 
 fixed log(const fixed &x)
 {
-	return fixed::from_value(fix16_log(x.value_));
+	return from_value(fix16_log(x.value_));
 }
 
 fixed sin(const fixed &x)
 {
-	return fixed::from_value(fix16_sin(x.value_));
+	return from_value(fix16_sin(x.value_));
 }
 
 fixed cos(const fixed &x)
 {
-	return fixed::from_value(fix16_cos(x.value_));
+	return from_value(fix16_cos(x.value_));
 }
 
 fixed tan(const fixed &x)
 {
-	return fixed::from_value(fix16_tan(x.value_));
+	return from_value(fix16_tan(x.value_));
 }
 
 fixed asin(const fixed &x)
 {
-	return fixed::from_value(fix16_asin(x.value_));
+	return from_value(fix16_asin(x.value_));
 }
 
 fixed acos(const fixed &x)
 {
-	return fixed::from_value(fix16_acos(x.value_));
+	return from_value(fix16_acos(x.value_));
 }
 
 fixed atan(const fixed &x)
 {
-	return fixed::from_value(fix16_atan(x.value_));
+	return from_value(fix16_atan(x.value_));
 }
 
 fixed atan2(const fixed &y, const fixed &x)
 {
-	return fixed::from_value(fix16_atan2(y.value_, x.value_));
+	return from_value(fix16_atan2(y.value_, x.value_));
 }
 
 fixed min(const fixed &x, const fixed &y)
 {
-	return fixed::from_value(fix16_min(x.value_, y.value_));
+	return from_value(fix16_min(x.value_, y.value_));
 }
 
 fixed max(const fixed &x, const fixed &y)
 {
-	return fixed::from_value(fix16_max(x.value_, y.value_));
+	return from_value(fix16_max(x.value_, y.value_));
+}
+
+fixed clamp(const fixed &x, const fixed &a, const fixed &b)
+{
+	return min(b, max(a, x));
 }
 
 fixed fmod(const fixed &x, const fixed &y)
 {
-	return fixed::from_value(fix16_mod(x.value_, y.value_));
+	return from_value(fix16_mod(x.value_, y.value_));
 }
 
 fixed epsilon_check(const fixed &x, const fixed &epsilon)
 {
-	return fabs(x) < epsilon ? fixed::zero : x;
+	return fabs(x) < epsilon ? Zero : x;
 }
 
 fixed lerp(const fixed &a, const fixed &b, const fixed &step)
@@ -110,14 +153,14 @@ fixed lerp(const fixed &a, const fixed &b, const fixed &step)
 
 fixed radians(const fixed &x)
 {
-	static const fixed to_rad = fixed::from_value(1144);
+	static const fixed to_rad = from_value(1144);
 
 	return x * to_rad;
 }
 
 fixed degrees(const fixed &x)
 {
-	static const fixed to_deg = fixed::from_value(3754936);
+	static const fixed to_deg = from_value(3754936);
 
 	return x * to_deg;
 }
@@ -151,14 +194,14 @@ vec2 normalize(const vec2 &x)
 		scalar = fabs(x.x);
 
 	vec2 r = x / scalar;
-	assert(r.x != fixed::overflow && r.y != fixed::overflow);
+	assert(r.x != Overflow && r.y != Overflow);
 
 	fixed L = length(r);
-	assert(L != fixed::overflow);
+	assert(L != Overflow);
 
 	r /= L;
 
-	assert(r.x != fixed::overflow && r.y != fixed::overflow);
+	assert(r.x != Overflow && r.y != Overflow);
 
 	return r;
 }
@@ -293,15 +336,15 @@ rect bounds(const line &l)
 
 bool intersection(const line &A, const line &B, vec2 *result)
 {
-	int64_t x1 = A.p1.x.value();
-	int64_t x2 = A.p2.x.value();
-	int64_t x3 = B.p1.x.value();
-	int64_t x4 = B.p2.x.value();
+	int64_t x1 = A.p1.x.value_;
+	int64_t x2 = A.p2.x.value_;
+	int64_t x3 = B.p1.x.value_;
+	int64_t x4 = B.p2.x.value_;
 
-	int64_t y1 = A.p1.y.value();
-	int64_t y2 = A.p2.y.value();
-	int64_t y3 = B.p1.y.value();
-	int64_t y4 = B.p2.y.value();
+	int64_t y1 = A.p1.y.value_;
+	int64_t y2 = A.p2.y.value_;
+	int64_t y3 = B.p1.y.value_;
+	int64_t y4 = B.p2.y.value_;
 
 	int64_t uaNum = (((x4 - x3) * (y1 - y3)) >> 16) - (((y4 - y3) * (x1 - x3)) >> 16);
 	int64_t ubNum = (((x2 - x1) * (y1 - y3)) >> 16) - (((y2 - y1) * (x1 - x3)) >> 16);
@@ -313,13 +356,26 @@ bool intersection(const line &A, const line &B, vec2 *result)
 	int64_t ua = (uaNum << 16) / uaDem;
 	int64_t ub = (ubNum << 16) / uaDem;
 
-	if (ua < 0 || ua > fixed::one.value() || ub < 0 || ub > fixed::one.value())
+	if (ua < 0 || ua > One.value_ || ub < 0 || ub > One.value_)
 		return false;
 
-	result->x = A.p1.x + fixed::from_value(ua) * (A.p2.x - A.p1.x);
-	result->y = A.p1.y + fixed::from_value(ua) * (A.p2.y - A.p1.y);
+	result->x = A.p1.x + from_value(ua) * (A.p2.x - A.p1.x);
+	result->y = A.p1.y + from_value(ua) * (A.p2.y - A.p1.y);
 
 	return true;
 }
 
 }} // math::fpm
+
+std::ostream& operator<<(std::ostream &stream, const math::fpm::fixed &x)
+{
+	char buf[13];
+	fix16_to_str(x.value_, buf, std::min(5, (int)stream.precision()));
+	stream << buf;
+	return stream;
+}
+
+std::ostream& operator<<(std::ostream &stream, const math::fpm::vec2 &x)
+{
+	return stream << "(" << x.x << "," << x.y << ")";
+}

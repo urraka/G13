@@ -1,6 +1,7 @@
 #include "SoldierPhysics.h"
 #include "SoldierInput.h"
 
+#include <g13/vars.h>
 #include <g13/coll/World.h>
 #include <g13/coll/Result.h>
 #include <assert.h>
@@ -8,31 +9,39 @@
 namespace g13 {
 namespace cmp {
 
+static inline fixed to_seconds(Time time)
+{
+	return fixed((int)time / 1000) / fixed(1000);
+}
+
 SoldierPhysics::SoldierPhysics()
 	:	bboxNormal(-17, -66, 17, 0),
-		bboxDucked(-17, -50, 17, 0),
-		ducked_(false),
-		segment_(0)
+		bboxDucked(-17, -50, 17, 0)
 {
+	reset(fixvec2(0));
 }
 
 void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInput &input)
 {
-	fixed dts = fixed((int)dt / 1000) / fixed(1000);
-	const fixed kGravity = world.gravity();
-	const fixed kJumpVel = fixed(-700);
-	const fixed kWalkVel = fixed(500);
-	// const fixed kDuckVel = fixed(150);
-	const fixed kRunVel  = fixed(800);
+	switch (mode)
+	{
+		case Normal: updateNormal(dt, world, input); break;
+		case Rope: updateRope(dt, world, input); break;
+	}
+}
 
-	if (ducked_ && !input.duck)
+void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const SoldierInput &input)
+{
+	fixed dts = to_seconds(dt);
+
+	if (ducked && !input.duck)
 	{
 		fixvec2 offset = fixvec2(0, bboxDucked.height() - bboxNormal.height());
-		ducked_ = (world.collision(position, position + offset, bboxDucked).segment != 0);
+		ducked = (world.collision(position, position + offset, bboxDucked).segment != 0);
 	}
 	else
 	{
-		ducked_ = input.duck;
+		ducked = input.duck;
 	}
 
 	const fixrect &bbox = bounds();
@@ -44,35 +53,36 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 
 		if (!collision.segment || fpm::fabs(fpm::slope(collision.segment->line)) > 1)
 		{
-			velocity.y = kJumpVel;
-			segment_ = 0;
+			velocity.y = vars::JumpVel;
+			segment = 0;
 
 			if (input.right || input.left)
 			{
 				const fixed direction = (input.left ? -1 : 1);
 
-				if (walkvel == 0 || (direction == fpm::sign(walkvel) && fpm::fabs(walkvel) < kWalkVel))
-					walkvel = kWalkVel * direction;
+				if (walkvel == 0 || (direction == fpm::sign(walkvel) && fpm::fabs(walkvel) < vars::WalkVel))
+					walkvel = vars::WalkVel * direction;
 			}
 		}
 	}
 
 	if (input.right || input.left)
 	{
-		const fixed limit = floor() ? (input.run ? kRunVel : kWalkVel) : kWalkVel;
+		const fixed limit = floor() ? (input.run ? vars::RunVel : vars::WalkVel) : vars::AirMoveVel;
 		const fixed direction = (input.left ? -1 : 1);
 
 		bool dirchange = fpm::sign(walkvel) != direction;
 
 		if (fpm::fabs(walkvel) < limit || dirchange)
 		{
-			const fixed acc = floor() ? (dirchange ? 2200 : 1800) : 800;
+			const fixed acc = floor() ? (dirchange ? vars::BreakAcc : vars::MoveAcc) : vars::AirMoveAcc;
+
 			walkvel += acc * direction * dts;
 			walkvel = fpm::max(-limit, fpm::min(limit, walkvel));
 		}
 		else if (floor())
 		{
-			fixed wv = walkvel - fixed(800) * fpm::sign(walkvel) * dts;
+			fixed wv = walkvel - fixed(vars::LimitAcc) * fpm::sign(walkvel) * dts;
 
 			if (fpm::sign(wv) != fpm::sign(walkvel) || fpm::fabs(wv) < limit)
 				wv = limit * direction;
@@ -82,7 +92,9 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 	}
 	else if (walkvel != 0)
 	{
-		fixed wv = walkvel - fixed(floor() ? 2200 : 800) * fpm::sign(walkvel) * dts;
+		const fixed &acc = floor() ? vars::BreakAcc : vars::AirBreakAcc;
+
+		fixed wv = walkvel - acc * fpm::sign(walkvel) * dts;
 
 		if (fpm::sign(wv) != fpm::sign(walkvel))
 			wv = 0;
@@ -91,7 +103,7 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 	}
 
 	acceleration.x = 0;
-	acceleration.y = kGravity;
+	acceleration.y = vars::Gravity;
 
 	velocity.x = walkvel;
 	velocity.y += acceleration.y * dts;
@@ -107,13 +119,15 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 
 		nextDelta = fixvec2(0, 0);
 
-		const coll::Segment *prevSegment = segment_;
-		coll::Hull prevHull = hull_;
+		const coll::Segment *prevSegment = segment;
+		coll::Hull prevHull = hull;
 
-		bool wasInFloor = segment_ && segment_->floor;
+		bool wasInFloor = false;
 
-		if (segment_ != 0 && segment_->floor)
+		if (floor())
 		{
+			wasInFloor = true;
+
 			// adjust velocity to floor direction
 
 			delta.y = 0;
@@ -121,13 +135,13 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 
 			if (delta.x != 0)
 			{
-				direction = segment_->line.p2 - segment_->line.p1;
-				const fixvec2 *dest = &segment_->line.p2;
+				direction = segment->line.p2 - segment->line.p1;
+				const fixvec2 *dest = &segment->line.p2;
 
 				if (fpm::sign(direction.x) != fpm::sign(delta.x))
 				{
 					direction = -direction;
-					dest = &segment_->line.p1;
+					dest = &segment->line.p1;
 				}
 
 				fixed length = fpm::fabs(delta.x);
@@ -138,41 +152,41 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 					delta.y = (dest->x - position.x) * delta.y / delta.x;
 					delta.x = dest->x - position.x;
 
-					if (false && input.run && !ducked_)
+					if (false && input.run && !ducked)
 					{
-						segment_ = 0;
+						segment = 0;
 					}
 					else
 					{
 						const coll::Segment *nextSegment;
 
-						if (dest == &segment_->line.p1)
-							nextSegment = segment_->prev;
+						if (dest == &segment->line.p1)
+							nextSegment = segment->prev;
 						else
-							nextSegment = segment_->next;
+							nextSegment = segment->next;
 
 						if (nextSegment != 0 && !nextSegment->floor)
 							nextSegment = 0;
 
-						if (nextSegment != 0 && !hull_.owns(nextSegment))
-							hull_ = coll::Hull(*nextSegment, bbox);
+						if (nextSegment != 0 && !hull.owns(nextSegment))
+							hull = coll::Hull(*nextSegment, bbox);
 
-						segment_ = nextSegment;
+						segment = nextSegment;
 					}
 
 					nextDelta.x = fpm::max(0, length - fpm::length(delta)) * fpm::sign(delta.x);
 				}
 			}
 		}
-		else if (segment_ != 0)
+		else if (segment != 0)
 		{
 			// wall/roof collision
 
-			fixvec2 normal = fpm::normal(segment_->line);
+			fixvec2 normal = fpm::normal(segment->line);
 
 			if (fpm::dot(velocity, normal) < 0)
 			{
-				direction = fpm::normalize(segment_->line.p2 - segment_->line.p1);
+				direction = fpm::normalize(segment->line.p2 - segment->line.p1);
 				fixed length = fpm::dot(direction, velocity);
 				fixvec2 vel = direction * length;
 
@@ -203,17 +217,17 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 
 					// revert segment in case we switched to the next one but collided
 					// with a wall before actually reaching it
-					if (segment_ != prevSegment)
+					if (segment != prevSegment)
 					{
-						segment_ = prevSegment;
-						hull_ = prevHull;
+						segment = prevSegment;
+						hull = prevHull;
 					}
 				}
 				else
 				{
 					if (lastCollision == 0 || *lastCollision != collision.position)
 					{
-						dts = dts * (fixed::one - collision.percent);
+						dts = dts * (fpm::One - collision.percent);
 
 						if (direction == fixvec2(0, 0))
 							direction = normalize(delta);
@@ -226,16 +240,16 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 						nextDelta = direction * length;
 					}
 
-					hull_ = collision.hull;
-					segment_ = &hull_.segments[collision.index];
+					hull = collision.hull;
+					segment = &hull.segments[collision.index];
 
 					// sometimes we hit a floor line but position is out of its bounds, derp
 					// the next if hacks together a fix for that, hopefully without side effects
 
-					if (segment_->floor)
+					if (segment->floor)
 					{
-						const fixvec2 *a = &segment_->line.p1;
-						const fixvec2 *b = &segment_->line.p2;
+						const fixvec2 *a = &segment->line.p1;
+						const fixvec2 *b = &segment->line.p2;
 
 						if (a->x > b->x)
 							std::swap(a, b);
@@ -244,17 +258,17 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 
 						if (position.x < a->x)
 						{
-							if (a == &segment_->line.p1)
-								nextSegment = segment_->prev;
+							if (a == &segment->line.p1)
+								nextSegment = segment->prev;
 							else
-								nextSegment = segment_->next;
+								nextSegment = segment->next;
 						}
 						else if (position.x > b->x)
 						{
-							if (b == &segment_->line.p1)
-								nextSegment = segment_->prev;
+							if (b == &segment->line.p1)
+								nextSegment = segment->prev;
 							else
-								nextSegment = segment_->next;
+								nextSegment = segment->next;
 						}
 
 						if (nextSegment != 0)
@@ -265,18 +279,18 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 							}
 							else
 							{
-								if (!hull_.owns(nextSegment))
-									hull_ = coll::Hull(*nextSegment, bbox);
+								if (!hull.owns(nextSegment))
+									hull = coll::Hull(*nextSegment, bbox);
 
-								segment_ = nextSegment;
+								segment = nextSegment;
 							}
 						}
 					}
 				}
 			}
-			else if (segment_ != 0 && !segment_->floor)
+			else if (segment != 0 && !segment->floor)
 			{
-				segment_ = 0;
+				segment = 0;
 			}
 
 			lastCollisionValue = collision.position;
@@ -285,27 +299,21 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 	}
 }
 
+void SoldierPhysics::updateRope(Time dt, const coll::World &world, const SoldierInput &input)
+{
+}
+
 void SoldierPhysics::reset(fixvec2 pos)
 {
+	mode = Normal;
 	position = pos;
 	velocity.x = 0;
 	velocity.y = 0;
 	acceleration.x = 0;
 	acceleration.y = 0;
 	walkvel = 0;
-
-	ducked_ = false;
-	segment_ = 0;
-}
-
-bool SoldierPhysics::ducking() const
-{
-	return ducked_;
-}
-
-bool SoldierPhysics::floor() const
-{
-	return segment_ != 0 && segment_->floor;
+	ducked = false;
+	segment = 0;
 }
 
 }} // g13::cmp

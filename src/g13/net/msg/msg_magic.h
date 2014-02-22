@@ -204,7 +204,7 @@
         _w.write(str, sizeof(str));
 
 #define Fixed(x)                                                                               \
-        _w.write(x.value());
+        _w.write(x.value_);
 
 #define List(ListType, list, count, min)                                                       \
         assert(count >= min);                                                                  \
@@ -305,7 +305,7 @@
                                                                                                \
             uint32_t _i32;                                                                     \
             _r.read(&_i32);                                                                    \
-            x = fixed::from_value(_i32);                                                       \
+            x = fpm::from_value(_i32);                                                         \
         }
 
 #define List(ListType, list, count, min)                                                       \

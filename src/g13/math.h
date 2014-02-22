@@ -20,10 +20,10 @@ typedef fpm::line  fixline;
 
 static inline vec2 from_fixed(const fixvec2 &x)
 {
-	return vec2(x.x.to_float(), x.y.to_float());
+	return vec2(fpm::to_float(x.x), fpm::to_float(x.y));
 }
 
-static inline fixvec2 to_fixed(vec2 x)
+static inline fixvec2 to_fixed(const vec2 &x)
 {
 	return fixvec2(x.x, x.y);
 }

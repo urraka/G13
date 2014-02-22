@@ -29,9 +29,9 @@ void Soldier::update(Time dt, const coll::World &world, const cmp::SoldierInput 
 		{
 			shootingTime_ -= rate;
 
-			const fixed value = fixed::from_value((int32_t)input.angle);
-			const fixed maxValue = fixed::from_value(UINT16_MAX);
-			const fixed &pi = fixed::pi;
+			const fixed value = fpm::from_value((int32_t)input.angle);
+			const fixed maxValue = fpm::from_value(UINT16_MAX);
+			const fixed &pi = fpm::Pi;
 
 			fixed angle = pi * value / maxValue - pi / fixed(2);
 
@@ -66,11 +66,11 @@ fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle) c
 	// calculate distance from weapon center to bullet start point
 
 	const fixed distances[] = {
-		fixed::from_value(3932160),
-		fixed::from_value(2949120),
-		fixed::from_value(2703360),
-		fixed::from_value(2703360),
-		fixed::from_value(2457600)
+		fpm::from_value(3932160),
+		fpm::from_value(2949120),
+		fpm::from_value(2703360),
+		fpm::from_value(2703360),
+		fpm::from_value(2457600)
 	};
 
 	fixed alpha = fpm::degrees(angle);
@@ -81,8 +81,8 @@ fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle) c
 
 	const fixed theta = fixed(180) / fixed((int)countof(distances) - 1);
 	const fixed index = (alpha + fixed(90)) / theta;
-	const int a = fpm::floor(index).to_int();
-	const int b = fpm::ceil(index).to_int();
+	const int a = fpm::to_int(fpm::floor(index));
+	const int b = fpm::to_int(fpm::ceil(index));
 	const fixed percent = (alpha - (fixed(a) * theta - fixed(90))) / theta;
 	const fixed weapdist = fpm::lerp(distances[a], distances[b], percent);
 
@@ -95,7 +95,7 @@ fixvec2 Soldier::bulletSpawnPoint(const fixvec2 &position, const fixed &angle) c
 
 fixvec2 Soldier::bodyOffset() const
 {
-	return fixvec2(0, -fixed::from_value(1720320));
+	return fixvec2(0, -fpm::from_value(1720320));
 }
 
 void Soldier::reset(fixvec2 pos)

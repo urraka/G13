@@ -77,7 +77,7 @@ void RemotePlayer::update(Time dt, int clientTick, coll::World &world)
 		}
 		else
 		{
-			renderedTick = glm::mix(stateBuffer[a].tick, stateBuffer[b].tick, percent.to_float());
+			renderedTick = glm::mix(stateBuffer[a].tick, stateBuffer[b].tick, fpm::to_float(percent));
 
 			soldierState.position = sa->position + (sb->position - sa->position) * percent;
 
@@ -89,7 +89,7 @@ void RemotePlayer::update(Time dt, int clientTick, coll::World &world)
 				if (!sa->rightwards) a = -a + M_PI;
 				if (!sb->rightwards) b = -b + M_PI;
 
-				float angle = math::mix_angle(a, b, percent.to_float());
+				float angle = math::mix_angle(a, b, fpm::to_float(percent));
 				angle = math::wrap_angle(angle, -M_PI / 2);
 
 				soldierState.rightwards = (angle <= M_PI / 2);
@@ -101,7 +101,7 @@ void RemotePlayer::update(Time dt, int clientTick, coll::World &world)
 			}
 			else
 			{
-				soldierState.angle = glm::mix(sa->angle, sb->angle, percent.to_float());
+				soldierState.angle = glm::mix(sa->angle, sb->angle, fpm::to_float(percent));
 			}
 		}
 	}

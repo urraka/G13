@@ -490,7 +490,7 @@ void Server::onPlayerKill(ServerPlayer *attacker, ServerPlayer *victim)
 		attacker->kills++;
 		victim->deaths++;
 
-		if (attacker->kills >= 5)
+		if (attacker->kills >= 20)
 			endMatch();
 	}
 }

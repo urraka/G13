@@ -33,7 +33,7 @@ public:
 
 	Result collision(const fixvec2 &a, const fixvec2 &b, const fixrect &bbox, Mode mode = Static) const;
 
-	const fixed                &gravity()     const { return gravity_;     }
+	// const fixed                &gravity()     const { return gravity_;     }
 	const fixrect              &bounds()      const { return bounds_;      }
 	const std::vector<fixvec2> &spawnpoints() const { return spawnpoints_; }
 

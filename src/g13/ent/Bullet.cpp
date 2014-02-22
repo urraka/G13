@@ -18,7 +18,7 @@ Bullet::Bullet(const cmp::BulletParams &params, coll::Entity *ownerEntity)
 
 	graphics.initialPosition = from_fixed(params.position);
 	graphics.position.set(graphics.initialPosition);
-	graphics.angle.set(params.angle.to_float());
+	graphics.angle.set(fpm::to_float(params.angle));
 
 	ownerEntity_ = ownerEntity;
 }

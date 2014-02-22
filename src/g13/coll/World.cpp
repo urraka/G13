@@ -14,7 +14,7 @@ typedef std::map<const Segment*, Grid<Segment>::Location> locationmap_t;
 static void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &map);
 static void check_collision(const Segment &seg, const fixline &path, const fixrect &bbox, Result &res);
 
-static const fixed epsilon = fixed::from_value(2048); // 0,03125 = 1 / 32
+static const fixed epsilon = fpm::from_value(2048); // 0,03125 = 1 / 32
 
 template std::vector<const Segment*> &World::retrieve<Segment>(const fixrect &bounds) const;
 template std::vector<const entity_t*> &World::retrieve<entity_t>(const fixrect &bounds) const;
@@ -53,8 +53,8 @@ void World::load(const Json::Value &data)
 		const fixed W = fixed(data["width"].asFloat());
 		const fixed H = fixed(data["height"].asFloat());
 
-		const int cols = fpm::ceil(W / cellsize.x).to_int();
-		const int rows = fpm::ceil(H / cellsize.y).to_int();
+		const int cols = fpm::to_int(fpm::ceil(W / cellsize.x));
+		const int rows = fpm::to_int(fpm::ceil(H / cellsize.y));
 
 		bounds_ = fixrect(-W / 2, -H / 2, W / 2, H / 2);
 
@@ -67,8 +67,8 @@ void World::load(const Json::Value &data)
 	for (Json::ArrayIndex i = 0; i < spawnpoints.size(); i++)
 	{
 		spawnpoints_.push_back(fixvec2(
-			fixed::from_value(spawnpoints[i]["x"].asInt()),
-			fixed::from_value(spawnpoints[i]["y"].asInt())
+			fpm::from_value(spawnpoints[i]["x"].asInt()),
+			fpm::from_value(spawnpoints[i]["y"].asInt())
 		));
 	}
 
@@ -87,8 +87,8 @@ void World::load(const Json::Value &data)
 		{
 			const Json::Value &p = linestripData[j];
 
-			linestrip[j].x = fixed::from_value(p["x"].asInt());
-			linestrip[j].y = fixed::from_value(p["y"].asInt());
+			linestrip[j].x = fpm::from_value(p["x"].asInt());
+			linestrip[j].y = fpm::from_value(p["y"].asInt());
 		}
 	}
 
@@ -301,10 +301,10 @@ template<typename T> std::vector<const T*> &World::retrieve(const fixrect &bound
 
 	const fixrect rc = bounds - bounds_.tl;
 
-	int x0 = std::max(   0, fpm::floor(rc.tl.x / w).to_int());
-	int y0 = std::max(   0, fpm::floor(rc.tl.y / h).to_int());
-	int x1 = std::min(cols, fpm::ceil (rc.br.x / w).to_int());
-	int y1 = std::min(rows, fpm::ceil (rc.br.y / h).to_int());
+	int x0 = std::max(   0, fpm::to_int(fpm::floor(rc.tl.x / w)));
+	int y0 = std::max(   0, fpm::to_int(fpm::floor(rc.tl.y / h)));
+	int x1 = std::min(cols, fpm::to_int(fpm::ceil (rc.br.x / w)));
+	int y1 = std::min(rows, fpm::to_int(fpm::ceil (rc.br.y / h)));
 
 	cache.clear();
 	sharedIndices_.clear();
@@ -411,7 +411,7 @@ void check_collision(const Segment &segment, const fixline &path, const fixrect 
 		else
 			percent = (intersection.y - a.y) / delta.y;
 
-		assert(percent >= 0 && percent <= 1 && percent != fixed::overflow);
+		assert(percent >= 0 && percent <= 1 && percent != fpm::Overflow);
 
 		if (percent < result.percent)
 		{
@@ -421,7 +421,7 @@ void check_collision(const Segment &segment, const fixline &path, const fixrect 
 			result.index = i;
 
 			// go back a little..
-			result.position = intersection - fpm::normalize(delta) * fixed::half;
+			result.position = intersection - fpm::normalize(delta) * fpm::Half;
 
 			#ifdef DEBUG
 				if (!fpm::intersection(line, fixline(result.position, b), &intersection))

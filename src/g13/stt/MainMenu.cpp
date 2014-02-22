@@ -368,7 +368,7 @@ void MainMenu::onKeyPressed(const sys::Event::KeyEvent &key)
 
 				if (value->size() > 0)
 				{
-					value->resize(value->size() - 1);
+					value->resize(key.ctrl ? 0 : value->size() - 1);
 					currentOptions_[selected_].value(*label + *value + caret);
 				}
 			}
@@ -398,7 +398,7 @@ void MainMenu::onKeyPressed(const sys::Event::KeyEvent &key)
 					const string32_t *label = MainMenu::label(menu_, selected_);
 					string32_t *value = MainMenu::value(menu_, selected_);
 
-					*value += hlp::utf8_decode(clipboard);
+					*value = hlp::utf8_decode(clipboard);
 
 					if (value == &name_ && value->size() > net::MaxNickLength)
 						value->resize(net::MaxNickLength);
