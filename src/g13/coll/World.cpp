@@ -66,8 +66,6 @@ void World::load(const Json::Value &data)
 {
 	unload();
 
-	gravity_ = 1470;
-
 	{
 		const fixvec2 cellsize(200); // arbitrary...
 
@@ -134,7 +132,6 @@ void World::unload()
 	segmentsGrid_ = 0;
 	entitiesGrid_ = 0;
 
-	gravity_ = 0;
 	bounds_ = fixrect();
 	spawnpoints_.clear();
 }

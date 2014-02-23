@@ -25,28 +25,40 @@ public:
 	bool operator< (int rhs) const;
 	bool operator> (int rhs) const;
 
-	bool operator! ()                  const;
-	bool operator==(fixed const & rhs) const;
-	bool operator!=(fixed const & rhs) const;
-	bool operator<=(fixed const & rhs) const;
-	bool operator>=(fixed const & rhs) const;
-	bool operator< (fixed const & rhs) const;
-	bool operator> (fixed const & rhs) const;
+	bool operator! ()                 const;
+	bool operator==(const fixed &rhs) const;
+	bool operator!=(const fixed &rhs) const;
+	bool operator<=(const fixed &rhs) const;
+	bool operator>=(const fixed &rhs) const;
+	bool operator< (const fixed &rhs) const;
+	bool operator> (const fixed &rhs) const;
 
-	fixed operator- ()                  const;
-	fixed operator+ (fixed const & rhs) const;
-	fixed operator- (fixed const & rhs) const;
-	fixed operator* (fixed const & rhs) const;
-	fixed operator/ (fixed const & rhs) const;
+	fixed operator-()                 const;
+	fixed operator+(const fixed &rhs) const;
+	fixed operator-(const fixed &rhs) const;
+	fixed operator*(const fixed &rhs) const;
+	fixed operator/(const fixed &rhs) const;
 
 	fixed  operator++(int);
 	fixed  operator--(int);
 	fixed& operator++();
 	fixed& operator--();
-	fixed& operator+=(fixed const & rhs);
-	fixed& operator-=(fixed const & rhs);
-	fixed& operator*=(fixed const & rhs);
-	fixed& operator/=(fixed const & rhs);
+	fixed& operator+=(const fixed &rhs);
+	fixed& operator-=(const fixed &rhs);
+	fixed& operator*=(const fixed &rhs);
+	fixed& operator/=(const fixed &rhs);
 };
 
 }} // math::fpm
+
+inline bool operator==(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) == rhs; }
+inline bool operator!=(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) != rhs; }
+inline bool operator<=(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) <= rhs; }
+inline bool operator>=(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) >= rhs; }
+inline bool operator< (int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) <  rhs; }
+inline bool operator> (int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) >  rhs; }
+
+inline math::fpm::fixed operator+(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) + rhs; }
+inline math::fpm::fixed operator-(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) - rhs; }
+inline math::fpm::fixed operator*(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) * rhs; }
+inline math::fpm::fixed operator/(int lhs, const math::fpm::fixed &rhs) { return math::fpm::fixed(lhs) / rhs; }

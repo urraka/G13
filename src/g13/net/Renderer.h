@@ -81,7 +81,9 @@ public:
 	gfx::VBO damageOverlay;
 	float damageTime;
 
-	gfx::VBO hull;
+	#ifdef DBG_SHOW_CURRENT_HULL
+	gfx::VBO dbg_hull;
+	#endif
 };
 
 }} // g13::net

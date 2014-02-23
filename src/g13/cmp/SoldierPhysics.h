@@ -40,7 +40,9 @@ private:
 	void updateNormal(Time dt, const coll::World &world, const SoldierInput &input);
 	void updateRope(Time dt, const coll::World &world, const SoldierInput &input);
 
+	#ifdef DBG_SHOW_CURRENT_HULL
 	friend class ::g13::net::Renderer;
+	#endif
 };
 
 }} // g13::cmp

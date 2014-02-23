@@ -1,4 +1,6 @@
 Game
+  - Probably need some other object for map data so coll::World is exclusive to collisions.
+  - Remove hull lines rendering or make it optional.
   - Check if the floor booleans in hull template params are still useful.
   x Find weird bug while running through gdb.
   - Check hull creation and make sure the prev/next pointers are sane (should be null if segments are not valid).
@@ -70,9 +72,10 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
+  x Add global operators so order of operation with integers don't matter.
   - Add some overflow checks in fpm functions.
   - Consider using int64 in some functions if necessary.
-  - Move constants from fixed class to fpm namespace.
+  x Move constants from fixed class to fpm namespace.
 
 Archive
   x Collision bug: run from bottom-left to the right until blocked by the "wall", then walk left.

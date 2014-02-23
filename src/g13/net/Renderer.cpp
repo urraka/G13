@@ -93,8 +93,10 @@ Renderer::Renderer(Client *client)
 	damageOverlay.allocate<gfx::ColorVertex>(6, gfx::Stream);
 	damageOverlay.mode(gfx::TriangleFan);
 
-	hull.allocate<gfx::ColorVertex>(6, gfx::Stream);
-	hull.mode(gfx::Lines);
+	#ifdef DBG_SHOW_CURRENT_HULL
+	dbg_hull.allocate<gfx::ColorVertex>(6, gfx::Stream);
+	dbg_hull.mode(gfx::Lines);
+	#endif
 }
 
 Renderer::~Renderer()
@@ -285,6 +287,7 @@ void Renderer::draw(const Frame &frame)
 				gfx::draw(damageOverlay);
 			}
 
+			#ifdef DBG_SHOW_CURRENT_HULL
 			if (localPlayer && localPlayer->soldier.physics.segment != 0)
 			{
 				const coll::Segment (&s)[3] = localPlayer->soldier.physics.hull.segments;
@@ -303,11 +306,12 @@ void Renderer::draw(const Frame &frame)
 					gfx::color_vertex(fpm::to_float(s[2].line.p2.x), fpm::to_float(s[2].line.p2.y), color[s[2].floor])
 				};
 
-				hull.set(vertices, 0, countof(vertices));
+				dbg_hull.set(vertices, 0, countof(vertices));
 
 				gfx::matrix(camera.matrix());
-				gfx::draw(hull);
+				gfx::draw(dbg_hull);
 			}
+			#endif
 		}
 		break;
 
