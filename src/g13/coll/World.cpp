@@ -385,7 +385,7 @@ void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &ma
 
 	if (loc.cell != 0)
 		segment.prev = &(loc.cell->items[loc.index]);
-	else if (loc.index > -1)
+	else if (loc.index >= 0)
 		segment.prev = &(grid.sharedItems()[loc.index]);
 	else
 		segment.prev = 0;
@@ -394,7 +394,7 @@ void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &ma
 
 	if (loc.cell != 0)
 		segment.next = &(loc.cell->items[loc.index]);
-	else if (loc.index > -1)
+	else if (loc.index >= 0)
 		segment.next = &(grid.sharedItems()[loc.index]);
 	else
 		segment.next = 0;

@@ -1,4 +1,6 @@
 Game
+  x Find weird bug while running through gdb.
+  - Check hull creation and make sure the prev/next pointers are sane (should be null if segments are not valid).
   - Show scores (kills/deaths).
   x Keep updating the game even after match ends. Reset everything when it starts.
   - Add net::GameMode base class (linked to net::Server).

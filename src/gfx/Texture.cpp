@@ -50,17 +50,17 @@ namespace gfx {
 
 Texture::Texture() : id_(0), width_(0), height_(0), channels_(0) {}
 
-Texture::Texture(const char *filename)
+Texture::Texture(const char *filename) : id_(0), width_(0), height_(0), channels_(0)
 {
 	load(filename);
 }
 
-Texture::Texture(const Image &image)
+Texture::Texture(const Image &image) : id_(0), width_(0), height_(0), channels_(0)
 {
 	load(image);
 }
 
-Texture::Texture(int width, int height, int channels)
+Texture::Texture(int width, int height, int channels) : id_(0), width_(0), height_(0), channels_(0)
 {
 	create(width, height, channels);
 }
