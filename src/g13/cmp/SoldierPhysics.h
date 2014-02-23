@@ -39,6 +39,8 @@ private:
 
 	void updateNormal(Time dt, const coll::World &world, const SoldierInput &input);
 	void updateRope(Time dt, const coll::World &world, const SoldierInput &input);
+
+	friend class ::g13::net::Renderer;
 };
 
 }} // g13::cmp

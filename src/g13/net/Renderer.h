@@ -80,6 +80,8 @@ public:
 
 	gfx::VBO damageOverlay;
 	float damageTime;
+
+	gfx::VBO hull;
 };
 
 }} // g13::net

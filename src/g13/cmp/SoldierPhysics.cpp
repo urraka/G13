@@ -152,6 +152,8 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 					delta.y = (dest->x - position.x) * delta.y / delta.x;
 					delta.x = dest->x - position.x;
 
+					velocity.y = delta.y / dts;
+
 					if (false && input.run && !ducked)
 					{
 						segment = 0;
@@ -169,7 +171,10 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 							nextSegment = 0;
 
 						if (nextSegment != 0 && !hull.owns(nextSegment))
+						{
 							hull = coll::Hull(*nextSegment, bbox);
+							nextSegment = &hull.segments[0];
+						}
 
 						segment = nextSegment;
 					}
@@ -243,8 +248,12 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 					hull = collision.hull;
 					segment = &hull.segments[collision.index];
 
-					// sometimes we hit a floor line but position is out of its bounds, derp
-					// the next if hacks together a fix for that, hopefully without side effects
+					// Sometimes we hit a floor line but position is out of its bounds...
+					// The next 'if' hacks together a fix for that, hopefully without side effects.
+					// I don't remember what this means but i have the feeling that it's a precision
+					// issue. We hit a floor and when resolving collision the position goes out of
+					// the floor bounds by a very small amount, which fucks up the code that makes
+					// you walk along the floor.
 
 					if (segment->floor)
 					{
@@ -280,7 +289,10 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 							else
 							{
 								if (!hull.owns(nextSegment))
+								{
 									hull = coll::Hull(*nextSegment, bbox);
+									nextSegment = &hull.segments[0];
+								}
 
 								segment = nextSegment;
 							}

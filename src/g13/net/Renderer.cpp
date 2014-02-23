@@ -92,6 +92,9 @@ Renderer::Renderer(Client *client)
 	damageTime = 0.0f;
 	damageOverlay.allocate<gfx::ColorVertex>(6, gfx::Stream);
 	damageOverlay.mode(gfx::TriangleFan);
+
+	hull.allocate<gfx::ColorVertex>(6, gfx::Stream);
+	hull.mode(gfx::Lines);
 }
 
 Renderer::~Renderer()
@@ -280,6 +283,30 @@ void Renderer::draw(const Frame &frame)
 				gfx::identity();
 				gfx::scale(camera.viewportWidth(), camera.viewportHeight());
 				gfx::draw(damageOverlay);
+			}
+
+			if (localPlayer && localPlayer->soldier.physics.segment != 0)
+			{
+				const coll::Segment (&s)[3] = localPlayer->soldier.physics.hull.segments;
+
+				const gfx::Color color[2] = {
+					gfx::Color(255, 0, 0),
+					gfx::Color(0, 0, 255)
+				};
+
+				gfx::ColorVertex vertices[] = {
+					gfx::color_vertex(fpm::to_float(s[0].line.p1.x), fpm::to_float(s[0].line.p1.y), color[s[0].floor]),
+					gfx::color_vertex(fpm::to_float(s[0].line.p2.x), fpm::to_float(s[0].line.p2.y), color[s[0].floor]),
+					gfx::color_vertex(fpm::to_float(s[1].line.p1.x), fpm::to_float(s[1].line.p1.y), color[s[1].floor]),
+					gfx::color_vertex(fpm::to_float(s[1].line.p2.x), fpm::to_float(s[1].line.p2.y), color[s[1].floor]),
+					gfx::color_vertex(fpm::to_float(s[2].line.p1.x), fpm::to_float(s[2].line.p1.y), color[s[2].floor]),
+					gfx::color_vertex(fpm::to_float(s[2].line.p2.x), fpm::to_float(s[2].line.p2.y), color[s[2].floor])
+				};
+
+				hull.set(vertices, 0, countof(vertices));
+
+				gfx::matrix(camera.matrix());
+				gfx::draw(hull);
 			}
 		}
 		break;

@@ -1,4 +1,6 @@
 #include "Hull.h"
+
+#include <g13/vars.h>
 #include <assert.h>
 
 namespace g13 {
@@ -103,63 +105,36 @@ Hull& Hull::operator= (const Hull &hull)
 
 Hull::Hull(const Segment &segment, const fixrect &bbox)
 {
-	segments[0].line = segment.line;
-	segments[0].prev = &segments[1];
-	segments[0].next = &segments[2];
-	segments[0].floor = segment.floor;
+	Segment (&S)[3] = segments;
 
-	segments[1].next = &segments[0];
-	segments[1].floor = segment.floor;
+	S[0].line = segment.line;
+	S[0].prev = &S[1];
+	S[0].next = &S[2];
+	S[0].floor = segment.floor;
 
-	segments[2].prev = &segments[0];
-	segments[2].floor = segment.floor;
+	S[1].next = &S[0];
+	S[1].floor = segment.floor;
 
-	const bool prevFloor = segment.prev && segment.prev->floor;
-	const bool nextFloor = segment.next && segment.next->floor;
+	S[2].prev = &S[0];
+	S[2].floor = segment.floor;
 
-	const fixed &L = bbox.tl.x;
-	const fixed &R = bbox.br.x;
-	const fixed &T = -bbox.tl.y;
-	const fixed &B = -bbox.br.y;
-	const fixed  W = bbox.width();
-	const fixed  H = bbox.height();
+	const fixed W = bbox.width();
+	const fixed H = bbox.height();
 
-	const fixed values[] = {L, R, T, B};
-
-	fixline *lines[] = {
-		&(segments[0].line),
-		&(segments[1].line),
-		&(segments[2].line)
+	const fixed offsets[] = {
+		 bbox.tl.x, // L
+		 bbox.br.x, // R
+		-bbox.tl.y, // T
+		-bbox.br.y  // B
 	};
-
-	fixvec2 &p1 = lines[0]->p1;
-	fixvec2 &p2 = lines[0]->p2;
 
 	if (segment.floor)
 	{
-		/*if (!prevFloor)
-		{
-			lines[1]->p1 = fixvec2(p1.x + R, p1.y);
-			lines[1]->p2 = fixvec2(p1.x    , p1.y);
-		}
-		else
-			segments[0].prev = segment.prev;
-
-		if (!nextFloor)
-		{
-			lines[2]->p1 = fixvec2(p2.x    , p2.y);
-			lines[2]->p2 = fixvec2(p2.x + L, p2.y);
-		}
-		else
-			segments[0].next = segment.next;*/
-
-		// ----
-
 		if (segment.prev != 0)
 		{
 			if (segment.prev->floor)
 			{
-				segments[0].prev = segment.prev;
+				S[0].prev = segment.prev;
 			}
 			else
 			{
@@ -169,35 +144,32 @@ Hull::Hull(const Segment &segment, const fixrect &bbox)
 
 				if (type == TopLeft || type == Top)
 				{
-					lines[1]->p1.x = p1.x + values[0 + pt.offset_l0p2x];
-					lines[1]->p1.y = p1.y + values[2 + pt.offset_l0p2y];
-					lines[1]->p2.x = p1.x;
-					lines[1]->p2.y = p1.y;
-
-					segments[1].floor = false;
+					S[1].line.p1.x = S[0].line.p1.x + offsets[0 + pt.offset_l0p2x];
+					S[1].line.p1.y = S[0].line.p1.y + offsets[2 + pt.offset_l0p2y];
+					S[1].line.p2.x = S[0].line.p1.x;
+					S[1].line.p2.y = S[0].line.p1.y;
+					S[1].floor = false;
 				}
 				else if (type == BottomLeft || type == Left)
 				{
-					lines[1]->p1.x = segment.prev->line.p1.x + values[0 + pt.offset_l0p1x];
-					lines[1]->p1.y = segment.prev->line.p1.y + values[2 + pt.offset_l0p1y];
-					lines[1]->p2.x = p1.x;
-					lines[1]->p2.y = p1.y;
-
-					// segments[1].floor = false;
-					segments[1].floor = (fpm::fabs(fpm::slope(*lines[1])) <= 2);
+					S[1].line.p1.x = segment.prev->line.p1.x + offsets[0 + pt.offset_l0p1x];
+					S[1].line.p1.y = segment.prev->line.p1.y + offsets[2 + pt.offset_l0p1y];
+					S[1].line.p2.x = S[0].line.p1.x;
+					S[1].line.p2.y = S[0].line.p1.y;
+					S[1].floor = (fpm::fabs(fpm::slope(S[1].line)) <= vars::MaxFloorSlope);
 				}
 			}
 		}
 		else
 		{
-			segments[0].prev = 0;
+			S[0].prev = 0;
 		}
 
 		if (segment.next != 0)
 		{
 			if (segment.next->floor)
 			{
-				segments[0].next = segment.next;
+				S[0].next = segment.next;
 			}
 			else
 			{
@@ -207,28 +179,27 @@ Hull::Hull(const Segment &segment, const fixrect &bbox)
 
 				if (type == TopRight || type == Top)
 				{
-					lines[2]->p1.x = p2.x;
-					lines[2]->p1.y = p2.y;
-					lines[2]->p2.x = p2.x + values[0 + pt.offset_l0p1x];
-					lines[2]->p2.y = p2.y + values[2 + pt.offset_l0p1y];
+					S[2].line.p1.x = S[0].line.p2.x;
+					S[2].line.p1.y = S[0].line.p2.y;
+					S[2].line.p2.x = S[0].line.p2.x + offsets[0 + pt.offset_l0p1x];
+					S[2].line.p2.y = S[0].line.p2.y + offsets[2 + pt.offset_l0p1y];
 
-					segments[2].floor = false;
+					S[2].floor = false;
 				}
 				else if (type == BottomRight || type == Right)
 				{
-					lines[2]->p1.x = p2.x;
-					lines[2]->p1.y = p2.y;
-					lines[2]->p2.x = segment.next->line.p2.x + values[0 + pt.offset_l0p2x];
-					lines[2]->p2.y = segment.next->line.p2.y + values[2 + pt.offset_l0p2y];
+					S[2].line.p1.x = S[0].line.p2.x;
+					S[2].line.p1.y = S[0].line.p2.y;
+					S[2].line.p2.x = segment.next->line.p2.x + offsets[0 + pt.offset_l0p2x];
+					S[2].line.p2.y = segment.next->line.p2.y + offsets[2 + pt.offset_l0p2y];
 
-					// segments[2].floor = false;
-					segments[2].floor = (fpm::fabs(fpm::slope(*lines[2])) <= 2);
+					S[2].floor = (fpm::fabs(fpm::slope(S[2].line)) <= vars::MaxFloorSlope);
 				}
 			}
 		}
 		else
 		{
-			segments[0].next = 0;
+			S[0].next = 0;
 		}
 	}
 	else
@@ -237,87 +208,66 @@ Hull::Hull(const Segment &segment, const fixrect &bbox)
 
 		const ParamsTemplate &pt = params_template[type];
 
-		p1.x += values[0 + pt.offset_l0p1x];
-		p1.y += values[2 + pt.offset_l0p1y];
-		p2.x += values[0 + pt.offset_l0p2x];
-		p2.y += values[2 + pt.offset_l0p2y];
+		S[0].line.p1.x += offsets[0 + pt.offset_l0p1x];
+		S[0].line.p1.y += offsets[2 + pt.offset_l0p1y];
+		S[0].line.p2.x += offsets[0 + pt.offset_l0p2x];
+		S[0].line.p2.y += offsets[2 + pt.offset_l0p2y];
 
-		lines[1]->p1.x = p1.x + W * pt.offset_l1p1x;
-		lines[1]->p1.y = p1.y + H * pt.offset_l1p1y;
-		lines[1]->p2.x = p1.x;
-		lines[1]->p2.y = p1.y;
+		S[1].line.p1.x = S[0].line.p1.x + W * pt.offset_l1p1x;
+		S[1].line.p1.y = S[0].line.p1.y + H * pt.offset_l1p1y;
+		S[1].line.p2.x = S[0].line.p1.x;
+		S[1].line.p2.y = S[0].line.p1.y;
+		S[1].floor = pt.floor_l1;
 
-		lines[2]->p1.x = p2.x;
-		lines[2]->p1.y = p2.y;
-		lines[2]->p2.x = p2.x + W * pt.offset_l2p2x;
-		lines[2]->p2.y = p2.y + H * pt.offset_l2p2y;
+		S[2].line.p1.x = S[0].line.p2.x;
+		S[2].line.p1.y = S[0].line.p2.y;
+		S[2].line.p2.x = S[0].line.p2.x + W * pt.offset_l2p2x;
+		S[2].line.p2.y = S[0].line.p2.y + H * pt.offset_l2p2y;
+		S[2].floor = pt.floor_l2;
 
-		segments[1].floor = pt.floor_l1;
-		segments[2].floor = pt.floor_l2;
+		if (S[1].floor && segment.prev && segment.prev->floor)
+			S[1].line = fixline();
 
-		if (segments[1].floor && prevFloor)
-		{
-			lines[1]->p1.x = lines[1]->p1.y = 0;
-			lines[1]->p2.x = lines[1]->p2.y = 0;
-		}
+		if (S[2].floor && segment.next && segment.next->floor)
+			S[2].line = fixline();
 
-		if (segments[2].floor && nextFloor)
-		{
-			lines[2]->p1.x = lines[2]->p1.y = 0;
-			lines[2]->p2.x = lines[2]->p2.y = 0;
-		}
-
-		if (prevFloor)
+		if (segment.prev && segment.prev->floor)
 		{
 			if (type == TopRight || type == Top)
 			{
-				lines[1]->p1.x = segment.line.p1.x;
-				lines[1]->p1.y = segment.line.p1.y;
-				lines[1]->p2.x = p1.x;
-				lines[1]->p2.y = p1.y;
-
-				segments[1].floor = false;
+				S[1].line.p1.x = segment.line.p1.x;
+				S[1].line.p1.y = segment.line.p1.y;
+				S[1].line.p2.x = S[0].line.p1.x;
+				S[1].line.p2.y = S[0].line.p1.y;
+				S[1].floor = false;
 			}
 			else if (type == BottomRight || type == Right)
 			{
-				// TODO: this should modify lines[0]
+				S[0].line.p1 = segment.line.p1;
+				S[0].floor = (fpm::fabs(fpm::slope(S[0].line)) <= vars::MaxFloorSlope);
+				S[0].prev = segment.prev;
 
-				lines[1]->p1.x = segment.line.p1.x;
-				lines[1]->p1.y = segment.line.p1.y;
-				lines[1]->p2.x = p2.x;
-				lines[1]->p2.y = p2.y;
-
-				// segments[1].floor = false;
-				segments[1].floor = (fpm::fabs(fpm::slope(*lines[1])) <= 2);
-
-				p1 = p2 = fixvec2(0);
+				S[1].line = fixline();
 			}
 		}
 
-		if (nextFloor)
+		if (segment.next && segment.next->floor)
 		{
 			if (type == TopLeft || type == Top)
 			{
-				lines[2]->p1.x = p2.x;
-				lines[2]->p1.y = p2.y;
-				lines[2]->p2.x = segment.line.p2.x;
-				lines[2]->p2.y = segment.line.p2.y;
-
-				segments[2].floor = false;
+				S[2].line.p1.x = S[0].line.p2.x;
+				S[2].line.p1.y = S[0].line.p2.y;
+				S[2].line.p2.x = segment.line.p2.x;
+				S[2].line.p2.y = segment.line.p2.y;
+				S[2].floor = false;
 			}
 			else if (type == BottomLeft || type == Left)
 			{
-				 // TODO: this should modify lines[0]
+				S[0].line.p2 = segment.line.p2;
+				S[0].floor = (fpm::fabs(fpm::slope(S[0].line)) <= vars::MaxFloorSlope);
+				S[0].next = segment.next;
 
-				lines[2]->p1.x = p1.x;
-				lines[2]->p1.y = p1.y;
-				lines[2]->p2.x = segment.line.p2.x;
-				lines[2]->p2.y = segment.line.p2.y;
-
-				// segments[2].floor = false;
-				segments[2].floor = (fpm::fabs(fpm::slope(*lines[2])) <= 2);
-
-				p1 = p2 = fixvec2(0);
+				S[2].line = fixline();
 			}
 		}
 	}

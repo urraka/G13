@@ -28,16 +28,17 @@ namespace g13
 	{
 		VARS_START();
 
-		define_var(Gravity    , 1470);
-		define_var(JumpVel    , -700);
-		define_var(WalkVel    ,  500);
-		define_var(RunVel     ,  800);
-		define_var(AirMoveVel ,  500);
-		define_var(MoveAcc    , 1800);
-		define_var(AirMoveAcc ,  800);
-		define_var(BreakAcc   , 2200);
-		define_var(AirBreakAcc,  800);
-		define_var(LimitAcc   ,  800);
+		define_var(Gravity      , 1470);
+		define_var(JumpVel      , -700);
+		define_var(WalkVel      ,  500);
+		define_var(RunVel       ,  800);
+		define_var(AirMoveVel   ,  500);
+		define_var(MoveAcc      , 1800);
+		define_var(AirMoveAcc   ,  800);
+		define_var(BreakAcc     , 2200);
+		define_var(AirBreakAcc  ,  800);
+		define_var(LimitAcc     ,  800);
+		define_var(MaxFloorSlope,    2);
 
 		VARS_END();
 	}

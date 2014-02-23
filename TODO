@@ -1,4 +1,5 @@
 Game
+  - Check if the floor booleans in hull template params are still useful.
   x Find weird bug while running through gdb.
   - Check hull creation and make sure the prev/next pointers are sane (should be null if segments are not valid).
   - Show scores (kills/deaths).

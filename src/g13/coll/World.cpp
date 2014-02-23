@@ -3,6 +3,7 @@
 #include "Result.h"
 
 #include <g13/math.h>
+#include <g13/vars.h>
 #include <json/json.h>
 #include <map>
 #include <glm/gtx/norm.hpp>
@@ -24,7 +25,7 @@ static inline bool is_floor(const fixline &line)
 {
 	// winding: is_floor(vec2(10,0), vec2(0,0)) = true
 
-	return line.p1.x != line.p2.x && fpm::fabs(fpm::slope(line)) <= 2 &&
+	return line.p1.x != line.p2.x && fpm::fabs(fpm::slope(line)) <= vars::MaxFloorSlope &&
 		fpm::dot(fixvec2(0, -1), fpm::normal(line)) > 0;
 }
 
