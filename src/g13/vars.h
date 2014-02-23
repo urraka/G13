@@ -1,12 +1,23 @@
-#pragma once
+#if !defined(G13_VARS_HEADER) || defined(G13_VARS_SOURCE) || defined(G13_VARS_LOAD)
 
 #include "math.h"
 
-#ifdef G13_VARS_SOURCE
-	#define constant(name, default_value) \
+#if defined(G13_VARS_SOURCE)
+	#define VARS_START()
+	#define VARS_END()
+	#define define_var(name, default_value) \
 		namespace _ { fixed name = default_value; }
+#elif defined(G13_VARS_LOAD)
+	#include <hlp/ConfigFile.h>
+	#define VARS_START() void load(const char *filename) { hlp::ConfigFile config(filename)
+	#define VARS_END() }
+	#define define_var(name, default_value) \
+		_::name = fpm::from_string(config.readString(var_name(#name), #default_value))
 #else
-	#define constant(name, default_value) \
+	#define G13_VARS_HEADER
+	#define VARS_START()
+	#define VARS_END() void load(const char *filename);
+	#define define_var(name, default_value) \
 		namespace _ { extern fixed name; } \
 		static const fixed &name = _::name;
 #endif
@@ -15,17 +26,25 @@ namespace g13
 {
 	namespace vars
 	{
-		constant(Gravity    , 1470);
-		constant(JumpVel    , -700);
-		constant(WalkVel    ,  500);
-		constant(RunVel     ,  800);
-		constant(AirMoveVel ,  500);
-		constant(MoveAcc    , 1800);
-		constant(AirMoveAcc ,  800);
-		constant(BreakAcc   , 2200);
-		constant(AirBreakAcc,  800);
-		constant(LimitAcc   ,  800);
+		VARS_START();
+
+		define_var(Gravity    , 1470);
+		define_var(JumpVel    , -700);
+		define_var(WalkVel    ,  500);
+		define_var(RunVel     ,  800);
+		define_var(AirMoveVel ,  500);
+		define_var(MoveAcc    , 1800);
+		define_var(AirMoveAcc ,  800);
+		define_var(BreakAcc   , 2200);
+		define_var(AirBreakAcc,  800);
+		define_var(LimitAcc   ,  800);
+
+		VARS_END();
 	}
 }
 
-#undef constant
+#undef define_var
+#undef VARS_START
+#undef VARS_END
+
+#endif

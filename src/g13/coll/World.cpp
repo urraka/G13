@@ -5,6 +5,7 @@
 #include <g13/math.h>
 #include <json/json.h>
 #include <map>
+#include <glm/gtx/norm.hpp>
 
 namespace g13 {
 namespace coll {
@@ -39,6 +40,25 @@ World::World() : segmentsGrid_(0), entitiesGrid_(0) { unload(); }
 World::~World()
 {
 	unload();
+}
+
+static void linestrip_add(const fixvec2 &b, std::vector<fixvec2> &linestrip)
+{
+	const fixvec2 &a = linestrip.back();
+
+	if (glm::length2(from_fixed(b) - from_fixed(a)) >= 30000.0f)
+	{
+		fixvec2 m = fpm::lerp(a, b, fpm::Half);
+
+		assert(m.x != fpm::Overflow && m.y != fpm::Overflow);
+
+		linestrip_add(m, linestrip);
+		linestrip_add(b, linestrip);
+	}
+	else
+	{
+		linestrip.push_back(b);
+	}
 }
 
 void World::load(const Json::Value &data)
@@ -79,16 +99,26 @@ void World::load(const Json::Value &data)
 	for (Json::ArrayIndex i = 0; i < collisionData.size(); i++)
 	{
 		const Json::Value &linestripData = collisionData[i];
-		coll::World::Linestrip &linestrip = linestrips[i];
 
-		linestrip.resize(linestripData.size());
-
-		for (Json::ArrayIndex j = 0; j < linestripData.size(); j++)
+		if (linestripData.size() > 1)
 		{
-			const Json::Value &p = linestripData[j];
+			coll::World::Linestrip &linestrip = linestrips[i];
+			linestrip.reserve(linestripData.size());
 
-			linestrip[j].x = fpm::from_value(p["x"].asInt());
-			linestrip[j].y = fpm::from_value(p["y"].asInt());
+			linestrip.push_back(fixvec2(
+				fpm::from_value(linestripData[0]["x"].asInt()),
+				fpm::from_value(linestripData[0]["y"].asInt())
+			));
+
+			for (Json::ArrayIndex j = 1; j < linestripData.size(); j++)
+			{
+				const fixvec2 p(
+					fpm::from_value(linestripData[j]["x"].asInt()),
+					fpm::from_value(linestripData[j]["y"].asInt())
+				);
+
+				linestrip_add(p, linestrip);
+			}
 		}
 	}
 
@@ -355,7 +385,7 @@ void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &ma
 
 	if (loc.cell != 0)
 		segment.prev = &(loc.cell->items[loc.index]);
-	else if (loc.index >= -1)
+	else if (loc.index > -1)
 		segment.prev = &(grid.sharedItems()[loc.index]);
 	else
 		segment.prev = 0;
@@ -364,7 +394,7 @@ void map_pointers(Grid<Segment> &grid, Segment &segment, const locationmap_t &ma
 
 	if (loc.cell != 0)
 		segment.next = &(loc.cell->items[loc.index]);
-	else if (loc.index >= -1)
+	else if (loc.index > -1)
 		segment.next = &(grid.sharedItems()[loc.index]);
 	else
 		segment.next = 0;

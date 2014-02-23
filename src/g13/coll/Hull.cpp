@@ -188,6 +188,10 @@ Hull::Hull(const Segment &segment, const fixrect &bbox)
 				}
 			}
 		}
+		else
+		{
+			segments[0].prev = 0;
+		}
 
 		if (segment.next != 0)
 		{
@@ -221,6 +225,10 @@ Hull::Hull(const Segment &segment, const fixrect &bbox)
 					segments[2].floor = (fpm::fabs(fpm::slope(*lines[2])) <= 2);
 				}
 			}
+		}
+		else
+		{
+			segments[0].next = 0;
 		}
 	}
 	else

@@ -194,6 +194,7 @@ vec2 normalize(const vec2 &x)
 		scalar = fabs(x.x);
 
 	vec2 r = x / scalar;
+
 	assert(r.x != Overflow && r.y != Overflow);
 
 	fixed L = length(r);

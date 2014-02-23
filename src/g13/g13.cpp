@@ -1,5 +1,6 @@
 #include "g13.h"
 #include "res.h"
+#include "vars.h"
 #include "stt/State.h"
 #include "stt/Multiplayer.h"
 #include "stt/MainMenu.h"
@@ -86,6 +87,7 @@ void initialize()
 	sys::initialize();
 	gfx::initialize();
 	res::initialize();
+	vars::load("config.ini");
 
 	int width;
 	int height;
