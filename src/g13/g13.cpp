@@ -87,7 +87,6 @@ void initialize()
 	sys::initialize();
 	gfx::initialize();
 	res::initialize();
-	vars::load("config.ini");
 
 	int width;
 	int height;

@@ -2,6 +2,7 @@
 #include "MainMenu.h"
 
 #include <g13/g13.h>
+#include <g13/vars.h>
 #include <g13/net/Client.h>
 #include <g13/net/Server.h>
 
@@ -16,6 +17,8 @@ Multiplayer::Multiplayer(const char *nickname, const gfx::Color &color, int port
 		client_(0),
 		server_(0)
 {
+	vars::load("config.ini");
+
 	server_ = new net::Server();
 	server_->start(port);
 

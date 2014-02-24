@@ -1,4 +1,6 @@
 Game
+  - Clean up vars.h so it only has the variables definitions.
+  - Make the server call vars::load, or MainMenu perhaps.
   - Probably need some other object for map data so coll::World is exclusive to collisions.
   - Remove hull lines rendering or make it optional.
   - Check if the floor booleans in hull template params are still useful.
