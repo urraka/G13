@@ -144,42 +144,44 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 					dest = &segment->line.p1;
 				}
 
-				fixed length = fpm::fabs(delta.x);
-				delta = fpm::normalize(direction) * length;
+				const fixed length = fpm::fabs(delta.x);
+				const fixvec2 udir = fpm::normalize(direction);
+
+				delta = udir * length;
 
 				if (fpm::sign(dest->x - position.x) != fpm::sign(dest->x - (position.x + delta.x)))
 				{
 					delta.y = (dest->x - position.x) * delta.y / delta.x;
 					delta.x = dest->x - position.x;
 
-					velocity.y = delta.y / dts;
+					const coll::Segment *nextSegment;
 
-					if (false && input.run && !ducked)
+					if (dest == &segment->line.p1)
+						nextSegment = segment->prev;
+					else
+						nextSegment = segment->next;
+
+					if (nextSegment != 0 && !nextSegment->floor)
+						nextSegment = 0;
+
+					if (nextSegment != 0 && !hull.owns(nextSegment))
 					{
-						segment = 0;
+						hull = coll::Hull(*nextSegment, bbox);
+						nextSegment = &hull.segments[0];
+					}
+
+					segment = nextSegment;
+
+					if (segment != 0)
+					{
+						nextDelta.x = fpm::max(0, length - fpm::length(delta)) * fpm::sign(delta.x);
 					}
 					else
 					{
-						const coll::Segment *nextSegment;
-
-						if (dest == &segment->line.p1)
-							nextSegment = segment->prev;
-						else
-							nextSegment = segment->next;
-
-						if (nextSegment != 0 && !nextSegment->floor)
-							nextSegment = 0;
-
-						if (nextSegment != 0 && !hull.owns(nextSegment))
-						{
-							hull = coll::Hull(*nextSegment, bbox);
-							nextSegment = &hull.segments[0];
-						}
-
-						segment = nextSegment;
+						velocity = udir * fpm::fabs(walkvel);
+						delta = udir * length;
+						walkvel = velocity.x;
 					}
-
-					nextDelta.x = fpm::max(0, length - fpm::length(delta)) * fpm::sign(delta.x);
 				}
 			}
 		}
