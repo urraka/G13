@@ -1,8 +1,4 @@
 #include "vars.h"
-
-#define G13_VARS_SOURCE
-#include "vars.h"
-
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
@@ -31,6 +27,18 @@ static const char *var_name(const char *name)
 	return str;
 }
 
+#define G13_VARS_SOURCE
+#include "vars.h"
 #undef G13_VARS_SOURCE
+
 #define G13_VARS_LOAD
 #include "vars.h"
+#undef G13_VARS_LOAD
+
+#define G13_VARS_GET
+#include "vars.h"
+#undef G13_VARS_GET
+
+#define G13_VARS_SET
+#include "vars.h"
+#undef G13_VARS_SET

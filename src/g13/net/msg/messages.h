@@ -71,12 +71,26 @@ MESSAGE(ServerInfo, ReliableChannel)
 	uint8_t nPlayers;
 	int32_t matchStartTick;
 	bool    matchPlaying;
+
+	vars::Vars vars;
 BEGIN
 	Integer(tick)
 	Bits(clientId, MINBITS(MaxPlayers - 1))
 	Bits(nPlayers, MINBITS(MaxPlayers - 1))
 	Integer(matchStartTick)
 	Bool(matchPlaying)
+
+	Fixed(vars.Gravity)
+	Fixed(vars.JumpVel)
+	Fixed(vars.WalkVel)
+	Fixed(vars.RunVel)
+	Fixed(vars.AirMoveVel)
+	Fixed(vars.MoveAcc)
+	Fixed(vars.AirMoveAcc)
+	Fixed(vars.BreakAcc)
+	Fixed(vars.AirBreakAcc)
+	Fixed(vars.LimitAcc)
+	Fixed(vars.MaxFloorSlope)
 END
 
 MESSAGE(PlayerInfo, ReliableChannel)

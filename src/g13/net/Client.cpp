@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "msg/msg.h"
+#include <g13/vars.h>
 #include <assert.h>
 #include <json/json.h>
 #include <hlp/read.h>
@@ -353,6 +354,8 @@ void Client::onServerInfo(const msg::ServerInfo &msg)
 
 	matchInfo_.playing = msg.matchPlaying;
 	matchInfo_.start = msg.matchStartTick;
+
+	vars::set(msg.vars);
 
 	loadMap(0);
 

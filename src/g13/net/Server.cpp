@@ -1,5 +1,6 @@
 #include "Server.h"
 #include "msg/msg.h"
+#include <g13/vars.h>
 #include <hlp/read.h>
 #include <hlp/assign.h>
 #include <json/json.h>
@@ -343,6 +344,8 @@ void Server::sendServerInfoMessage(const ServerPlayer *player)
 	msg.nPlayers = players_.size();
 	msg.matchPlaying = matchPlaying_;
 	msg.matchStartTick = matchStartTick_;
+
+	vars::get(msg.vars);
 
 	Connection::send(msg, player->peer);
 }

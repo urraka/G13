@@ -1,5 +1,6 @@
 #pragma once
 
+#include <g13/vars.h>
 #include <g13/net/constants.h>
 #include <g13/cmp/SoldierState.h>
 #include <g13/cmp/BulletParams.h>
