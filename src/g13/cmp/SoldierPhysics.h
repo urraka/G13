@@ -12,26 +12,27 @@ class SoldierPhysics
 public:
 	SoldierPhysics();
 
+	enum Mode { Normal, Rope };
+
 	void update(Time dt, const coll::World &world, const SoldierInput &input);
+	void hook(const fixvec2 &hookPosition);
+	void unhook();
 	void reset(fixvec2 pos);
 
 	bool ducking() const { return ducked; }
 	bool floor() const { return segment != 0 && segment->floor; }
-
 	const fixrect &bounds() const { return ducked ? bboxDucked : bboxNormal; }
 
 	const fixrect bboxNormal;
 	const fixrect bboxDucked;
 
+	Mode    mode;
 	fixvec2 position;
 	fixvec2 velocity;
 	fixvec2 acceleration;
 	fixed   walkvel;
 
 private:
-	enum Mode { Normal, Rope };
-
-	Mode mode;
 	bool ducked;
 	coll::Hull hull;
 	const coll::Segment *segment;

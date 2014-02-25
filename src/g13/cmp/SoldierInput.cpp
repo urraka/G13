@@ -14,7 +14,8 @@ SoldierInput::SoldierInput()
 		jump(false),
 		run(false),
 		duck(false),
-		shoot(false)
+		shoot(false),
+		rope(false)
 {
 }
 
@@ -69,6 +70,7 @@ void SoldierInput::onMousePress(const sys::Event::MouseButtonEvent &event)
 	switch (event.code)
 	{
 		case sys::MouseLeft: shoot = true; break;
+		case sys::MouseRight: rope = true; break;
 	}
 }
 
@@ -77,6 +79,7 @@ void SoldierInput::onMouseRelease(const sys::Event::MouseButtonEvent &event)
 	switch (event.code)
 	{
 		case sys::MouseLeft: shoot = false; break;
+		case sys::MouseRight: rope = false; break;
 	}
 }
 
@@ -92,6 +95,19 @@ void SoldierInput::updateTargetAngle(const ent::Soldier &soldier)
 
 	angle = info.angle;
 	rightwards = info.rightwards;
+}
+
+fixed SoldierInput::computeAngle() const
+{
+	const fixed value = fpm::from_value((int32_t)angle);
+	const fixed maxValue = fpm::from_value(UINT16_MAX);
+
+	fixed result = fpm::Pi * value / maxValue - fpm::Pi / fixed(2);
+
+	if (!rightwards)
+		result = -result + fpm::Pi;
+
+	return result;
 }
 
 }} // g13::cmp

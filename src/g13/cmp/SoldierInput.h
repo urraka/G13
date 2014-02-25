@@ -1,6 +1,7 @@
 #pragma once
 
 #include <g13/g13.h>
+#include <g13/math.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -21,6 +22,8 @@ public:
 
 	void updateTargetAngle(const ent::Soldier &soldier);
 
+	fixed computeAngle() const;
+
 	uint16_t angle;
 	bool rightwards;
 	bool left;
@@ -31,6 +34,7 @@ public:
 	bool run;
 	bool duck;
 	bool shoot;
+	bool rope;
 
 	float mousex;
 	float mousey;

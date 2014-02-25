@@ -210,6 +210,7 @@ void Client::sendInputMessage()
 	input.run        = localPlayer_->input.run;
 	input.duck       = localPlayer_->input.duck;
 	input.shoot      = localPlayer_->input.shoot;
+	input.rope       = localPlayer_->input.rope;
 
 	Connection::send(input);
 }

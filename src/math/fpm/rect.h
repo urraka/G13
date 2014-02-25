@@ -1,6 +1,8 @@
 #pragma once
 
 #include "fixed.h"
+#include "functions.h"
+#include "constants.h"
 #include "vec2.h"
 
 namespace math {
@@ -19,6 +21,7 @@ public:
 	vec2  size  () const { return br - tl; }
 	fixed width () const { return br.x - tl.x; }
 	fixed height() const { return br.y - tl.y; }
+	vec2  center() const { return lerp(tl, br, Half); }
 
 	rect operator+(const vec2 &rhs) const { return rect(tl + rhs, br + rhs); }
 	rect operator-(const vec2 &rhs) const { return rect(tl - rhs, br - rhs); }

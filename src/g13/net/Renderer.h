@@ -84,6 +84,8 @@ public:
 	#ifdef DBG_SHOW_CURRENT_HULL
 	gfx::VBO dbg_hull;
 	#endif
+
+	gfx::VBO dbg_rope;
 };
 
 }} // g13::net

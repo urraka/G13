@@ -172,9 +172,35 @@ fixed dot(const vec2 &a, const vec2 &b)
 	return a.x * b.x + a.y * b.y;
 }
 
-fixed length(const vec2 &x)
+fixed length(const vec2 &v)
 {
-	return x.x == 0 ? fabs(x.y) : x.y == 0 ? fabs(x.x) : sqrt(x.x * x.x + x.y * x.y);
+	static const fixed limit = 125;
+
+	if (v.x == 0)
+	{
+		return fabs(v.y);
+	}
+	else if (v.y == 0)
+	{
+		return fabs(v.x);
+	}
+	else
+	{
+		const fixed a = fabs(v.x);
+		const fixed b = fabs(v.y);
+
+		if (a <= limit && b <= limit)
+		{
+			return sqrt(v.x * v.x + v.y * v.y);
+		}
+		else
+		{
+			fixed s = a * Half + b * Half;
+			vec2  w = v / s;
+
+			return s * sqrt(w.x * w.x + w.y * w.y);
+		}
+	}
 }
 
 fixed length2(const vec2 &x)
@@ -184,27 +210,7 @@ fixed length2(const vec2 &x)
 
 vec2 normalize(const vec2 &x)
 {
-	fixed scalar;
-
-	if (x.x != 0 && x.y != 0)
-		scalar = max(fabs(x.x), fabs(x.y));
-	else if (x.x == 0)
-		scalar = fabs(x.y);
-	else
-		scalar = fabs(x.x);
-
-	vec2 r = x / scalar;
-
-	assert(r.x != Overflow && r.y != Overflow);
-
-	fixed L = length(r);
-	assert(L != Overflow);
-
-	r /= L;
-
-	assert(r.x != Overflow && r.y != Overflow);
-
-	return r;
+	return x / length(x);
 }
 
 vec2 sign(const vec2 &x)
@@ -223,6 +229,16 @@ vec2 epsilon_check(const vec2 &x, const fixed &epsilon)
 vec2 lerp(const vec2 &a, const vec2 &b, const fixed &step)
 {
 	return vec2(lerp(a.x, b.x, step), lerp(a.y, b.y, step));
+}
+
+vec2 from_polar(const fixed &angle, const fixed &magnitude)
+{
+	return vec2(cos(angle), sin(angle)) * magnitude;
+}
+
+fixed angle(const vec2 &x)
+{
+	return atan2(x.y, x.x);
 }
 
 // rect functions
@@ -322,7 +338,7 @@ vec2 normal(const line &l)
 
 vec2 midpoint(const line &l)
 {
-	return (l.p1 + l.p2) / fixed(2);
+	return lerp(l.p1, l.p2, Half);
 }
 
 rect bounds(const line &l)

@@ -627,6 +627,7 @@ void Server::onInput(ServerPlayer *player, const msg::Input &msg)
 		input.run        = msg.run;
 		input.duck       = msg.duck;
 		input.shoot      = msg.shoot;
+		input.rope       = msg.rope;
 
 		player->inputs.push_back(make_ticked(msg.tick, input));
 		player->inputTick++;

@@ -49,6 +49,7 @@ MESSAGE(Input, ReliableChannel)
 	bool run;
 	bool duck;
 	bool shoot;
+	bool rope;
 BEGIN
 	Integer(tick)
 	Integer(angle)
@@ -59,6 +60,7 @@ BEGIN
 	Bool(run)
 	Bool(duck)
 	Bool(shoot)
+	Bool(rope)
 END
 
 //******************************************************************************
@@ -91,6 +93,8 @@ BEGIN
 	Fixed(vars.AirBreakAcc)
 	Fixed(vars.LimitAcc)
 	Fixed(vars.MaxFloorSlope)
+	Fixed(vars.MaxRopeLength)
+	Fixed(vars.RopeVel)
 END
 
 MESSAGE(PlayerInfo, ReliableChannel)

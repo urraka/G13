@@ -17,6 +17,8 @@ namespace g13
 		define(AirBreakAcc  ,  800);
 		define(LimitAcc     ,  800);
 		define(MaxFloorSlope,    2);
+		define(MaxRopeLength,  800);
+		define(RopeVel      , 3500);
 
 		VARS_END();
 	}

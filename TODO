@@ -1,16 +1,12 @@
 Game
-  - Clean up vars.h so it only has the variables definitions.
-  - Make the server call vars::load, or MainMenu perhaps.
-  - Probably need some other object for map data so coll::World is exclusive to collisions.
-  - Remove hull lines rendering or make it optional.
+  - Bug when resizing window while connecting.
+  - Assertion when failing to create server (something is calling stop).
+  - When player goes too fast (faster than max velocity) it breaks too fast when pressing left/right.
+  - Probably need some other object for map data so coll::World is exclusive to collisions (Level?).
   - Check if the floor booleans in hull template params are still useful.
-  x Find weird bug while running through gdb.
   - Check hull creation and make sure the prev/next pointers are sane (should be null if segments are not valid).
   - Show scores (kills/deaths).
-  x Keep updating the game even after match ends. Reset everything when it starts.
   - Add net::GameMode base class (linked to net::Server).
-  x Count kills/deaths etc.
-  x Match start/end.
   - Some kind of rope (like in teeworlds).
   - Chat box (with history and crap).
   - Terminal falling velocity.
@@ -24,34 +20,20 @@ Game
   - Maybe get rid of the interpolable object.
   - Pick different font sizes depending window width.
   - Use font size to calculate chatbox height.
-  x There's no reason to have all gfx objects as pointers in net::Client.
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
     ~ This is an intersection precision problem, when endpoint is very near the line.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
     - Split "long" segments.
   - Make a class for the chatbox.
-  x Move all the Client rendering to a separate class.
   - Think how the event system should work. Consider some minimalistic ui system.
-  x Separate collision map from map rendering stuff.
   - Find ultimate solution for the collision bugs.
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Networking
-  x msg::PlayerConnect should tell state, health, etc.
-  x Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
   - When you die and re-join might be a good time to re-sync client tick if needed.
-  x Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
-  x Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
-    ~ Setting peer-data to id could help with this.
-  x Check where peer->mtu is negotiated.
   - Add some client side correcting if out of sync when needed.
     ~ Should only be needed in explosions or anything "external" that changes your physics state.
-  x Move BitStream to hlp, could be useful for binary files aswell.
-  x Set timeouts on both client and server.
   - Consider adding range checks on packet serialization.
-  x Don't send gamestate of local player every time.
-  x Remove Client::active() and make some easier to understand checks instead.
-  x Set channel on message definitions.
   - Check what unsequenced means on enet. Is it reliable? Consider alternatives for gamestate.
 
 Graphics
@@ -74,12 +56,33 @@ System
   - iOS: callbacks for touch/movement events.
 
 Math
-  x Add global operators so order of operation with integers don't matter.
   - Add some overflow checks in fpm functions.
   - Consider using int64 in some functions if necessary.
-  x Move constants from fixed class to fpm namespace.
 
 Archive
+  x Clean up vars.h so it only has the variables definitions.
+  x Make the server call vars::load, or MainMenu perhaps.
+  x Remove hull lines rendering or make it optional.
+  x Find weird bug while running through gdb.
+  x Keep updating the game even after match ends. Reset everything when it starts.
+  x Count kills/deaths etc.
+  x Match start/end.
+  x There's no reason to have all gfx objects as pointers in net::Client.
+  x Move all the Client rendering to a separate class.
+  x Separate collision map from map rendering stuff.
+  x msg::PlayerConnect should tell state, health, etc.
+  x Add some disconnecting state to player where it gets updated just to finish processing bullets, etc.
+  x Have some proper initialize, finalize stuff in Multiplayer, Client and Server.
+  x Have some proper array of active players in client/server to avoid iterating MaxPlayers every time.
+    ~ Setting peer-data to id could help with this.
+  x Check where peer->mtu is negotiated.
+  x Move BitStream to hlp, could be useful for binary files aswell.
+  x Set timeouts on both client and server.
+  x Don't send gamestate of local player every time.
+  x Remove Client::active() and make some easier to understand checks instead.
+  x Set channel on message definitions.
+  x Add global operators so order of operation with integers don't matter.
+  x Move constants from fixed class to fpm namespace.
   x Collision bug: run from bottom-left to the right until blocked by the "wall", then walk left.
     ~ This was on the old map (first one used in the js stuff aswell)
   x Figure how to recover from cases where client lags behind and interpolation is lost (add debug hints).

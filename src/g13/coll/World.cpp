@@ -47,7 +47,14 @@ static void linestrip_add(const fixvec2 &b, std::vector<fixvec2> &linestrip)
 {
 	const fixvec2 &a = linestrip.back();
 
-	if (glm::length2(from_fixed(b) - from_fixed(a)) >= 30000.0f)
+	static const fixed C = 181;
+	static const fixed C2 = C*C;
+
+	const fixed x = b.x - a.x;
+	const fixed y = b.y - a.y;
+
+	// if (glm::length2(from_fixed(b) - from_fixed(a)) >= 30000.0f)
+	if (x >= C || y >= C || x*x >= C2 - y*y || y*y >= C2 - x*x)
 	{
 		fixvec2 m = fpm::lerp(a, b, fpm::Half);
 

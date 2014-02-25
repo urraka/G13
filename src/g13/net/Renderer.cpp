@@ -97,6 +97,9 @@ Renderer::Renderer(Client *client)
 	dbg_hull.allocate<gfx::ColorVertex>(6, gfx::Stream);
 	dbg_hull.mode(gfx::Lines);
 	#endif
+
+	dbg_rope.allocate<gfx::ColorVertex>(2, gfx::Stream);
+	dbg_rope.mode(gfx::Lines);
 }
 
 Renderer::~Renderer()
@@ -312,6 +315,22 @@ void Renderer::draw(const Frame &frame)
 				gfx::draw(dbg_hull);
 			}
 			#endif
+
+			if (localPlayer && !localPlayer->soldier.rope.idle())
+			{
+				const vec2 a = from_fixed(localPlayer->soldier.center());
+				const vec2 b = from_fixed(localPlayer->soldier.rope.position);
+
+				gfx::ColorVertex vertices[] = {
+					gfx::color_vertex(a.x, a.y, gfx::Color(0, 0, 255)),
+					gfx::color_vertex(b.x, b.y, gfx::Color(0, 0, 255))
+				};
+
+				dbg_rope.set(vertices, 0, countof(vertices));
+
+				gfx::matrix(camera.matrix());
+				gfx::draw(dbg_rope);
+			}
 		}
 		break;
 

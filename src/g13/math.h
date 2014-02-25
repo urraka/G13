@@ -1,5 +1,6 @@
 #pragma once
 
+#include <g13/g13.h>
 #include <glm/glm.hpp>
 #include <gfx/mat2d.h>
 #include <math/interpolable.h>
@@ -26,6 +27,12 @@ static inline vec2 from_fixed(const fixvec2 &x)
 static inline fixvec2 to_fixed(const vec2 &x)
 {
 	return fixvec2(x.x, x.y);
+}
+
+static inline fixed to_fixed(Time time)
+{
+	// returns seconds
+	return fixed((int)time / 1000) / fixed(1000);
 }
 
 } // g13

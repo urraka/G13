@@ -1,4 +1,5 @@
 #include "Soldier.h"
+#include <g13/vars.h>
 #include <g13/ent/Bullet.h>
 #include <g13/cmp/BulletParams.h>
 #include <g13/coll/World.h>
@@ -14,9 +15,38 @@ Soldier::Soldier()
 
 void Soldier::update(Time dt, const coll::World &world, const cmp::SoldierInput &input)
 {
+	// update rope
+
+	if (input.rope)
+	{
+		if (rope.idle() && canShootRope_)
+		{
+			const fixed a = input.computeAngle();
+			rope.shoot(bulletSpawnPoint(physics.position, a), fpm::from_polar(a, vars::RopeVel));
+			canShootRope_ = false;
+		}
+	}
+	else
+	{
+		canShootRope_ = true;
+		rope.pull();
+	}
+
+	rope.update(dt, *this, world);
+
+	// update soldier
+
+	switch (physics.mode)
+	{
+		case cmp::SoldierPhysics::Normal: if ( rope.hooked()) physics.hook(rope.position); break;
+		case cmp::SoldierPhysics::Rope:   if (!rope.hooked()) physics.unhook();            break;
+	}
+
 	physics.update(dt, world, input);
 	updateState(input);
 	graphics.update(dt, state_);
+
+	// update weapon
 
 	if (input.shoot)
 	{
@@ -29,15 +59,7 @@ void Soldier::update(Time dt, const coll::World &world, const cmp::SoldierInput 
 		{
 			shootingTime_ -= rate;
 
-			const fixed value = fpm::from_value((int32_t)input.angle);
-			const fixed maxValue = fpm::from_value(UINT16_MAX);
-			const fixed &pi = fpm::Pi;
-
-			fixed angle = pi * value / maxValue - pi / fixed(2);
-
-			if (!input.rightwards)
-				angle = -angle + pi;
-
+			const fixed angle = input.computeAngle();
 			const fixvec2 &position = physics.position;
 
 			fixvec2 spawnPoint = bulletSpawnPoint(position, angle);
@@ -100,6 +122,7 @@ fixvec2 Soldier::bodyOffset() const
 
 void Soldier::reset(fixvec2 pos)
 {
+	canShootRope_ = true;
 	physics.reset(pos);
 	updateState(cmp::SoldierInput());
 	graphics.update(0, state_);

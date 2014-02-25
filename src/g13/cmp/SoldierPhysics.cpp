@@ -9,11 +9,6 @@
 namespace g13 {
 namespace cmp {
 
-static inline fixed to_seconds(Time time)
-{
-	return fixed((int)time / 1000) / fixed(1000);
-}
-
 SoldierPhysics::SoldierPhysics()
 	:	bboxNormal(-17, -66, 17, 0),
 		bboxDucked(-17, -50, 17, 0)
@@ -30,9 +25,24 @@ void SoldierPhysics::update(Time dt, const coll::World &world, const SoldierInpu
 	}
 }
 
+void SoldierPhysics::hook(const fixvec2 &hookPosition)
+{
+	mode = Rope;
+	ropeHook = hookPosition;
+	// position += bounds().center() - bboxDucked.center();
+	ducked = true;
+	segment = 0;
+}
+
+void SoldierPhysics::unhook()
+{
+	mode = Normal;
+	walkvel = velocity.x;
+}
+
 void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const SoldierInput &input)
 {
-	fixed dts = to_seconds(dt);
+	fixed dts = to_fixed(dt);
 
 	if (ducked && !input.duck)
 	{
@@ -315,6 +325,42 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 
 void SoldierPhysics::updateRope(Time dt, const coll::World &world, const SoldierInput &input)
 {
+	const fixed dts = to_fixed(dt);
+
+	fixvec2 prevpos = position;
+
+	fixvec2 ropeacc = 20 * (ropeHook - position);
+
+	acceleration = ropeacc + fixvec2(0, vars::Gravity);
+	velocity += acceleration * dts;
+	position += velocity * dts;
+
+	fixed L = fpm::length(position - ropeHook);
+
+	if (L > vars::MaxRopeLength)
+		position = ropeHook + ((position - ropeHook) / L) * vars::MaxRopeLength;
+
+	for (int i = 0 ; i < 2; i++)
+	{
+		coll::Result collision = world.collision(prevpos, position, bounds());
+
+		if (collision.segment != 0)
+		{
+			position = collision.position;
+
+			const fixline &line = collision.segment->line;
+
+			// fixvec2 normal = fpm::normal(line);
+
+			fixvec2 direction = fpm::normalize(line.p2 - line.p1);
+			fixed length = fpm::dot(direction, velocity);
+			velocity = direction * length;
+
+			prevpos = position;
+			position += velocity * dts * collision.percent;
+		}
+		else break;
+	}
 }
 
 void SoldierPhysics::reset(fixvec2 pos)

@@ -53,6 +53,7 @@ namespace g13
 	{
 		class Soldier;
 		class Bullet;
+		class Rope;
 	}
 
 	namespace cmp

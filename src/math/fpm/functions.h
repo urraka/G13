@@ -51,6 +51,8 @@ vec2  normalize    (const vec2 &x);
 vec2  sign         (const vec2 &x);
 vec2  epsilon_check(const vec2 &x, const fixed &epsilon);
 vec2  lerp         (const vec2 &a, const vec2 &b, const fixed &step);
+vec2  from_polar   (const fixed &angle, const fixed &magnitude);
+fixed angle        (const vec2 &x);
 
 // rect
 bool  contains  (const rect &rc, const vec2 &p);
