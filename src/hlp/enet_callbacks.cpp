@@ -8,7 +8,8 @@
 
 #define WRAPPER_OFFSET(T)    (offsetof(struct wrapper_t<T>, data))
 #define WRAPPER_PTR(data, T) (wrapper_t<T>*)((char*)data - WRAPPER_OFFSET(T))
-#define MALLOC_OFFSET        (offsetof(struct {char a; ::hlp::structures_t b;}, b))
+// #define MALLOC_OFFSET        (offsetof(struct {char a; ::hlp::structures_t b;}, b))
+#define MALLOC_OFFSET        (sizeof(uint64_t))
 
 #ifdef DEBUG
 	#define INC(x) callbacks.x++
