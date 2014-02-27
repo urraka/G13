@@ -318,7 +318,7 @@ void Renderer::draw(const Frame &frame)
 
 			if (localPlayer && !localPlayer->soldier.rope.idle())
 			{
-				const vec2 a = from_fixed(localPlayer->soldier.center());
+				const vec2 a = localPlayer->soldier.graphics.position() - vec2(0, 40);
 				const vec2 b = from_fixed(localPlayer->soldier.rope.position);
 
 				gfx::ColorVertex vertices[] = {
