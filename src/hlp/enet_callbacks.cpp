@@ -122,7 +122,7 @@ void *cb_malloc(size_t size)
 
 	switch (size)
 	{
-		case sizeof(ENetPacket):
+		/*case sizeof(ENetPacket):
 		{
 			type = Packet;
 			wrapper_t<ENetPacket> *storage = callbacks.pckPool.alloc();
@@ -156,7 +156,7 @@ void *cb_malloc(size_t size)
 			result = &storage->data;
 			INC(ackCount);
 		}
-		break;
+		break;*/
 
 		default:
 		{
