@@ -20,6 +20,10 @@ Renderer::Renderer(Client *client)
 	soldiers.texture(res::texture(res::Soldier));
 	soldiers.resize(MaxPlayers * cmp::SoldierGraphics::SpriteCount, gfx::Stream);
 
+	res::texture(res::Rope)->wrapX(gfx::Repeat);
+	ropes.texture(res::texture(res::Rope));
+	ropes.resize(MaxPlayers * 2, gfx::Stream);
+
 	bullets.texture(res::texture(res::Bullet));
 	bullets.resize(512, gfx::Stream);
 
@@ -98,7 +102,7 @@ Renderer::Renderer(Client *client)
 	dbg_hull.mode(gfx::Lines);
 	#endif
 
-	dbg_rope.allocate<gfx::ColorVertex>(2, gfx::Stream);
+	dbg_rope.allocate<gfx::ColorVertex>(4, gfx::Stream);
 	dbg_rope.mode(gfx::Lines);
 }
 
@@ -153,13 +157,10 @@ void Renderer::draw(const Frame &frame)
 
 			camera.frame(frame);
 
-			// draw map
-
-			map.draw(frame, camera);
-
-			// draw soldiers
+			// update soldiers & ropes spritebatch
 
 			soldiers.clear();
+			ropes.clear();
 
 			for (size_t i = 0; i < client->remotePlayers_.size(); i++)
 			{
@@ -169,15 +170,21 @@ void Renderer::draw(const Frame &frame)
 
 					soldier.graphics.frame(frame);
 					soldiers.add(soldier.graphics.sprites());
+
+					if (soldier.graphics.hasRope())
+						ropes.add(soldier.graphics.ropeSprites());
 				}
 			}
 
 			if (localPlayer->state == Player::Playing)
+			{
 				soldiers.add(localPlayer->soldier.graphics.sprites());
 
-			gfx::draw(soldiers);
+				if (localPlayer->soldier.graphics.hasRope())
+					ropes.add(localPlayer->soldier.graphics.ropeSprites());
+			}
 
-			// draw bullets
+			// update bullets spritebatch
 
 			bullets.clear();
 
@@ -206,6 +213,17 @@ void Renderer::draw(const Frame &frame)
 				bullets.add(localPlayer->bullets[i].graphics.sprite());
 			}
 
+			// draw map, soldiers, ropes and bullets
+
+			map.drawBackground(frame, camera);
+
+			gfx::matrix(camera.matrix());
+			gfx::draw(ropes);
+
+			map.drawForeground(frame, camera);
+
+			gfx::matrix(camera.matrix());
+			gfx::draw(soldiers);
 			gfx::draw(bullets);
 
 			// chat text
@@ -316,14 +334,20 @@ void Renderer::draw(const Frame &frame)
 			}
 			#endif
 
-			if (localPlayer && !localPlayer->soldier.rope.idle())
+			if (false && localPlayer && !localPlayer->soldier.rope.idle())
 			{
-				const vec2 a = localPlayer->soldier.graphics.position() - vec2(0, 40);
-				const vec2 b = from_fixed(localPlayer->soldier.rope.position);
+				const ent::Soldier &soldier = localPlayer->soldier;
+
+				const vec2 rope0 = soldier.graphics.position() - vec2(0, 40);
+				const vec2 rope1 = from_fixed(soldier.rope.position);
+				const vec2 vel0 = soldier.graphics.position();
+				const vec2 vel1 = soldier.graphics.position() + 0.1f * from_fixed(soldier.physics.velocity);
 
 				gfx::ColorVertex vertices[] = {
-					gfx::color_vertex(a.x, a.y, gfx::Color(0, 0, 255)),
-					gfx::color_vertex(b.x, b.y, gfx::Color(0, 0, 255))
+					gfx::color_vertex(rope0.x, rope0.y, gfx::Color(0, 0, 255)),
+					gfx::color_vertex(rope1.x, rope1.y, gfx::Color(0, 0, 255)),
+					gfx::color_vertex(vel0.x, vel0.y, gfx::Color(255, 255, 0)),
+					gfx::color_vertex(vel1.x, vel1.y, gfx::Color(255, 255, 0))
 				};
 
 				dbg_rope.set(vertices, 0, countof(vertices));

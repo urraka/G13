@@ -12,6 +12,7 @@ enum TextureID
 	Rocks,
 	Tree,
 	Bullet,
+	Rope,
 	TextureCount
 };
 

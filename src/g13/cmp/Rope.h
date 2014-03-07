@@ -4,7 +4,7 @@
 #include <g13/math.h>
 
 namespace g13 {
-namespace ent {
+namespace cmp {
 
 class Rope
 {
@@ -13,7 +13,7 @@ public:
 
 	enum State { Idle, Throwing, Hooked, Pulling };
 
-	void update(Time dt, const Soldier &soldier, const coll::World &world);
+	void update(Time dt, const ent::Soldier &soldier, const coll::World &world);
 	void shoot(const fixvec2 &spawnpoint, const fixvec2 &velocity);
 	void pull();
 
@@ -25,4 +25,4 @@ public:
 	fixvec2 velocity;
 };
 
-}} // g13::ent
+}} // g13::cmp

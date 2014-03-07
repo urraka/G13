@@ -1,4 +1,8 @@
 Game
+  - Increase player damage when hit by a bullet.
+  - Bug when failing to join (for the second time maybe?)
+  - Fix all the enet_callbacks crap.
+  - Warning in hlp::pool when BlockSize=1.
   - Bug when resizing window while connecting.
   - Assertion when failing to create server (something is calling stop).
   - When player goes too fast (faster than max velocity) it breaks too fast when pressing left/right.
@@ -30,6 +34,7 @@ Game
   - Auto-record every fucking gameplay and store in new files with dates and shit.
 
 Networking
+  - Interpolate hook position in RemotePlayer.
   - When you die and re-join might be a good time to re-sync client tick if needed.
   - Add some client side correcting if out of sync when needed.
     ~ Should only be needed in explosions or anything "external" that changes your physics state.

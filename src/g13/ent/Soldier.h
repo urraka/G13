@@ -3,7 +3,7 @@
 #include <g13/g13.h>
 #include <g13/math.h>
 #include <g13/callback.h>
-#include <g13/ent/Rope.h>
+#include <g13/cmp/Rope.h>
 #include <g13/cmp/SoldierInput.h>
 #include <g13/cmp/SoldierPhysics.h>
 #include <g13/cmp/SoldierGraphics.h>
@@ -27,7 +27,7 @@ public:
 
 	cmp::SoldierPhysics physics;
 	cmp::SoldierGraphics graphics;
-	ent::Rope rope;
+	cmp::Rope rope;
 
 	uint8_t id;
 

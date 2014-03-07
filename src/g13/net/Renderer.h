@@ -66,6 +66,7 @@ public:
 	g13::Camera camera;
 
 	gfx::SpriteBatch soldiers;
+	gfx::SpriteBatch ropes;
 	gfx::SpriteBatch bullets;
 
 	gfx::Text connecting;

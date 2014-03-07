@@ -329,7 +329,7 @@ void SoldierPhysics::updateRope(Time dt, const coll::World &world, const Soldier
 
 	fixvec2 prevpos = position;
 
-	fixvec2 ropeacc = 20 * (ropeHook - position);
+	fixvec2 ropeacc = 15 * (ropeHook - position);
 
 	acceleration = ropeacc + fixvec2(0, vars::Gravity);
 	velocity += acceleration * dts;
@@ -340,26 +340,35 @@ void SoldierPhysics::updateRope(Time dt, const coll::World &world, const Soldier
 	if (L > vars::MaxRopeLength)
 		position = ropeHook + ((position - ropeHook) / L) * vars::MaxRopeLength;
 
-	for (int i = 0 ; i < 2; i++)
+	coll::Result collision = world.collision(prevpos, position, bounds());
+
+	if (collision.segment != 0)
 	{
-		coll::Result collision = world.collision(prevpos, position, bounds());
+		position = collision.position;
 
-		if (collision.segment != 0)
+		const fixline &line = collision.segment->line;
+		const fixvec2 normal = fpm::normal(line);
+		const fixvec2 invvel = fpm::normalize(-velocity);
+
+		if (fpm::dot(normal, invvel) < 1)
 		{
-			position = collision.position;
-
-			const fixline &line = collision.segment->line;
-
-			// fixvec2 normal = fpm::normal(line);
+			const fixed scalar = fpm::lerp(fpm::fabs(velocity.x), fpm::fabs(velocity.y), fpm::Half);
 
 			fixvec2 direction = fpm::normalize(line.p2 - line.p1);
-			fixed length = fpm::dot(direction, velocity);
-			velocity = direction * length;
+			fixed length = fpm::dot(direction, velocity / scalar);
+
+			fixvec2 vel = direction * length * scalar;
 
 			prevpos = position;
-			position += velocity * dts * collision.percent;
+			position += vel * dts * (1 - collision.percent);
+
+			collision = world.collision(prevpos, position, bounds());
+			position = collision.position;
 		}
-		else break;
+		else
+		{
+			velocity = fixvec2(0);
+		}
 	}
 }
 

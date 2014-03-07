@@ -33,6 +33,7 @@ void initialize()
 	textures[Rocks  ].filename = "data/rocks.png";
 	textures[Tree   ].filename = "data/white-tree.png";
 	textures[Bullet ].filename = "data/bullet.png";
+	textures[Rope   ].filename = "data/rope.png";
 
 	fonts[DefaultFont].filename = "data/NotoSans-Bold.ttf";
 	fonts[Monospace  ].filename = "data/consolab.ttf";

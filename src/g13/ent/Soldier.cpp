@@ -139,6 +139,8 @@ void Soldier::updateState(const cmp::SoldierInput &input)
 	state_.velocity = physics.velocity;
 	state_.duck  = physics.ducking();
 	state_.floor = physics.floor();
+	state_.hooked = !rope.idle();
+	state_.hook = rope.idle() ? physics.position : rope.position;
 
 	state_.rightwards = input.rightwards;
 	state_.angle = input.angle;

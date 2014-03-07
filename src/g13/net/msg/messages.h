@@ -128,6 +128,9 @@ BEGIN
 	Bool(soldierState.rightwards)
 	Bool(soldierState.duck)
 	Bool(soldierState.floor)
+	Bool(soldierState.hooked)
+	Fixed(soldierState.hook.x)
+	Fixed(soldierState.hook.y)
 END
 
 MESSAGE(PlayerConnect, ReliableChannel)
@@ -182,6 +185,9 @@ LIST(SoldierState, soldier)
 	Bool(soldier.state.rightwards)
 	Bool(soldier.state.duck)
 	Bool(soldier.state.floor)
+	Bool(soldier.state.hooked)
+	Fixed(soldier.state.hook.x)
+	Fixed(soldier.state.hook.y)
 LISTEND
 
 MESSAGE(GameState, UnsequencedChannel)

@@ -80,6 +80,10 @@ void SoldierGraphics::update(Time dt, const SoldierState &state)
 	air_        = !state.floor;
 	running_    = state.floor && state.velocity.x != 0;
 	rightwards_ = state.rightwards;
+
+	hooked_ = state.hooked;
+	prevHook_ = currHook_;
+	currHook_ = from_fixed(state.hook);
 }
 
 void SoldierGraphics::frame(const Frame &frame, const vec2 &target)
@@ -93,6 +97,34 @@ void SoldierGraphics::frame(const Frame &frame, const vec2 &target)
 
 	position_ = glm::mix(prevPosition_, currPosition_, frame.percent);
 	angle_ = glm::mix(prevAngle_, currAngle_, frame.percent);
+	hook_ = glm::mix(prevHook_, currHook_, frame.percent);
+
+	if (hooked_)
+	{
+		const vec2 a = position_ - vec2(0, 40.0f);
+		const vec2 b = hook_;
+		const vec2 diff = a - b;
+		const float length = glm::length(diff);
+		const float angle = glm::atan(diff.y, diff.x);
+
+		ropeSprites_[0].position = hook_;
+		ropeSprites_[0].center = vec2(0.0f, 7.5f);
+		ropeSprites_[0].width = length;
+		ropeSprites_[0].height = 15.0f;
+		ropeSprites_[0].scale.y = 0.5f;
+		ropeSprites_[0].rotation = angle;
+		ropeSprites_[0].tx0 = vec2(0, 0);
+		ropeSprites_[0].tx1 = vec2(2.0f * length / 116.0f, 15.0f / 128.0f);
+
+		ropeSprites_[1].position = hook_;
+		ropeSprites_[1].center = vec2(50.0f, 31.5f);
+		ropeSprites_[1].width = 100.0f;
+		ropeSprites_[1].height = 63.0f;
+		ropeSprites_[1].scale = vec2(0.5f);
+		ropeSprites_[1].rotation = angle + M_PI;
+		ropeSprites_[1].tx0 = vec2(8, 47) / vec2(116, 128);
+		ropeSprites_[1].tx1 = vec2(8 + 100, 47 + 63) / vec2(116, 128);
+	}
 
 	const Spritesheet &spritesheet = get_spritesheet();
 
@@ -385,11 +417,6 @@ void SoldierGraphics::frame(const Frame &frame, const vec2 &target)
 		for (size_t i = 0; i < countof(sprites_); i++)
 			sprites_[i].transform = transform;
 	}
-}
-
-const gfx::Sprite (&SoldierGraphics::sprites())[9]
-{
-	return sprites_;
 }
 
 // -----------------------------------------------------------------------------

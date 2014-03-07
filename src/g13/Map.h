@@ -12,7 +12,8 @@ class Map
 {
 public:
 	void load(const Json::Value &data);
-	void draw(const Frame &frame, const Camera &camera);
+	void drawBackground(const Frame &frame, const Camera &camera);
+	void drawForeground(const Frame &frame, const Camera &camera);
 
 protected:
 	struct Mesh

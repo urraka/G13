@@ -30,12 +30,21 @@ public:
 
 	const vec2 &position() const { return position_; }
 	const TargetInfo &targetInfo() const { return targetInfo_; }
-	const gfx::Sprite (&sprites())[SpriteCount];
+
+	const gfx::Sprite (&sprites())[SpriteCount] { return sprites_; }
+	const gfx::Sprite (&ropeSprites())[2]       { return ropeSprites_; }
+
+	bool hasRope() const { return hooked_; }
 
 private:
 	vec2 position_;
 	vec2 prevPosition_;
 	vec2 currPosition_;
+
+	bool hooked_;
+	vec2 hook_;
+	vec2 prevHook_;
+	vec2 currHook_;
 
 	uint16_t angle_;
 	uint16_t prevAngle_;
@@ -52,6 +61,7 @@ private:
 
 	gfx::Color bodyColor_;
 	gfx::Sprite sprites_[SpriteCount];
+	gfx::Sprite ropeSprites_[2];
 
 	static const vec2 NoTarget;
 };

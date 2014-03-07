@@ -5,9 +5,9 @@
 #include <g13/coll/Result.h>
 
 namespace g13 {
-namespace ent {
+namespace cmp {
 
-void Rope::update(Time dt, const Soldier &soldier, const coll::World &world)
+void Rope::update(Time dt, const ent::Soldier &soldier, const coll::World &world)
 {
 	static const fixrect bbox(0, 0, 1, 1);
 
@@ -58,4 +58,4 @@ void Rope::pull()
 		state = Pulling;
 }
 
-}} // g13::ent
+}} // g13::cmp

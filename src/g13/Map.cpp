@@ -148,7 +148,7 @@ void Map::initParallax(const Json::Value &data)
 	parallax_.add(sprites[1]);
 }
 
-void Map::draw(const Frame &frame, const Camera &camera)
+void Map::drawBackground(const Frame &frame, const Camera &camera)
 {
 	const mat2d &matrix = camera.matrix();
 	const vec2 viewport = camera.viewport();
@@ -171,9 +171,11 @@ void Map::draw(const Frame &frame, const Camera &camera)
 	gfx::matrix(m0 * matrix);
 	parallax_.texture(&backgroundNear_);
 	gfx::draw(parallax_, 0, 1);
+}
 
-	gfx::matrix(matrix);
-
+void Map::drawForeground(const Frame &frame, const Camera &camera)
+{
+	gfx::matrix(camera.matrix());
 	gfx::bind(groundTexture_);
 	gfx::draw(ground_.vbo);
 	gfx::draw(grass_);
