@@ -1,7 +1,8 @@
 Game
+  - Fix rope origin position (offset from player position not consistent).
   - Increase player damage when hit by a bullet.
   - Bug when failing to join (for the second time maybe?)
-  - Fix all the enet_callbacks crap.
+  x Fix all the enet_callbacks crap.
   - Warning in hlp::pool when BlockSize=1.
   - Bug when resizing window while connecting.
   - Assertion when failing to create server (something is calling stop).

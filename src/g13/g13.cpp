@@ -94,7 +94,7 @@ void initialize()
 	sys::framebuffer_size(&width, &height);
 	gfx::viewport(width, height, sys::window_rotation());
 
-	if (enet_initialize_with_callbacks(ENET_VERSION, hlp::enet_callbacks) != 0)
+	if (enet_initialize_with_callbacks(ENET_VERSION, &hlp::enet_callbacks) != 0)
 		error_log("Failed to initialize enet.");
 
 	state = new stt::MainMenu();

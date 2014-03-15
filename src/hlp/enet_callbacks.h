@@ -4,7 +4,9 @@
 
 namespace hlp
 {
-	extern const ENetCallbacks *enet_callbacks;
+	extern const ENetCallbacks enet_callbacks;
 
+	#ifdef DEBUG
 	void enet_callbacks_counters();
+	#endif
 }
