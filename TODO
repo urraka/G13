@@ -28,7 +28,7 @@ Game
   - Due to quantum mechanics bullets go through players when shooting from a certain position.
     ~ This is an intersection precision problem, when endpoint is very near the line.
   - Sanity check collision data and re-enable assertions on fpm::normalize.
-    - Split "long" segments.
+    / Split "long" segments.
   - Make a class for the chatbox.
   - Think how the event system should work. Consider some minimalistic ui system.
   - Find ultimate solution for the collision bugs.

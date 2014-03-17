@@ -1,28 +1,36 @@
 #include "enet_callbacks.h"
 #include <iostream>
 #include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+#include <assert.h>
 
-class DynamicPool
+class MemoryPool
 {
-	struct Header { void *next; };
+public:
+	struct Header
+	{
+		union {
+			void *next;
+			uint64_t x;
+		};
+	};
+
 	static const size_t Padding = sizeof(Header);
 
-public:
-	DynamicPool(size_t dataSize, size_t blockSize)
-		:	dataSize_(dataSize),
-			blockSize_(blockSize),
+	MemoryPool()
+		:	dataSize_(0),
+			blockSize_(0),
 			front_(0),
 			blocks_(0)
-	#ifdef DEBUG
+			#ifdef DEBUG
 			, allocatedBytes_(0),
 			allocatedBlocks_(0)
-	#endif
+			#endif
 	{
-		blocks_ = createBlock();
-		front_ = (char*)blocks_ + Padding;
 	}
 
-	~DynamicPool()
+	~MemoryPool()
 	{
 		while (blocks_ != 0)
 		{
@@ -30,6 +38,14 @@ public:
 			free(blocks_);
 			blocks_ = next;
 		}
+	}
+
+	void initialize(size_t dataSize, size_t blockSize)
+	{
+		assert(dataSize > 0 && blockSize > 0 && blocks_ == 0);
+
+		dataSize_ = Padding * (size_t)ceil(dataSize / (float)Padding);
+		blockSize_ = blockSize;
 	}
 
 	void *alloc()
@@ -63,8 +79,8 @@ public:
 	#endif
 
 private:
-	const size_t dataSize_;
-	const size_t blockSize_;
+	size_t dataSize_;
+	size_t blockSize_;
 	void *front_;
 	void *blocks_;
 
@@ -104,29 +120,20 @@ private:
 #define BLOCK_SIZE(i) (1 << (PoolCount - (i + 1)))
 
 static const size_t Base = 32;
-static const size_t Offset = sizeof(void*);
+static const size_t Padding = MemoryPool::Padding;
 static const size_t PoolCount = 6;
 
-struct PoolsWrapper
+static MemoryPool *initialize_pools()
 {
-	DynamicPool *pools_[PoolCount];
+	static MemoryPool pools[PoolCount];
 
-	PoolsWrapper()
-	{
-		for (size_t i = 0; i < PoolCount; i++)
-			pools_[i] = new DynamicPool(DATA_SIZE(i), BLOCK_SIZE(i));
-	}
+	for (size_t i = 0; i < PoolCount; i++)
+		pools[i].initialize(DATA_SIZE(i), BLOCK_SIZE(i));
 
-	~PoolsWrapper()
-	{
-		for (size_t i = 0; i < PoolCount; i++)
-			delete pools_[i];
-	}
+	return pools;
+}
 
-	DynamicPool *operator[](int i) { return pools_[i]; }
-};
-
-static PoolsWrapper pools;
+static MemoryPool *pools = initialize_pools();
 
 #ifdef DEBUG
 static int counters[PoolCount + 1] = {};
@@ -136,7 +143,7 @@ static void *cb_malloc(size_t size)
 {
 	size_t i = 0;
 	size_t n = Base;
-	size_t expandedSize = size + Offset;
+	size_t expandedSize = size + Padding;
 
 	while (n < expandedSize)
 	{
@@ -150,9 +157,9 @@ static void *cb_malloc(size_t size)
 		counters[i]++;
 		#endif
 
-		char *data = (char*)pools[i]->alloc();
+		char *data = (char*)pools[i].alloc();
 		data[0] = i;
-		return data + Offset;
+		return data + Padding;
 	}
 	else
 	{
@@ -160,20 +167,20 @@ static void *cb_malloc(size_t size)
 		counters[PoolCount]++;
 		#endif
 
-		char *data = (char*)malloc(size + Offset);
+		char *data = (char*)malloc(size + Padding);
 		data[0] = -1;
-		return data + Offset;
+		return data + Padding;
 	}
 }
 
 static void cb_free(void *data)
 {
-	char *buffer = (char*)data - Offset;
+	char *buffer = (char*)data - Padding;
 
 	if (buffer[0] == -1)
 		free(buffer);
 	else
-		pools[(int)buffer[0]]->free(buffer);
+		pools[(int)buffer[0]].free(buffer);
 }
 
 namespace hlp
@@ -190,13 +197,13 @@ namespace hlp
 
 		for (size_t i = 0; i < PoolCount; i++)
 		{
-			mallocCount += pools[i]->allocatedBlocks();
-			totalMemory += pools[i]->allocatedBytes();
+			mallocCount += pools[i].allocatedBlocks();
+			totalMemory += pools[i].allocatedBytes();
 
 			std::cout << "Pool #" << i << " (" << DATA_SIZE(i) << " bytes): " << std::endl <<
 				"    Allocation count: " << counters[i] << std::endl <<
-				"    Allocated bytes: " << pools[i]->allocatedBytes() << std::endl <<
-				"    Allocated blocks: " << pools[i]->allocatedBlocks() << std::endl;
+				"    Allocated bytes: " << pools[i].allocatedBytes() << std::endl <<
+				"    Allocated blocks: " << pools[i].allocatedBlocks() << std::endl;
 		}
 
 		std::cout << "Total malloc calls: " << mallocCount << std::endl;
