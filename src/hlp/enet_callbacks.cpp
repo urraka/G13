@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 #include <math.h>
 #include <assert.h>
 
@@ -119,7 +120,8 @@ private:
 #define DATA_SIZE(i)  (Base << i)
 #define BLOCK_SIZE(i) (1 << (PoolCount - (i + 1)))
 
-static const size_t Base = 32;
+static const size_t BaseBit = 5;
+static const size_t Base = 1 << BaseBit;
 static const size_t Padding = MemoryPool::Padding;
 static const size_t PoolCount = 6;
 
@@ -139,20 +141,24 @@ static MemoryPool *pools = initialize_pools();
 static int counters[PoolCount + 1] = {};
 #endif
 
+#ifdef _MSC_VER
+#include <intrin.h>
+// TODO: this should be verified... some day
+static inline size_t clz(unsigned int x)     { unsigned long n; _BitScanReverse(&n, x); return 31 - n; }
+static inline size_t clz(unsigned __int64 x) { unsigned __int64 n; _BitScanReverse64(&n, x); return 63 - n; }
+#else
+static inline size_t clz(unsigned int x)       { return __builtin_clz(x);   }
+static inline size_t clz(unsigned long long x) { return __builtin_clzll(x); }
+#endif
+
 static void *cb_malloc(size_t size)
 {
-	size_t i = 0;
-	size_t n = Base;
-	size_t expandedSize = size + Padding;
-
-	while (n < expandedSize)
-	{
-		i++;
-		n = n << 1;
-	}
+	size_t i = (sizeof(size_t) * CHAR_BIT) - clz(size_t((size + Padding - 1) | (Base - 1))) - BaseBit;
 
 	if (i < PoolCount)
 	{
+		assert(DATA_SIZE(i) >= size + Padding);
+
 		#ifdef DEBUG
 		counters[i]++;
 		#endif
