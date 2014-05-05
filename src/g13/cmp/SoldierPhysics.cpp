@@ -38,6 +38,7 @@ void SoldierPhysics::unhook()
 {
 	mode = Normal;
 	walkvel = velocity.x;
+	segment = 0;
 }
 
 void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const SoldierInput &input)
@@ -323,17 +324,18 @@ void SoldierPhysics::updateNormal(Time dt, const coll::World &world, const Soldi
 	}
 }
 
-void SoldierPhysics::updateRope(Time dt, const coll::World &world, const SoldierInput &input)
+void SoldierPhysics::updateRope(Time deltaTime, const coll::World &world, const SoldierInput &input)
 {
-	const fixed dts = to_fixed(dt);
+	const fixed delta = to_fixed(deltaTime);
 
+	fixed dt = delta;
+	fixvec2 initialpos = position;
 	fixvec2 prevpos = position;
-
 	fixvec2 ropeacc = 15 * (ropeHook - position);
 
 	acceleration = ropeacc + fixvec2(0, vars::Gravity);
-	velocity += acceleration * dts;
-	position += velocity * dts;
+	velocity += acceleration * dt;
+	position += velocity * dt;
 
 	fixed L = fpm::length(position - ropeHook);
 
@@ -341,10 +343,13 @@ void SoldierPhysics::updateRope(Time dt, const coll::World &world, const Soldier
 		position = ropeHook + ((position - ropeHook) / L) * vars::MaxRopeLength;
 
 	coll::Result collision = world.collision(prevpos, position, bounds());
+	position = collision.position;
 
-	if (collision.segment != 0)
+	int loopCount = 0;
+
+	while (collision.segment != 0 && loopCount++ < 3)
 	{
-		position = collision.position;
+		dt *= (1 - collision.percent);
 
 		const fixline &line = collision.segment->line;
 		const fixvec2 normal = fpm::normal(line);
@@ -357,19 +362,17 @@ void SoldierPhysics::updateRope(Time dt, const coll::World &world, const Soldier
 			fixvec2 direction = fpm::normalize(line.p2 - line.p1);
 			fixed length = fpm::dot(direction, velocity / scalar);
 
-			fixvec2 vel = direction * length * scalar;
+			velocity = direction * length * scalar;
 
 			prevpos = position;
-			position += vel * dts * (1 - collision.percent);
+			position += velocity * dt;
 
 			collision = world.collision(prevpos, position, bounds());
 			position = collision.position;
 		}
-		else
-		{
-			velocity = fixvec2(0);
-		}
 	}
+
+	velocity = (position - initialpos) / delta;
 }
 
 void SoldierPhysics::reset(fixvec2 pos)
