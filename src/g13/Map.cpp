@@ -100,15 +100,14 @@ void Map::initGrass(const Json::Value &data)
 
 void Map::initSky(const Json::Value &data)
 {
-	gfx::ColorVertex v[6];
+	gfx::ColorVertex v[4];
 
-	v[0] = v[1] = gfx::color_vertex(0.0f,  0.0f, gfx::Color(0xF9, 0xFE, 0xEE));
-	v[2] = v[3] = gfx::color_vertex(0.0f, 0.44f, gfx::Color(0xFD, 0xFD, 0x63));
-	v[4] = v[5] = gfx::color_vertex(0.0f,  1.0f, gfx::Color(0xFD, 0xFD, 0x63));
+	v[0] = v[1] = gfx::color_vertex(0.0f, 0.0f, gfx::Color(204, 238, 251));
+	v[2] = v[3] = gfx::color_vertex(0.0f, 1.0f, gfx::Color(0x00, 0xAB, 0xEB));
 
-	v[1].x = v[3].x = v[5].x = 1.0f;
+	v[1].x = v[3].x = 1.0f;
 
-	uint16_t indices[] = {0, 1, 2, 3, 4, 5};
+	uint16_t indices[] = {0, 1, 2, 3};
 
 	sky_.vbo.allocate<gfx::ColorVertex>(countof(v), gfx::Static);
 	sky_.vbo.set(v, 0, countof(v));
@@ -132,7 +131,7 @@ void Map::initParallax(const Json::Value &data)
 	sprites[0].width = 2.0f * W;
 	sprites[0].height = 2.0f * H;
 	sprites[0].position.x = (L + R) / 2.0f - sprites[0].width / 2.0f;
-	sprites[0].position.y = T + H * 0.25f;
+	sprites[0].position.y = T + H * 0.35f;
 	sprites[0].tx1.x = 0.5f * (sprites[0].width  / (float)backgroundNear_.width());
 	sprites[0].tx1.y = 0.5f * (sprites[0].height / (float)backgroundNear_.height());
 

@@ -98,7 +98,7 @@ Renderer::Renderer(Client *client)
 	damageOverlay.mode(gfx::TriangleFan);
 
 	#ifdef DBG_SHOW_CURRENT_HULL
-	dbg_hull.allocate<gfx::ColorVertex>(6, gfx::Stream);
+	dbg_hull.allocate<gfx::ColorVertex>(10, gfx::Stream);
 	dbg_hull.mode(gfx::Lines);
 	#endif
 
@@ -312,6 +312,7 @@ void Renderer::draw(const Frame &frame)
 			if (localPlayer && localPlayer->soldier.physics.segment != 0)
 			{
 				const coll::Segment (&s)[3] = localPlayer->soldier.physics.hull.segments;
+				const coll::Segment &sg = *localPlayer->soldier.physics.segment;
 
 				const gfx::Color color[2] = {
 					gfx::Color(255, 0, 0),
@@ -319,6 +320,9 @@ void Renderer::draw(const Frame &frame)
 				};
 
 				gfx::ColorVertex vertices[] = {
+					gfx::color_vertex(fpm::to_float(sg.line.p1.x), fpm::to_float(sg.line.p1.y), gfx::Color(255)),
+					gfx::color_vertex(fpm::to_float(sg.line.p2.x), fpm::to_float(sg.line.p2.y), gfx::Color(255)),
+
 					gfx::color_vertex(fpm::to_float(s[0].line.p1.x), fpm::to_float(s[0].line.p1.y), color[s[0].floor]),
 					gfx::color_vertex(fpm::to_float(s[0].line.p2.x), fpm::to_float(s[0].line.p2.y), color[s[0].floor]),
 					gfx::color_vertex(fpm::to_float(s[1].line.p1.x), fpm::to_float(s[1].line.p1.y), color[s[1].floor]),
@@ -330,7 +334,7 @@ void Renderer::draw(const Frame &frame)
 				dbg_hull.set(vertices, 0, countof(vertices));
 
 				gfx::matrix(camera.matrix());
-				gfx::draw(dbg_hull);
+				gfx::draw(dbg_hull, countof(vertices));
 			}
 			#endif
 

@@ -471,7 +471,8 @@ void Server::onPlayerBulletCollision(void *data)
 	ServerPlayer *attacker = getPlayerById(params->bulletOwner);
 	ServerPlayer *victim = (ServerPlayer*)params->entity->data;
 
-	int amount = MaxHealth / (20 + rand() % 5);
+	int percent = (30 + (rand() % 5));
+	int amount = MaxHealth * (percent / 100.0f);
 
 	victim->health -= amount;
 

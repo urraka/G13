@@ -62,8 +62,10 @@ void initialize()
 				{0.02f, 0.52f}
 			};
 
-			sys::window_size(0.42f, 0.42f);
-			sys::window_position(positions[n][0], positions[n][1]);
+			//sys::window_size(0.42f, 0.42f);
+			//sys::window_position(positions[n][0], positions[n][1]);
+			sys::window_size(900, 600);
+			sys::window_position(100, 100);
 
 			n = (n + 1) % 4;
 

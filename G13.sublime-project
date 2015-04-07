@@ -8,11 +8,11 @@
 	"build_systems": [
 		{
 			"name": "MinGW-win",
-			"cmd": ["C:/mingw/msys/1.0/bin/sh.exe", "--login", "-i", "-c", "cd ${project_path/\\\\/\\//g}; make debug"],
+			"cmd": ["C:/mingw64/msys/1.0/bin/sh.exe", "--login", "-i", "-c", "cd ${project_path/\\\\/\\//g}; make debug"],
 			"variants": [
 				{
 					"name": "Run",
-					"cmd": ["start", "bin\\win32-d\\G13.exe"],
+					"cmd": ["start", "cmd", "/K", "bin\\win32-d\\G13.exe"],
 					"shell": true,
 					"working_dir": "${project_path}"
 				}

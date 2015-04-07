@@ -53,7 +53,7 @@ endif
 
 cxx := g++
 opt := -Wall -fno-exceptions -fno-rtti -D__STDC_LIMIT_MACROS -DGLM_FORCE_RADIANS
-inc := -Isrc
+inc := -Isrc -Iinclude
 glsl-binary := bin/glsl
 
 ifeq ($(debug),yes)

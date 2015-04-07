@@ -349,15 +349,21 @@ void SoldierPhysics::updateRope(Time deltaTime, const coll::World &world, const 
 
 	while (collision.segment != 0 && loopCount++ < 3)
 	{
+		segment = collision.segment;
+		hull = collision.hull;
+
 		dt *= (1 - collision.percent);
 
-		const fixline &line = collision.segment->line;
+		// const fixline &line = collision.segment->line;
+		const fixline &line = collision.hull.segments[collision.index].line;
 		const fixvec2 normal = fpm::normal(line);
 		const fixvec2 invvel = fpm::normalize(-velocity);
 
-		if (fpm::dot(normal, invvel) < 1)
+		// if (fpm::dot(normal, invvel) < 1) que no se trabe la cuerdita ejje
+		if (fpm::dot(velocity, normal) < 0)
 		{
-			const fixed scalar = fpm::lerp(fpm::fabs(velocity.x), fpm::fabs(velocity.y), fpm::Half);
+			// const fixed scalar = fpm::lerp(fpm::fabs(velocity.x), fpm::fabs(velocity.y), fpm::Half);
+			const fixed scalar = 1;
 
 			fixvec2 direction = fpm::normalize(line.p2 - line.p1);
 			fixed length = fpm::dot(direction, velocity / scalar);
@@ -369,6 +375,10 @@ void SoldierPhysics::updateRope(Time deltaTime, const coll::World &world, const 
 
 			collision = world.collision(prevpos, position, bounds());
 			position = collision.position;
+		}
+		else
+		{
+			break;
 		}
 	}
 

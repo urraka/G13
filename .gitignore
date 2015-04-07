@@ -25,6 +25,7 @@ dep/packages/
 proj/vc10/Debug/
 proj/vc10/Release/
 xcuserdata
+dist/
 
 # OS generated files
 
