@@ -14,6 +14,7 @@ Shift | Run
 Left Click | Shoot
 Right Click | Rope
 Enter | Chat
++/- | Zoom
 Escape | Quit
 
 ## License
